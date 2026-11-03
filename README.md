@@ -5,3 +5,57 @@ A JavaScript browser revival of the original Delphi Schieber and Differenzler ga
 See [project.md](project.md) for the original software investigation, fidelity requirements, asset strategy and implementation milestones.
 
 The legacy source, executables and assets are kept locally in `original/`, which is excluded from version control. The separate original launcher is outside the browser port's scope.
+
+## Run locally
+
+Use Node.js 22.12 or newer.
+
+```sh
+npm ci
+npm run dev
+```
+
+Open the local URL printed by Vite. `npm run build` creates the static site in `dist/`; `npm run preview` serves that build.
+
+Choose **Neuer Schieber…** or **Neuer Differenzler…** to play complete matches against the original Pascal computer players. Differenzler supports three or four players and Grumpy Junior, Hacker or Trashy. Setup includes difficulty and rule variants. Hints, undo, pause, round results, automatic saves, file export/import and legacy archive replay are available. See [playing and compatibility notes](docs/playable-games.md).
+
+Under **Ansicht**, switch between original and enhanced backgrounds, choose 1×/2×/3×, select card sets/sizes, or fit the table to the window. **Fenster** offers fullscreen. Enable **Ton** below the table for sounds loaded on demand. Restart a stopped development server with `npm run dev` from this directory.
+
+## Scaling and assets
+
+`src/config.js` is the central configuration: `DISPLAY.scale` defaults to `2`. Drawing remains in a 768 × 528 logical coordinate system. Window fitting, asset resolution and device pixel ratio are independent; disable fitting to see the literal selected scale. `toLogicalPoint` converts pointer coordinates back to logical coordinates for card selection.
+
+The required runtime assets are in `public/assets/`; running the browser app does not require the ignored `original/` folder. Original artwork is retained for comparison. The enhanced background is a first sample requiring visual acceptance, not a claim of pixel-exact fidelity. See `public/assets/provenance.json` for its generation prompt, dimensions and sources. The surrounding sprite artwork has not yet been enhanced.
+
+With the local archive present, `npm run assets:extract` losslessly recovers the background, embedded Pieces bitmap and its 121 source rectangles. It never modifies the archive. To package another generated 4:3 background at 2× resolution, use `node scripts/prepare-enhanced.mjs <image.png>`.
+
+## Card rendering preview
+
+Open [the card preview](http://127.0.0.1:5173/?review=cards) to inspect all five original card sets, both sizes and both orientations. Select a card with the mouse or keyboard; use **Ansicht** to check scaling and compare table backgrounds. This is a rendering preview, not a playable game. The normal title screen remains at `/`.
+
+The 20 card sheets are packaged losslessly at their original resolution. After `npm run reference:extract`, run `npm run assets:cards` to regenerate them from the archive with source and decoded-pixel hash checks. The preview loads only the selected sheet. See [M3 rendering notes](docs/m3-rendering.md) for the scaling, mask and interaction implementation and its limits.
+
+## Verification
+
+`npm test` runs Playwright against installed Microsoft Edge (configure the browser channel in `playwright.config.js` for another environment). Checks cover asset loading, original/enhanced comparison, menus, fit-to-window, scales 1–3, high-DPI backing dimensions, card-sheet variants, card selection, and exact legacy RGB mask operations. Screenshots are written under ignored `test-results/` for visual review.
+
+`npm run engine:test` checks the translated rules, multi-round AI games, forfeits, save restoration and legacy replay. Browser tests also exercise full matches, human card selection, hints, undo and MP3 decoding. Native archive comparisons agree on the checked predictions and scores; exhaustive browser/executable equivalence remains pending. See [validation and remaining differences](docs/playable-games.md#verification-and-remaining-fidelity-work).
+
+## M1 reference collection
+
+With the ignored `original/` archive present, run:
+
+```sh
+npm run reference:extract
+npm run reference:test
+```
+
+Open [the asset gallery](http://127.0.0.1:5173/artifacts/m1/gallery.html) or [the sprite/mask gallery](http://127.0.0.1:5173/artifacts/m1/mappings-gallery.html) while the development server is running. Bulk outputs remain in ignored `artifacts/` and are not part of the production bundle.
+
+See [M1 results](docs/m1/README.md) for coverage, [reference scenarios](docs/m1/scenarios.md) for the Windows capture commands and observed compatibility gaps, and [mapping notes](docs/m1/mappings-notes.md) for exact original coordinates and masks. Native capture requires Python/Pillow on Windows; ordinary browser development and asset extraction use Node.js.
+
+## Pascal core translation
+
+`src/engine/SWSBase.js` and `src/engine/DiffBase.js` directly port the corresponding Pascal routines, retaining function names, record fields and numeric IDs. The translation covers card/trick rules, the original random/dealing algorithm, Weis, Stöck, forfeits, round lifecycle and match scoring. `src/engine/game.js` integrates the command flow with browser controls. The original AI compiles to JavaScript with pas2js and runs in a worker; see [AI build and compatibility notes](docs/ai-port.md).
+
+Run `npm run engine:test` for the headless tests, including legal-play and winner comparisons against two archived original rounds. See [the translation map](docs/m5-core.md) for exact scope, conventions and verification limits.

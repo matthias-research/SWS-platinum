@@ -1,0 +1,68 @@
+{
+  "background": {
+    "original": "original/Bmp/BackS1.bmp",
+    "originalDimensions": [
+      1024,
+      768
+    ],
+    "enhanced": "table-enhanced-2x.png",
+    "dimensions": [
+      2048,
+      1536
+    ],
+    "assetScale": 2,
+    "generator": "Built-in image_gen edit",
+    "nativeGeneratedDimensions": [
+      1448,
+      1086
+    ],
+    "packaging": "AI detail restoration followed by deterministic resize to the 2x asset contract using sharp; packaging adds no further generated detail.",
+    "status": "First sample, awaiting user visual acceptance; geometry and textures are not pixel-identical.",
+    "prompt": "Use case: precise-object-edit. Edit target: the supplied original 1024x768 BackS1.bmp game background. Produce a faithful 2x enhanced restoration at exactly 2048x1536 pixels. Preserve every object's position, silhouette, perspective, proportion, framing, and original late-1990s glossy 3D rendered art style. This is a coordinate-sensitive game asset, NOT a redesign. Top-down circular blue translucent glass table centered near (512,294) in original coordinates, square green felt mat, red chrome-framed chairs north and south, blue chrome-framed chairs east and west, black and silver diagonal tiled floor. Preserve original crop of upper red chair and all floor diagonals. Remove palette dithering and pixel noise; reconstruct subtle detailed green felt fibers, clean chrome highlights, smooth colored leather and glass reflections. Keep exactly the original geometry and vivid colors. No new objects, no text, no UI, no cards, no borders. Do not move the table or enlarge the felt relative to it. Output the entire original scene with twice the linear pixel resolution.",
+    "sha256": "826a05e9330590adb4c9c7066ba69f77087797c3fca3367ac8fafb6260c76441"
+  },
+  "interface": {
+    "source": "original/Schieber/JassBmps.dfm",
+    "bitmap": "BmpsForm.Pieces.Picture.Data",
+    "rectangles": "original/Schieber/JassBmps.pas kPieceRect",
+    "assetScale": 1,
+    "enhanced": false
+  },
+  "reference": {
+    "layout": "User-supplied original-window screenshot and original/Schieber/Table.pas onePlayerMode",
+    "logicalViewport": [
+      768,
+      528
+    ],
+    "runtimeComparison": "Native captures in docs/m1 and docs/game-reference; checked archive predictions and scores agree. Exhaustive parity is not established."
+  },
+  "differBackground": {
+    "original": "original/Bmp/BackD1.bmp",
+    "originalDimensions": [
+      1024,
+      768
+    ],
+    "enhanced": "differ-table-enhanced-2x.png",
+    "dimensions": [
+      2048,
+      1536
+    ],
+    "assetScale": 2,
+    "generator": "Built-in image_gen edit",
+    "nativeGeneratedDimensions": [
+      1448,
+      1086
+    ],
+    "packaging": "AI detail restoration followed by deterministic resize to the 2x asset contract using sharp; packaging adds no further generated detail.",
+    "status": "Generated restoration sample; geometry and textures are not pixel-identical. Original remains selectable.",
+    "prompt": "Edit target: the supplied original 1024x768 Delphi Differenzler game background. Faithful detail-preserving restoration and 2x super-resolution to 2048x1536, same 4:3 framing. Preserve exact pixel-relative positions and silhouettes of ALL objects: grey elliptical table rim centered at (512,288) approximately, green rectangular felt from x386 to644 y159 to420, blue-purple top/left/right chairs, vivid green bottom chair, chrome tubular chair frames, black and white diagonal floor tiles. Do not move, resize, crop, reframe, redesign or add anything. Remove 1990s palette dithering and give surfaces finer coherent detail: clean smooth chrome highlights, fine green felt fibres, subtle grey tabletop texture and natural cushion gradients. Match original colors, perspective, light and shadows. This must remain a faithful 1990s 3D-rendered game background; no text, cards, logos or UI. Every original layout coordinate must remain aligned when divided by 2. Save the final image as a project asset.",
+    "sha256": "3ded86b0a24f97db0a207b29360e408c65337465e09d489b4e00ec2df4f179a6"
+  },
+  "differInterface": {
+    "source": "original/Differ/JassBmps.dfm",
+    "bitmap": "BmpsForm.Pieces.Picture.Data",
+    "rectangles": "original/Differ/JassBmps.pas kPieceRect",
+    "assetScale": 1,
+    "enhanced": false
+  }
+}

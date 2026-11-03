@@ -1,1 +1,8 @@
 /original/
+/node_modules/
+/dist/
+/test-results/
+/playwright-report/
+/artifacts/
+__pycache__/
+*.pyc

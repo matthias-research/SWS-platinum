@@ -1,0 +1,55 @@
+:root { font-family: Arial, sans-serif; color: #171717; background: #efefef; font-synthesis: none; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 280px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 2px solid #22589a; outline-offset: -2px; }
+button:disabled { color: #8a8a8a; cursor: default; }
+.application { width: max-content; min-width: min(100%, 280px); margin: 4px auto; padding: 0 4px; }
+.menu-bar { height: 32px; display: flex; align-items: center; gap: 2px; position: relative; z-index: 2; }
+.menu { position: relative; }
+.menu-title { border: 1px solid transparent; background: transparent; padding: 5px 9px; font-size: 14px; }
+.menu-title:hover, .menu-title.active { background: #dceafb; border-color: #a5b8cc; }
+.menu-popup { position: absolute; top: 100%; left: 0; min-width: 242px; background: #f4f4f4; border: 1px solid #858585; padding: 3px; box-shadow: 3px 4px 8px #0004; }
+.menu:last-child .menu-popup { left: auto; right: 0; }
+.menu-item { display: flex; align-items: center; text-align: left; width: 100%; border: 0; background: none; padding: 8px 12px; white-space: nowrap; font-size: 14px; }
+.menu-item:not(:disabled):hover { background: #dceafb; }
+.check { display: inline-block; width: 22px; }
+.menu-note { font-size: 12px; margin: 8px 12px; color: #626262; }
+hr { border: 0; border-top: 1px solid #ccc; margin: 4px; }
+.scene-frame { position: relative; border: 2px inset #fff; background: #ddd; }
+canvas { display: block; }
+.loading { position: absolute; inset: 40% 0 auto; text-align: center; }
+.error { max-width: var(--scene-width); color: #922; padding: 8px; }
+dialog { max-width: min(440px, 90vw); border: 1px solid #888; padding: 24px; background: #f4f4f4; box-shadow: 0 10px 60px #0005; }
+dialog::backdrop { background: #0005; }
+dialog h1 { margin-top: 0; font-size: 21px; font-weight: 500; }
+dialog p { line-height: 1.5; }
+dialog button { display: block; margin-left: auto; min-width: 80px; padding: 6px 16px; }
+@media (max-width: 420px) { .menu-title { padding-inline: 6px; font-size: 13px; } .menu-popup { min-width: 220px; } }
+
+.card-review { max-width: var(--scene-width); font-size: 13px; padding: 0 0 12px; }
+.card-review p { margin: 4px 0 8px; }
+.review-controls { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.review-controls label { display: flex; flex-direction: column; gap: 3px; }
+.review-controls select { font: inherit; padding: 4px; }
+.card-targets { position: absolute; inset: 0; pointer-events: none; }
+.card-target { position: absolute; border: none; padding: 0; background: transparent; pointer-events: auto; }
+.card-target:focus-visible { outline: 2px solid #ffce37; outline-offset: -3px; }
+.game-controls { max-width: var(--scene-width); padding: 8px 0; font-size: 14px; }
+.game-status { margin-bottom: 6px; min-height: 18px; }
+.game-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.game-actions button, .game-actions select { padding: 5px 8px; }
+.game-actions form { display: flex; align-items: center; gap: 6px; }
+.game-actions input { width: 65px; padding: 5px; }
+.game-setup { max-height: 90vh; overflow: auto; width: 410px; }
+.game-setup label { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 10px 0; font-size: 14px; }
+.game-setup input[type=number] { width: 85px; }
+.game-setup input, .game-setup select { padding: 5px; font: inherit; }
+.game-setup .checkbox { justify-content: flex-start; gap: 8px; }
+.game-setup details { margin: 16px 0; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+.dialog-actions button { margin: 0; }
+.results { overflow: auto; margin-top: 12px; }
+.results table { border-collapse: collapse; width: 100%; background: white; }
+.results th, .results td { border: 1px solid #bbb; padding: 6px; text-align: center; }
+.results caption { text-align: left; padding: 8px 0; }

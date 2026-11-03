@@ -1,0 +1,41 @@
+{
+  "compiler": "pas2js 3.2.0",
+  "rebuild": "npm run ai:build",
+  "modules": {
+    "schieber": {
+      "path": "src/ai/generated/schieber.js",
+      "sha256": "464c0b5334813aef8f3c1d2431aaf2f143b37d0fb60371707eca9a1b2c709aa1"
+    },
+    "differ": {
+      "path": "src/ai/generated/differ.js",
+      "sha256": "805e26622c8b18502d3f3d22f014a58f462986eca8b7a8de409ccdd56c54bbc3"
+    }
+  },
+  "tables": {
+    "RUGD7000.DAT": {
+      "source": "original/Daten/RUGD7000.DAT",
+      "bytes": 48016,
+      "sha256": "cd3c6b70b4c45eece46faee24ae8d9f4b280eb9cb0862c08b3fd4840a522658a"
+    },
+    "RGDIFF.DAT": {
+      "source": "original/Daten/RGDIFF.DAT",
+      "bytes": 366824,
+      "sha256": "dbc792d654ec8698b7b80765acd0c7486e0f881a9f0545b6aedf2e75fb9a2c7e"
+    },
+    "Hcall.dat": {
+      "source": "original/Daten/Hcall.dat",
+      "bytes": 338332,
+      "sha256": "df9dc8a199f75cf225c15eb6a0388c35c85c6448769efb6c1811ad24bfd9ba9f"
+    },
+    "HPLAY.DAT": {
+      "source": "original/Daten/HPLAY.DAT",
+      "bytes": 20484,
+      "sha256": "bb19a07c185c46d786ae20f311dad28fe25440b3884e855bb77bf22500f249de"
+    },
+    "TRASHY.DAT": {
+      "source": "original/Daten/TRASHY.DAT",
+      "bytes": 184320,
+      "sha256": "a5ff1505e132401953f9e79eeafbc99bd5886a2e3654fe1d76d0204c50b2d17f"
+    }
+  }
+}

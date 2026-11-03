@@ -1,0 +1,284 @@
+[
+  {
+    "game": "schieber",
+    "source": "original/Schieber/GRUMPY.JAR",
+    "sourceSha256": "5dce121d65847cbbca4d9e8c4b6bcb9c66a8fb5e3970047e7bf386c6fe9be225",
+    "sourceLine": 13,
+    "excerpt": "### Round: 1 trumps 1 (trick 9)\r\n1 suits \r\n2 suits \r\n3 suits  (23 23 24 25)\r\n4 suits \r\n3 ->   7  1  2  6\r\n2 ->  10 13 18  4\r\n1 ->   9  3 31 12\r\n1 ->   8  5 11 14\r\n1 ->  19 21 23 27\r\n4 ->  26 20 22 24\r\n4 ->  36 29 28 34\r\n4 ->  30 35 15 25\r\n1 ->  32 16 17 33\r\n4 ->   0  0  0  0\r\n### End Of Round.",
+    "round": {
+      "fTrump": 1,
+      "fTrick": 9,
+      "fTricks": [
+        {
+          "fLeading": 3,
+          "fPlayed": [
+            0,
+            2,
+            6,
+            7,
+            1
+          ]
+        },
+        {
+          "fLeading": 2,
+          "fPlayed": [
+            0,
+            4,
+            10,
+            13,
+            18
+          ]
+        },
+        {
+          "fLeading": 1,
+          "fPlayed": [
+            0,
+            9,
+            3,
+            31,
+            12
+          ]
+        },
+        {
+          "fLeading": 1,
+          "fPlayed": [
+            0,
+            8,
+            5,
+            11,
+            14
+          ]
+        },
+        {
+          "fLeading": 1,
+          "fPlayed": [
+            0,
+            19,
+            21,
+            23,
+            27
+          ]
+        },
+        {
+          "fLeading": 4,
+          "fPlayed": [
+            0,
+            20,
+            22,
+            24,
+            26
+          ]
+        },
+        {
+          "fLeading": 4,
+          "fPlayed": [
+            0,
+            29,
+            28,
+            34,
+            36
+          ]
+        },
+        {
+          "fLeading": 4,
+          "fPlayed": [
+            0,
+            35,
+            15,
+            25,
+            30
+          ]
+        },
+        {
+          "fLeading": 1,
+          "fPlayed": [
+            0,
+            32,
+            16,
+            17,
+            33
+          ]
+        },
+        {
+          "fLeading": 4,
+          "fPlayed": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "fTrumpedBy": 1,
+      "fSuits": [
+        {
+          "fCount": 0,
+          "fCalls": []
+        },
+        {
+          "fCount": 0,
+          "fCalls": []
+        },
+        {
+          "fCount": 0,
+          "fCalls": []
+        },
+        {
+          "fCount": 1,
+          "fCalls": [
+            {
+              "fValue": 23,
+              "fCards": [
+                23,
+                24,
+                25
+              ]
+            }
+          ]
+        },
+        {
+          "fCount": 0,
+          "fCalls": []
+        }
+      ]
+    }
+  },
+  {
+    "game": "differ",
+    "source": "original/Differ/TEST.JAR",
+    "sourceSha256": "eeb3538225d984776514e17c4c7666a8a9102f2b95821da89aaaa67699237398",
+    "sourceLine": 15,
+    "excerpt": "### Round: card 27 trump 3 stocksFor 0 stockings 0 (trick 9)\r\n1 call 0 made 12 bonus 0\r\n2 call 65 made 50 bonus 0\r\n3 call 21 made 14 bonus 0\r\n4 call 72 made 81 bonus 0\r\n3 ->   6 24  5  4\r\n4 ->   9  7 22 20\r\n2 ->  18 25 26 16\r\n4 ->   8  3 27 13\r\n2 ->  36 19 21 32\r\n4 ->  12 11 14 17\r\n3 ->  33 29 23 28\r\n1 ->  30 35 31 34\r\n2 ->   1 10  2 15\r\n4 ->   0  0  0  0\r\n### End Of Round.",
+    "round": {
+      "fTrump": 3,
+      "fTrick": 9,
+      "fTricks": [
+        {
+          "fLeading": 3,
+          "fPlayed": [
+            0,
+            5,
+            4,
+            6,
+            24
+          ]
+        },
+        {
+          "fLeading": 4,
+          "fPlayed": [
+            0,
+            7,
+            22,
+            20,
+            9
+          ]
+        },
+        {
+          "fLeading": 2,
+          "fPlayed": [
+            0,
+            16,
+            18,
+            25,
+            26
+          ]
+        },
+        {
+          "fLeading": 4,
+          "fPlayed": [
+            0,
+            3,
+            27,
+            13,
+            8
+          ]
+        },
+        {
+          "fLeading": 2,
+          "fPlayed": [
+            0,
+            32,
+            36,
+            19,
+            21
+          ]
+        },
+        {
+          "fLeading": 4,
+          "fPlayed": [
+            0,
+            11,
+            14,
+            17,
+            12
+          ]
+        },
+        {
+          "fLeading": 3,
+          "fPlayed": [
+            0,
+            23,
+            28,
+            33,
+            29
+          ]
+        },
+        {
+          "fLeading": 1,
+          "fPlayed": [
+            0,
+            30,
+            35,
+            31,
+            34
+          ]
+        },
+        {
+          "fLeading": 2,
+          "fPlayed": [
+            0,
+            15,
+            1,
+            10,
+            2
+          ]
+        },
+        {
+          "fLeading": 4,
+          "fPlayed": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "fDrawn": 27,
+      "fStocksFor": 0,
+      "fStockings": 0,
+      "fCall": [
+        -10000,
+        0,
+        65,
+        21,
+        72
+      ],
+      "fMade": [
+        -10000,
+        12,
+        50,
+        14,
+        81
+      ],
+      "fBonus": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  }
+]

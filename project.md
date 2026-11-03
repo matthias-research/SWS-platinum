@@ -10,7 +10,7 @@ Rebuild the two Delphi games in JavaScript so they run in a browser:
 - **Differenzler**, represented by `original/DiffPl.exe` and the `original/Differ/` source project.
 - **Exclude the separate launcher/panel** from the browser implementation, as requested. Its source and artwork remain useful historical references.
 
-This document records the initial investigation, not an implemented port. Findings come from Pascal source, decoded Delphi forms, executable resource/import tables, and the supplied media/data files. No original executable was launched and no Delphi rebuild was attempted. Runtime behavior and exact source-to-executable correspondence remain unverified. Nothing under `original/` was changed.
+This document records the initial investigation and subsequent milestone progress. Findings come from Pascal source, decoded Delphi forms, executable resource/import tables, supplied media/data files, and the M1 native reference runs. The initial investigation was static; M1 subsequently ran working copies of both selected game executables and captured setup, rules, table and saved-file screens. No Delphi rebuild was attempted, and full behavioral/source-to-executable equivalence remains unverified. Nothing under `original/` was changed.
 
 ## Fidelity requirement and executable verification
 
@@ -35,7 +35,7 @@ Artwork is spread across **three important sources**: loose files in `Bmp/`, car
 
 The original AI also relies on supplied binary lookup tables. These are part of the behavior to preserve, alongside the Pascal algorithms. The character voices are a substantial separate asset collection.
 
-There are different executable builds in the archive. The top-level executables are not byte-identical to the copies inside the source directories. A definitive reference build should be selected before judging the port's fidelity.
+There are different executable builds in the archive. The top-level executables are not byte-identical to the copies inside the source directories. M1 selects the user-named top-level games as the reference builds and records their exact identities and resource differences in `docs/m1/reference.json`.
 
 ## Archive inventory
 
@@ -229,7 +229,7 @@ There are **5,305 WAV files**, about 140 minutes in aggregate. All opened with a
 
 The collection has general character voices in `STIMME1`–`STIMME6`, card-set-specific speech under `DEUTSCH` and `FRANZ`, and effects under `ANDERE`. `SOUNDD.MAP` (19,284 bytes) and `SOUNDF.MAP` (19,292 bytes) map sound resources. `PCMEDIA.PAS`, `JASSERS.PAS` and text/resource units connect game events, dialogue and numeric filenames.
 
-For the port, preserve the event-to-voice mapping and load audio on demand. An initial page should not require the entire roughly 330 MiB collection. Compression and playback scheduling can be addressed after checking representative clips and dialogue timing.
+For the port, convert the WAV files to MP3 to reduce storage and download sizes, retaining the original WAV files as source assets. Preserve the event-to-voice mapping and load audio on demand. An initial page should not require the entire roughly 330 MiB collection. Check representative clips for sound quality and dialogue timing after conversion.
 
 ### Existing persistence
 
@@ -249,7 +249,9 @@ Preferences use `SCHIEBPL.INI` / `DIFFPL.INI`. Profiles and high scores include 
 
 ## Milestones
 
-This is the implementation roadmap. Only the initial investigation is complete; the remaining milestones are planned, without assigned dates. Defining them does not start implementation or image generation. The separate launcher remains excluded. Network multiplayer and the sliding puzzle remain optional follow-up work.
+This is the implementation roadmap, without assigned dates. The initial investigation is complete. At the user's request, implementation has started with a React/Vite foundation and the Schieber opening screen, including an enhanced table sample. The separate launcher remains excluded. Network multiplayer and the sliding puzzle remain optional follow-up work.
+
+Current implementation: both games are playable through complete matches, using source-translated rules and the original Pascal AI compiled to JavaScript in a worker. Includes three-/four-player Differenzler, all three Differenzler AI families, setup, human turns, scoring, hints, undo, pause, round forfeits, save/resume/export, archive replay, match history and on-demand sound. Both tables have enhanced background samples; card and interface sheets remain original resolution. All 5,305 WAVs have MP3 copies (346 MB to 61 MB). See [playable-game notes](docs/playable-games.md) and [AI port details](docs/ai-port.md) for validation and explicit fidelity gaps. Full artwork enhancement, personality restoration and exhaustive native parity remain outstanding.
 
 ### M0 — Original software inventory
 
@@ -259,7 +261,13 @@ Deliverable: this document, identifying both projects, their rules and AI, exter
 
 ### M1 — Reference behavior and reusable asset extraction
 
-**Status: Planned. Depends on M0.**
+**Status: Complete within the reference/extraction scope. Depends on M0.** See [M1 results](docs/m1/README.md), [reference scenarios](docs/m1/scenarios.md) and [coordinate/mask notes](docs/m1/mappings-notes.md).
+
+Implemented a reproducible extraction pipeline (`npm run reference:extract`) covering all 77 source forms, all six executable resource trees, 586 image instances/233 distinct payloads, 249 interface pieces, 212 icons, masks, all five card sets and 15 saved fixtures. Full manifests and searchable preview galleries are generated in ignored `artifacts/m1/`; compact identities, findings and selected native screenshots are retained in `docs/m1/`. Nine extraction/mapping tests check recovery, hashes, geometry and mask behavior.
+
+Ran working copies of both top-level game executables. Recorded 11 reference scenarios spanning setup/rules, table-view changes, archive loading and saved-game loading. Ten scenarios captured windows; the older Differenzler `TEST.JSS` exited with `0xC00000FD`, while `diff.jss` and `TEST.JAR` opened. The failure and untested rule/AI/audio cases are explicitly recorded. Full matches and complete browser/native parity are not claimed by M1.
+
+Resolved resource discrepancies: random-deal glyph byte differences are pixel-identical; Schieber's `DirtyDlg.NoBtn` has a visible source/reference difference, so the compiled reference payload is authoritative. Exact RGB AND/OR mask mappings are now preserved; M3 subsequently replaced the prototype's alpha approximation with these operations.
 
 Select the reference builds, starting with the user-named top-level executables, and record representative game screens and behavior where the originals can run. Resolve relevant differences between those builds and the source. Preserve `original/` unchanged.
 
@@ -269,7 +277,7 @@ Extract the required loose and embedded artwork into a separate working asset co
 
 ### M2 — Enhanced 2× artwork samples
 
-**Status: Planned. Depends on M1.**
+**Status: In progress. Depends on M1.** Both table-background samples are integrated for original/enhanced comparison; user visual acceptance and the other sample categories remain pending.
 
 The goal is additional perceived detail, not simply larger pixels. Prepare a small comparison set containing a table background, character portrait, card and interface element. Compare the originals with AI-enhanced versions at exactly twice the width and height, preserving the original style and composition. AI-generated detail is a reconstruction, not recovery of the original high-resolution artwork.
 
@@ -279,7 +287,7 @@ Extract sprite elements before enhancement. Check faces and expressions, card ra
 
 ### M3 — Browser foundation and central scaling
 
-**Status: Planned. Depends on M1; can progress alongside M2.**
+**Status: Complete within the rendering-prototype scope.** React/Vite, central scaling, exact legacy RGB mask composition and an interactive card review surface are implemented. All five original card sets are packaged with traceable mappings. Automated checks cover display scales 1/2/3, asset scales 1/2 for masks, high DPI, overlapping hit targets and keyboard selection. See [M3 rendering notes](docs/m3-rendering.md) for evidence and remaining native rasterization limits. M2 artwork review remains pending; full gameplay interaction belongs to M7.
 
 Create the JavaScript browser project and a representative table-rendering prototype. Keep the legacy coordinate system as the logical reference, with all transformations handled centrally rather than multiplying coordinates throughout the code.
 
@@ -289,7 +297,7 @@ Create the JavaScript browser project and a representative table-rendering proto
 - Convert pointer coordinates back to logical coordinates for hit testing.
 - Handle browser device pixel ratio separately from both settings.
 
-Canvas is a natural fit for the table renderer; DOM controls can provide menus, settings and accessible interaction. The framework choice remains open. Increasing display scale later must not require rewriting the atlas coordinates; improving image detail further may require another asset-generation pass.
+Canvas is a natural fit for the table renderer; DOM controls can provide menus, settings and accessible interaction. The prototype uses React with Vite, Canvas rendering and DOM controls. Increasing display scale later must not require rewriting the atlas coordinates; improving image detail further may require another asset-generation pass.
 
 **Done when:** the same prototype renders correctly at display scales 1, 2 and 3, using original or enhanced assets, with aligned cards, masks, text and click targets across representative screen densities.
 
@@ -303,15 +311,15 @@ Apply the reviewed enhancement process to the artwork required by both games. Ex
 
 ### M5 — Rule engines and game state
 
-**Status: Planned. Depends on M1 and the project foundation in M3; independent of completing M4.**
+**Status: Complete for playable game rules and state.** Direct Pascal translation retains names and IDs, dealing, legality, winners, Weis/Stöck, scoring, lifecycle and round forfeits. The command layer implements shifting, prediction visibility, validated turns and deterministic replay. Tests include 72 archived plays, 18 winners and multi-round matches. Exhaustive executable parity remains M9 work. See [M5 translation map and verification](docs/m5-core.md).
 
-Port shared card definitions and utilities, with separate Schieber and Differenzler rules and state transitions. Preserve card numbering, dealing, trump ordering, legal moves, scoring and seeded-deal semantics. Cover Schieber's partnerships, shifting, Weis and Stöck, and Differenzler's predictions, visibility modes and three-/four-player options.
+Translate the Pascal source directly, preserving its structure, identifiers and behavior wherever practical; adapt Delphi-specific infrastructure to browser equivalents. Port shared card definitions and utilities, with separate Schieber and Differenzler rules and state transitions. Preserve card numbering, dealing, trump ordering, legal moves, scoring and seeded-deal semantics. Cover Schieber's partnerships, shifting, Weis and Stöck, and Differenzler's predictions, visibility modes and three-/four-player options.
 
 **Done when:** both engines can complete scripted games without a UI, with meaningful checks for legal-move edge cases, scoring, game termination and deterministic replay. Compare against source-derived examples and the available reference scenarios.
 
 ### M6 — Computer players and AI tables
 
-**Status: Planned. Depends on M5.**
+**Status: Implemented; full native decision parity remains unverified.** Schieber and all three Differenzler families compile from original Pascal with reproducible compatibility adaptations. All five tables are packaged with hashes and explicit decoders where needed. Worker execution, legal full-match play, difficulty levels and future-decision save replay are tested. Trashy float32 arithmetic and character/personality mappings remain fidelity gaps. See [AI port](docs/ai-port.md).
 
 Implement explicit decoders or conversions for the five AI data files. Port the active Schieber engine and the three initialized Differenzler AI families, retaining character and difficulty mappings. Move expensive computation into a Web Worker, separating decision-making from UI and audio effects.
 
@@ -319,7 +327,7 @@ Implement explicit decoders or conversions for the five AI data files. Port the 
 
 ### M7 — Playable browser versions of both games
 
-**Status: Planned. Depends on M3, M5 and M6; final visual acceptance also requires M4.**
+**Status: Complete for end-to-end single-player games.** Both games support setup, human decisions, original AI, scores, round transitions and new matches; Differenzler supports three and four players. Browser tests exercise full matches and human card/hint/undo controls. Final artwork acceptance remains separate under M4/M9.
 
 Integrate rendering, interaction, rules and AI. Deliver Schieber first as an end-to-end game, then Differenzler using the shared infrastructure. Include game setup, human decisions, computer turns, scores, round transitions and restarting. Keep both games directly accessible without rebuilding the old launcher application.
 
@@ -327,7 +335,7 @@ Integrate rendering, interaction, rules and AI. Deliver Schieber first as an end
 
 ### M8 — Persistence, voices and supporting features
 
-**Status: Planned. Depends on M7.**
+**Status: Core features implemented; full legacy presentation/support parity remains open.** Browser save/resume and file export/import, legacy archive replay, display preferences, player name, match history, hints, undo and pause work. All WAVs are converted; core effects and trump/shift speech load on demand. Fourteen supplied legacy files replay; older Differenzler TEST.JSS is incompatible. Native-state continuation, old profile/high-score import and complete character dialogue are not implemented.
 
 Add browser settings and saved-game storage, explicit import/export, and compatibility checks using the supplied `.JSS`/`.JAR` examples. Restore profiles, high scores, hints, undo, pause, replay and statistics. Preserve sound-event and character mappings, loading speech/effects on demand rather than downloading the entire collection at startup. Support browser audio activation and mute/volume controls.
 
@@ -335,7 +343,7 @@ Add browser settings and saved-game storage, explicit import/export, and compati
 
 ### M9 — Fidelity review and browser release
 
-**Status: Planned. Depends on M4 and M7–M8.**
+**Status: In progress.** A reproducible static build and automated engine/browser checks are available. Both reference executables were run for archive comparisons; checked scores/predictions agree. Complete native move-by-move comparisons, full artwork review and wider browser/device validation remain open. See [current validation and limits](docs/playable-games.md).
 
 Run the reference executables and compare complete games and key visual states against the browser versions, building on the comparisons recorded throughout development. Review rules, predictions, AI decisions, transitions, persistence and enhanced artwork. Check mouse/touch input, resizing, screen density, loading performance and long-running AI responsiveness in the chosen desktop and mobile browser targets. Document how to run/build the project and how to change display scale or regenerate assets.
 

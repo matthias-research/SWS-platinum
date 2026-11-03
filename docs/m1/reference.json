@@ -1,0 +1,1476 @@
+{
+  "schemaVersion": 1,
+  "referenceSelection": "Top-level SchiebPl.exe and DiffPl.exe are authoritative for the browser port; PanelPl.exe is inventoried but excluded from the implementation.",
+  "executables": [
+    {
+      "file": "original/Differ/DiffPl.exe",
+      "bytes": 4231168,
+      "sha256": "5b9941e3f2ee12102846606ecae44e83a17ec54ed3a3cee00084b57c3dc85f5c",
+      "project": "Differ",
+      "buildRole": "alternate",
+      "machine": 332,
+      "format": "pe32"
+    },
+    {
+      "file": "original/DiffPl.exe",
+      "bytes": 4239872,
+      "sha256": "73efe1af9e869edabbcc2616c58ae949c1ce15b6b1cfcb110f9605fdffcb03e1",
+      "project": "Differ",
+      "buildRole": "reference",
+      "machine": 332,
+      "format": "pe32"
+    },
+    {
+      "file": "original/Panel/Panel.exe",
+      "bytes": 924672,
+      "sha256": "f1dd4f6b6ecdc55aac2418db5dfdc976aa0678f282e9d8248c0c8c30555efbeb",
+      "project": "Panel",
+      "buildRole": "alternate",
+      "machine": 332,
+      "format": "pe32"
+    },
+    {
+      "file": "original/PanelPl.exe",
+      "bytes": 924672,
+      "sha256": "3aee937c6d9518fc0243506a61f4301f7bc18df7a0bb9e06b558710d2f2e6127",
+      "project": "Panel",
+      "buildRole": "reference",
+      "machine": 332,
+      "format": "pe32"
+    },
+    {
+      "file": "original/Schieber/SchiebPl.exe",
+      "bytes": 3434496,
+      "sha256": "85ad062480161e2ef126817bf624377f75f150d653304510962a5dc0ac293b39",
+      "project": "Schieber",
+      "buildRole": "alternate",
+      "machine": 332,
+      "format": "pe32"
+    },
+    {
+      "file": "original/SchiebPl.exe",
+      "bytes": 3436544,
+      "sha256": "e459420bece30466a47b5a5016c4b978cb79b5cbd3b624c05f50b94c51722ec9",
+      "project": "Schieber",
+      "buildRole": "reference",
+      "machine": 332,
+      "format": "pe32"
+    }
+  ],
+  "assetCoverage": {
+    "status": "complete-within-declared-scope",
+    "sourceFiles": 194,
+    "sourceForms": 77,
+    "sourceFormEncodings": {
+      "binary-dfm": 74,
+      "text-dfm": 3
+    },
+    "executableFiles": 6,
+    "executableForms": 133,
+    "assets": 586,
+    "assetOrigins": {
+      "executable-form": 172,
+      "loose": 111,
+      "pe-resource": 206,
+      "source-form": 97
+    },
+    "imageFormats": {
+      "bmp": 569,
+      "ico": 17
+    },
+    "uniqueImagePayloads": 233,
+    "sourceBmpInstances": 95,
+    "referenceBmpInstances": {
+      "Differ": 35,
+      "Panel": 15,
+      "Schieber": 33
+    },
+    "errors": []
+  },
+  "mappingCoverage": {
+    "pieces": 249,
+    "icons": 212,
+    "maskPairs": 41,
+    "formMaskPairs": 4,
+    "cardSets": 5,
+    "cardSheets": 20,
+    "cardCells": 720,
+    "backImages": 18
+  },
+  "manifestSha256": "056fea8cabe36cbcfcb44360743e873009f23e0010d9d16fe5e1959a4f97a0e8",
+  "mappingsSha256": "6f3d1e2085f92056131f599abaa58ded59a97c2fe27d608ca271a9fceff30504",
+  "buildDifferences": [
+    {
+      "kind": "reference-versus-alternate-executable",
+      "reference": "original/DiffPl.exe",
+      "alternate": "original/Differ/DiffPl.exe",
+      "executableBytesEqual": false,
+      "resourcesCompared": 115,
+      "equalResources": 98,
+      "differences": [
+        {
+          "resource": [
+            10,
+            "PACKAGEINFO",
+            0
+          ],
+          "referenceSha256": "0e386d36b45a4b03d9159b801fc066d865ce91b78d95c6ea4d3c165b55a043cb",
+          "alternateSha256": "91a7436248b5b362ada2b0840e16a4d8ac5c3c714e1c454f4a321d4981be3cde"
+        },
+        {
+          "resource": [
+            10,
+            "TABOUTDLG",
+            0
+          ],
+          "referenceSha256": "dc9b998dc94671832113a31c444ffe04e59901c804d3395bfa0656b3e5544dd8",
+          "alternateSha256": "275faaefee5250db54054bb91e34ee22682d2714b78523de3539a6186c5e9162"
+        },
+        {
+          "resource": [
+            10,
+            "TCALLDLG",
+            0
+          ],
+          "referenceSha256": "6cc070a1d1350e649003391d828c3d97ee03f5d9a1fa61b8a59867bfc28e0d47",
+          "alternateSha256": "92bf274db04e87495baa11ed9731c7b2b9f126bcf10e01d01e586fe2b7ef4aab"
+        },
+        {
+          "resource": [
+            10,
+            "TCANCELDLG",
+            0
+          ],
+          "referenceSha256": "cfe85fea16136e86bfd4bed28588252be82d225d6b86a3b75ac7c3090d5eae3b",
+          "alternateSha256": "0f4b5c0e8e81a0015c4a22476893a03a31b1c06c0cfc7477f5177145ff63ab43"
+        },
+        {
+          "resource": [
+            10,
+            "TDIRTYDLG",
+            0
+          ],
+          "referenceSha256": null,
+          "alternateSha256": "b8708f87af51445ab57a8c819fb6b29a1d909e1b116b169edfeb46e5c8e3b511"
+        },
+        {
+          "resource": [
+            10,
+            "TDLGAUTOASK",
+            0
+          ],
+          "referenceSha256": "bfa5a9293845e1b210e61d7f7e2d5014f2b4bb8846576a86c81045a40b3153dd",
+          "alternateSha256": null
+        },
+        {
+          "resource": [
+            10,
+            "TDLGNEWJASS",
+            0
+          ],
+          "referenceSha256": "84e985599f30043c14c722a12234b9449503725fbd6e09b1468494109e15382f",
+          "alternateSha256": "23af864480f44b6105e8ccd22c8e87f95c2c13eee4deeeef0e88a27c1b31f4ba"
+        },
+        {
+          "resource": [
+            10,
+            "TFASTDLG",
+            0
+          ],
+          "referenceSha256": "590d9b8e8dbc150b8cc33947d9c45eb50794a9cf25d63bf57b4ecb83b28255d1",
+          "alternateSha256": "86c8f76669a0e7f7c52c75a6141dd2c04bb3ddfff3fde18ecf96c3f3cee027c2"
+        },
+        {
+          "resource": [
+            10,
+            "TMAINFORM",
+            0
+          ],
+          "referenceSha256": "fe1b403f0bdcca4225f60cf781e4f489022cf1ac4732af1dc06e2bac2cedbfd4",
+          "alternateSha256": "b40b3ac2be08634c366c0b1b6e407c0f6481fd19a3a15ca3a77bf61e75e4d0da"
+        },
+        {
+          "resource": [
+            10,
+            "TNETDLG",
+            0
+          ],
+          "referenceSha256": "58c8c64809312164030c9ea3ca883cef077e81d8f3ea909eddfa0cdc25ef139d",
+          "alternateSha256": "0c1ae34f2b3224d5fd099ec910ad6bcdbc83ea80d677adcdde04a8138e6c652e"
+        },
+        {
+          "resource": [
+            10,
+            "TPLACEDLG",
+            0
+          ],
+          "referenceSha256": "f7c02496d862d6d9501334857e79ca1bf7ae6dcb76845d8afb2523894578c758",
+          "alternateSha256": "c801966ed015d93ff03cb2c79d020419ead731918715a86f4e1a493308ebd8ec"
+        },
+        {
+          "resource": [
+            10,
+            "TPREFDLG",
+            0
+          ],
+          "referenceSha256": "56b0e30458b9c1733c3c19b991c71bbd2519ff5ce3d0d6e3b7cc51d54b291c0a",
+          "alternateSha256": "2cc34de7bb46caa9d0f039a8bda1bfc4b9f0bda1989ef1c3427d025deb6c2a2e"
+        },
+        {
+          "resource": [
+            10,
+            "TPROFILEDLG",
+            0
+          ],
+          "referenceSha256": "713d162c6a79b3ab53279bc5d7bbbb0ff6650fbabdc9ad9dbc5b7ff799d42643",
+          "alternateSha256": "36000fb80b3277d0d09c5f5560cd1e3211eb593a7bae109f4f4e5f630679ade2"
+        },
+        {
+          "resource": [
+            10,
+            "TREVDLG",
+            0
+          ],
+          "referenceSha256": "3c30bfd79fb07029fc5648d0303416ddca18beda66450863be9d253d4c87455b",
+          "alternateSha256": "6c113ff87e1fcc648d2852f14fc43cd2c5218753f2ee446f73caabf7e3411fea"
+        },
+        {
+          "resource": [
+            10,
+            "TRNDDLG",
+            0
+          ],
+          "referenceSha256": "274b5452f66ad417e51d256d9b4b1e64aed70817089090ac344f7175fd56beaf",
+          "alternateSha256": "07b80c912dfe0195a560adfd5c3dc9ec75a971a9e1cdcb6ae862e27a327fcd6b"
+        },
+        {
+          "resource": [
+            10,
+            "TSNAPDLG",
+            0
+          ],
+          "referenceSha256": "e65bfa4becd34bdbc83c068c636c381051a07394fe68274643f085db6983f2a5",
+          "alternateSha256": "c2e4c4ec5ee1d5aa0e1ac19116f7922b330b7675eeeb3564a2087379322a2904"
+        },
+        {
+          "resource": [
+            10,
+            "TTCPDLG",
+            0
+          ],
+          "referenceSha256": "add3147099288502a602ac0aba2d51911f666c5a95bf5a4a1d0dfade6a5c8569",
+          "alternateSha256": "830620c03b8b79ac7b711605d8012a20f8b718d36a7dcec7b76def26e4195524"
+        }
+      ]
+    },
+    {
+      "kind": "source-forms-absent-from-reference",
+      "reference": "original/DiffPl.exe",
+      "sourceFiles": [
+        "original/Differ/DlgDirty.dfm",
+        "original/Differ/DLGDNAP.DFM",
+        "original/Differ/DLGNVLL.DFM",
+        "original/Differ/DLGTRUMP.DFM"
+      ]
+    },
+    {
+      "kind": "reference-versus-alternate-executable",
+      "reference": "original/PanelPl.exe",
+      "alternate": "original/Panel/Panel.exe",
+      "executableBytesEqual": false,
+      "resourcesCompared": 33,
+      "equalResources": 33,
+      "differences": []
+    },
+    {
+      "kind": "source-forms-absent-from-reference",
+      "reference": "original/PanelPl.exe",
+      "sourceFiles": [
+        "original/Panel/Info.dfm"
+      ]
+    },
+    {
+      "kind": "reference-versus-alternate-executable",
+      "reference": "original/SchiebPl.exe",
+      "alternate": "original/Schieber/SchiebPl.exe",
+      "executableBytesEqual": false,
+      "resourcesCompared": 114,
+      "equalResources": 90,
+      "differences": [
+        {
+          "resource": [
+            10,
+            "PACKAGEINFO",
+            0
+          ],
+          "referenceSha256": "272aa61a9d3b4616340b68cd741941c09d71994ebf4d0649030299ede9735a78",
+          "alternateSha256": "92ae36c161d29bf9e197f72cf42eb1cf5ec22c41dc57208c555f72e67060a67b"
+        },
+        {
+          "resource": [
+            10,
+            "TABOUTDLG",
+            0
+          ],
+          "referenceSha256": "65819641342235758c6800a7c328970619361bf6294c8b6ad11c90cccf5aa0b2",
+          "alternateSha256": "e6d6e3105e500a065e030b9208be8a3e82eec17e5ac80dce06f10fc9a7784c72"
+        },
+        {
+          "resource": [
+            10,
+            "TCANCELDLG",
+            0
+          ],
+          "referenceSha256": "cfe85fea16136e86bfd4bed28588252be82d225d6b86a3b75ac7c3090d5eae3b",
+          "alternateSha256": "0f4b5c0e8e81a0015c4a22476893a03a31b1c06c0cfc7477f5177145ff63ab43"
+        },
+        {
+          "resource": [
+            10,
+            "TCLIENTDLG",
+            0
+          ],
+          "referenceSha256": "2474811b99dad4f6fcba8f27a12c807828bdb588047102f9a968b2aa39829b7b",
+          "alternateSha256": "f26ecb07581ff9e7388e20cb908f4a1bb43cb0d9b0c3592edfa3442c3526536c"
+        },
+        {
+          "resource": [
+            10,
+            "TDIRTYDLG",
+            0
+          ],
+          "referenceSha256": "3561d6aea996ca78548ad6f8b89ce94d5ea79645020526b93c0dcfafec245459",
+          "alternateSha256": "856235fc1c806a81f6be20465e723ccc90e83b1321cc2df16ee8d2149db7cc01"
+        },
+        {
+          "resource": [
+            10,
+            "TDLGAUTOASK",
+            0
+          ],
+          "referenceSha256": "bfa5a9293845e1b210e61d7f7e2d5014f2b4bb8846576a86c81045a40b3153dd",
+          "alternateSha256": null
+        },
+        {
+          "resource": [
+            10,
+            "TDLGNEWJASS",
+            0
+          ],
+          "referenceSha256": "2ebb456c0d0f0425ca0d66babf0d165301719cf340597bab7a8fa31f91315831",
+          "alternateSha256": "6c147fd4b83d7a2871773ebf3948796a107b68dc050b561b03417e6a694289cd"
+        },
+        {
+          "resource": [
+            10,
+            "TFASTDLG",
+            0
+          ],
+          "referenceSha256": "590d9b8e8dbc150b8cc33947d9c45eb50794a9cf25d63bf57b4ecb83b28255d1",
+          "alternateSha256": "86c8f76669a0e7f7c52c75a6141dd2c04bb3ddfff3fde18ecf96c3f3cee027c2"
+        },
+        {
+          "resource": [
+            10,
+            "THIGHDLG",
+            0
+          ],
+          "referenceSha256": "eda549dff83cb83e021a2bd1ed7d654ec1dfd170a1db149938f4aef042d8e2e2",
+          "alternateSha256": "31d03d34a6f2b9da789de6b1d3b4ecb6873095a82bd8e12b687d615ce707b60e"
+        },
+        {
+          "resource": [
+            10,
+            "THINTDLG",
+            0
+          ],
+          "referenceSha256": "322c1b67eb38cc91b94861e265bcffc016623052cc446fbe40345c87435067b2",
+          "alternateSha256": "800806539d8f93e31308a83157b31372ad23c4a20851e7fa78603fa728660635"
+        },
+        {
+          "resource": [
+            10,
+            "TMAINFORM",
+            0
+          ],
+          "referenceSha256": "08f8a7535345e7ae68b861d3cf2e5cfafa27ed0517b691404a9b155d18073319",
+          "alternateSha256": "e0e2ffa193541d63cb90d595b321b93ad8a0665715afac97ba4c58e767412413"
+        },
+        {
+          "resource": [
+            10,
+            "TNETDLG",
+            0
+          ],
+          "referenceSha256": "58c8c64809312164030c9ea3ca883cef077e81d8f3ea909eddfa0cdc25ef139d",
+          "alternateSha256": "0c1ae34f2b3224d5fd099ec910ad6bcdbc83ea80d677adcdde04a8138e6c652e"
+        },
+        {
+          "resource": [
+            10,
+            "TPLACEDLG",
+            0
+          ],
+          "referenceSha256": "c6e83bc93d41b0fe828e504ffff0bbcb7a7964ebdc40862f5f243224b45a5df2",
+          "alternateSha256": "d1c726f96fc6296dfa89261690f1efc055cc591542b4f0a9b6b2ba560eb6c137"
+        },
+        {
+          "resource": [
+            10,
+            "TPREFDLG",
+            0
+          ],
+          "referenceSha256": "c055871d540e399224474a5a5989c726296a924a86bde772522084de3980b7d3",
+          "alternateSha256": "9c15a4bd2cd264961514f0c876a1e541420dc3e77f947a94de2975814d2431a4"
+        },
+        {
+          "resource": [
+            10,
+            "TPROFILEDLG",
+            0
+          ],
+          "referenceSha256": "53a3e61087db80e14384ead18a047a77f9892d5d08d9fedabcbca3ae0a5c5d59",
+          "alternateSha256": "444823be68338eba39214b020b46d045bb40b65182424ee0902758fba5d8c09b"
+        },
+        {
+          "resource": [
+            10,
+            "TREVDLG",
+            0
+          ],
+          "referenceSha256": "d65eaff2c97c6b9c0803ad96997129ce339c01d4e4079969a7a8e22d17a737cb",
+          "alternateSha256": "db7455bd7c1fdcb2129320e81bae56be5971da554fdb5d0fdb479effd18de090"
+        },
+        {
+          "resource": [
+            10,
+            "TRNDDLG",
+            0
+          ],
+          "referenceSha256": "274b5452f66ad417e51d256d9b4b1e64aed70817089090ac344f7175fd56beaf",
+          "alternateSha256": "07b80c912dfe0195a560adfd5c3dc9ec75a971a9e1cdcb6ae862e27a327fcd6b"
+        },
+        {
+          "resource": [
+            10,
+            "TSAYDLG",
+            0
+          ],
+          "referenceSha256": "1343dc2bf7f901b40340a6f70270990fc5a9a9205380ee66a69633b997663f91",
+          "alternateSha256": "ff160b70d221836c3fb69ef440eb57b0e16ad3c70bda0441078f8666e893385b"
+        },
+        {
+          "resource": [
+            10,
+            "TSNAPDLG",
+            0
+          ],
+          "referenceSha256": "0fc14b17f0061b70547162c3ae324fba669540143de9b0a1afa3e881e6b3eb0a",
+          "alternateSha256": "8df6e062cdcfcb4894e72dd2ca85c4a65460b0289a4e859ba0c70152ecca405d"
+        },
+        {
+          "resource": [
+            10,
+            "TSTATISTICSDLG",
+            0
+          ],
+          "referenceSha256": "b5a93370e9c8235b0f67f624532c1956b70135a94364fb2301ed2853fc53c2ac",
+          "alternateSha256": "4881f13120afd6610c1d283a3227cd9cc64d063601b0a48374d13bc582b42b39"
+        },
+        {
+          "resource": [
+            10,
+            "TSUITDLG",
+            0
+          ],
+          "referenceSha256": "fff4189b4992f0631b8f7db54983811c88f912fb44cb6c8f4add66139980a660",
+          "alternateSha256": "22dab1075f0b01905c89dea81a47e642848ed6cad267a2567a87fa0ab8d6c8fd"
+        },
+        {
+          "resource": [
+            10,
+            "TTCPDLG",
+            0
+          ],
+          "referenceSha256": "add3147099288502a602ac0aba2d51911f666c5a95bf5a4a1d0dfade6a5c8569",
+          "alternateSha256": "830620c03b8b79ac7b711605d8012a20f8b718d36a7dcec7b76def26e4195524"
+        },
+        {
+          "resource": [
+            10,
+            "TTEAMDLG",
+            0
+          ],
+          "referenceSha256": "50871ade1677eb49965a14ecc92221dd45b8b4905ad62b2dab4f81601f10d2bb",
+          "alternateSha256": "8f7478a67a643aa884ac6a65270ea9ffc9bd0134af72d8407b38c5a0964f8028"
+        },
+        {
+          "resource": [
+            10,
+            "TTRUMPDLG",
+            0
+          ],
+          "referenceSha256": "d21697824f0291e6da14e281e9d602c45c3fbac5a9a44df5500b3406c5424022",
+          "alternateSha256": "26169708cd9958859a92440a85cd974e52f60c7cbac2e50eabaa4da4a2601dcd"
+        }
+      ]
+    },
+    {
+      "kind": "source-forms-absent-from-reference",
+      "reference": "original/SchiebPl.exe",
+      "sourceFiles": [
+        "original/Schieber/DLGCALL.DFM",
+        "original/Schieber/DLGDNAP.DFM",
+        "original/Schieber/dlgMarti.dfm",
+        "original/Schieber/DLGNVLL.DFM",
+        "original/Schieber/DlgStock.dfm"
+      ]
+    }
+  ],
+  "sourceImageDifferences": [
+    {
+      "reference": "original/DiffPl.exe#TRNDDLG/0",
+      "source": "original/Differ/DLGRND.dfm#TRNDDLG",
+      "bitmapDifferences": [
+        {
+          "componentProperty": "RndDlg.Panel1.BitBtn1|Glyph.Data",
+          "referenceAssetId": "asset-43605799023fd0bd8aa7",
+          "sourceAssetId": "asset-9ac6a7f93703b245503b",
+          "referenceSha256": "f7509c0d83cae5b20c5a356ea661a2273786a646836a71f81ba1015ed7d01a12",
+          "sourceSha256": "3949ee8eaf3ca83918401a30d62ecb910f0d40fba29bedd2dd390805180ce8b1",
+          "decodedPixelsEqual": true
+        },
+        {
+          "componentProperty": "RndDlg.Panel2.BitBtn2|Glyph.Data",
+          "referenceAssetId": "asset-7791292117247b01bb60",
+          "sourceAssetId": "asset-fa428df26f8d7cfe466d",
+          "referenceSha256": "f7509c0d83cae5b20c5a356ea661a2273786a646836a71f81ba1015ed7d01a12",
+          "sourceSha256": "3949ee8eaf3ca83918401a30d62ecb910f0d40fba29bedd2dd390805180ce8b1",
+          "decodedPixelsEqual": true
+        }
+      ]
+    },
+    {
+      "reference": "original/SchiebPl.exe#TDIRTYDLG/0",
+      "source": "original/Schieber/DlgDirty.dfm#TDIRTYDLG",
+      "bitmapDifferences": [
+        {
+          "componentProperty": "DirtyDlg.NoBtn|Glyph.Data",
+          "referenceAssetId": "asset-9e69e356760561046401",
+          "sourceAssetId": "asset-4d7f6ad5cddc8e34d541",
+          "referenceSha256": "fa225b987b30624b2be4dc980da27c5f00939eb4fa5bda5d657895fe56c8ce3a",
+          "sourceSha256": "2ffe79a5ce4b620734d86a69c5173f4bad4beb4bddaec7b094deba85ba4cc74a",
+          "decodedPixelsEqual": false
+        }
+      ]
+    },
+    {
+      "reference": "original/SchiebPl.exe#TRNDDLG/0",
+      "source": "original/Schieber/DLGRND.dfm#TRNDDLG",
+      "bitmapDifferences": [
+        {
+          "componentProperty": "RndDlg.Panel1.BitBtn1|Glyph.Data",
+          "referenceAssetId": "asset-f37592074cb78116404d",
+          "sourceAssetId": "asset-52bbaf261b27db730998",
+          "referenceSha256": "f7509c0d83cae5b20c5a356ea661a2273786a646836a71f81ba1015ed7d01a12",
+          "sourceSha256": "3949ee8eaf3ca83918401a30d62ecb910f0d40fba29bedd2dd390805180ce8b1",
+          "decodedPixelsEqual": true
+        },
+        {
+          "componentProperty": "RndDlg.Panel2.BitBtn2|Glyph.Data",
+          "referenceAssetId": "asset-12924228779d6f104913",
+          "sourceAssetId": "asset-b5213d2d14db2df66c27",
+          "referenceSha256": "f7509c0d83cae5b20c5a356ea661a2273786a646836a71f81ba1015ed7d01a12",
+          "sourceSha256": "3949ee8eaf3ca83918401a30d62ecb910f0d40fba29bedd2dd390805180ce8b1",
+          "decodedPixelsEqual": true
+        }
+      ]
+    }
+  ],
+  "fixtures": [
+    {
+      "file": "original/Schieber/GLOON.JAR",
+      "bytes": 2006,
+      "sha256": "0320b3282986b749ebd46557c2205cb116386db2c0030caf95fb3f1b9f93ac68",
+      "workingCopy": "fixtures/Schieber-GLOON.JAR",
+      "kind": "round-archive",
+      "headings": [
+        "### Title: Gwag",
+        "### Number Of Rounds: 6 5",
+        "### Rules:",
+        "### Round: 4 trumps 5 (trick 9)",
+        "### Round: 1 trumps 3 (trick 9)",
+        "### Round: 4 trumps 2 (trick 9)",
+        "### Round: 1 trumps 2 (trick 9)",
+        "### Round: 2 trumps 6 (trick 9)",
+        "### Round: 0 trumps 0 (trick 0)"
+      ],
+      "note": "Header inventory only; compatibility is established only by the recorded native scenarios."
+    },
+    {
+      "file": "original/Schieber/GRUMPY.JAR",
+      "bytes": 17954,
+      "sha256": "5dce121d65847cbbca4d9e8c4b6bcb9c66a8fb5e3970047e7bf386c6fe9be225",
+      "workingCopy": "fixtures/Schieber-GRUMPY.JAR",
+      "kind": "round-archive",
+      "headings": [
+        "### Title: Bauer",
+        "### Number Of Rounds: 2 1",
+        "### Rules:",
+        "### Round: 1 trumps 1 (trick 9)",
+        "### Round: 0 trumps 0 (trick 0)",
+        "### Title: Bauer2",
+        "### Number Of Rounds: 10 9",
+        "### Rules:",
+        "### Round: 1 trumps 1 (trick 9)",
+        "### Round: 4 trumps 2 (trick 9)",
+        "### Round: 3 trumps 5 (trick 9)",
+        "### Round: 4 trumps 5 (trick 9)",
+        "### Round: 3 trumps 1 (trick 9)",
+        "### Round: 2 trumps 5 (trick 9)",
+        "### Round: 3 trumps 1 (trick 9)",
+        "### Round: 4 trumps 6 (trick 9)",
+        "### Round: 1 trumps 1 (trick 9)",
+        "### Round: 0 trumps 0 (trick 0)",
+        "### Title: nur Passe",
+        "### Number Of Rounds: 12 11",
+        "### Rules:",
+        "### Round: 1 trumps 1 (trick 9)",
+        "### Round: 4 trumps 2 (trick 9)",
+        "### Round: 3 trumps 5 (trick 9)",
+        "### Round: 4 trumps 5 (trick 9)",
+        "### Round: 3 trumps 1 (trick 9)",
+        "### Round: 2 trumps 5 (trick 9)",
+        "### Round: 3 trumps 1 (trick 9)",
+        "### Round: 4 trumps 6 (trick 9)",
+        "### Round: 1 trumps 1 (trick 9)",
+        "### Round: 2 trumps 5 (trick 9)",
+        "### Round: 3 trumps 5 (trick 9)",
+        "### Round: 0 trumps 0 (trick 0)",
+        "### Title: Bauer ausspielen",
+        "### Number Of Rounds: 1 2",
+        "### Rules:",
+        "### Round: 2 trumps 2 (trick 9)",
+        "### Title: Endspiel",
+        "### Number Of Rounds: 1 9",
+        "### Rules:",
+        "### Round: 3 trumps 5 (trick 9)",
+        "### Title: Schälle",
+        "### Number Of Rounds: 1 2",
+        "### Rules:",
+        "### Round: 3 trumps 6 (trick 9)",
+        "### Title: Zrugg bringe",
+        "### Number Of Rounds: 1 4",
+        "### Rules:",
+        "### Round: 0 trumps 0 (trick 0)",
+        "### Title: Zrugg 2",
+        "### Number Of Rounds: 1 4",
+        "### Rules:",
+        "### Round: 4 trumps 5 (trick 9)",
+        "### Title: Bauer, zrugg",
+        "### Number Of Rounds: 1 5",
+        "### Rules:",
+        "### Round: 1 trumps 3 (trick 9)",
+        "### Title: verrüert Schälle",
+        "### Number Of Rounds: 1 7",
+        "### Rules:",
+        "### Round: 1 trumps 5 (trick 9)",
+        "### Title: Supermuell",
+        "### Number Of Rounds: 1 9",
+        "### Rules:",
+        "### Round: 1 trumps 2 (trick 9)",
+        "### Title: Ausspielen",
+        "### Number Of Rounds: 1 4",
+        "### Rules:",
+        "### Round: 4 trumps 6 (trick 9)",
+        "### Title: noed Schilte zrugg",
+        "### Number Of Rounds: 1 2",
+        "### Rules:",
+        "### Round: 4 trumps 6 (trick 9)",
+        "### Title: Bringt Schilte",
+        "### Number Of Rounds: 1 7",
+        "### Rules:",
+        "### Round: 1 trumps 6 (trick 9)",
+        "### Title: schlägt Schieben vor",
+        "### Number Of Rounds: 1 0",
+        "### Rules:",
+        "### Round: 3 trumps 1 (trick 1)",
+        "### Title: Rose hani verruert",
+        "### Number Of Rounds: 1 3",
+        "### Rules:",
+        "### Round: 1 trumps 2 (trick 4)",
+        "### Title: ziet Schilte aa",
+        "### Number Of Rounds: 1 1",
+        "### Rules:",
+        "### Round: 3 trumps 6 (trick 9)",
+        "### Title: sticht as noed",
+        "### Number Of Rounds: 1 4",
+        "### Rules:",
+        "### Round: 4 trumps 2 (trick 9)"
+      ],
+      "note": "Header inventory only; compatibility is established only by the recorded native scenarios."
+    },
+    {
+      "file": "original/Schieber/GRUMPY1.JSS",
+      "bytes": 1922,
+      "sha256": "a5a8d2b9baa20bf5093cee62d529ce31c6d3ec1df8348e9d13a931de04f03074",
+      "workingCopy": "fixtures/Schieber-GRUMPY1.JSS",
+      "kind": "saved-game-or-setup",
+      "headings": [
+        "### Jass-Setup:",
+        "### Rules:",
+        "### Title: Gespeichertes Spiel",
+        "### Number Of Rounds: 1 0",
+        "### Rules:",
+        "### Round: 1 trumps 2 (trick 0)"
+      ],
+      "note": "Header inventory only; compatibility is established only by the recorded native scenarios."
+    },
+    {
+      "file": "original/Schieber/Matthi.jss",
+      "bytes": 6107,
+      "sha256": "5f6c0def792f1f74322c9168580a4eb1bfd5bd843271ec58e775565f477ad1a5",
+      "workingCopy": "fixtures/Schieber-Matthi.jss",
+      "kind": "saved-game-or-setup",
+      "headings": [
+        "### Jass-Setup:",
+        "### Rules:",
+        "### Title: Gespeichertes Spiel",
+        "### Number Of Rounds: 13 12",
+        "### Rules:",
+        "### Round: 3 trumps 1 (trick 9)",
+        "### Round: 4 trumps 1 (trick 9)",
+        "### Round: 1 trumps 1 (trick 9)",
+        "### Round: 2 trumps 6 (trick 9)",
+        "### Round: 3 trumps 1 (trick 9)",
+        "### Round: 2 trumps 6 (trick 9)",
+        "### Round: 3 trumps 1 (trick 9)",
+        "### Round: 4 trumps 6 (trick 9)",
+        "### Round: 3 trumps 2 (trick 9)",
+        "### Round: 4 trumps 2 (trick 9)",
+        "### Round: 1 trumps 2 (trick 9)",
+        "### Round: 2 trumps 5 (trick 9)",
+        "### Round: 0 trumps 0 (trick 0)"
+      ],
+      "note": "Header inventory only; compatibility is established only by the recorded native scenarios."
+    },
+    {
+      "file": "original/Schieber/TEST.JSS",
+      "bytes": 3513,
+      "sha256": "57c6300613b422e54c8dc9ea30f7fc76d26f34543e0917748341ad1fe3463b5b",
+      "workingCopy": "fixtures/Schieber-TEST.JSS",
+      "kind": "saved-game-or-setup",
+      "headings": [
+        "### Jass-Setup:",
+        "### Rules:",
+        "### Title: Gespeichertes Spiel",
+        "### Number Of Rounds: 6 5",
+        "### Rules:",
+        "### Round: 1 trumps 3 (trick 9)",
+        "### Round: 4 trumps 5 (trick 9)",
+        "### Round: 3 trumps 1 (trick 9)",
+        "### Round: 4 trumps 3 (trick 9)",
+        "### Round: 3 trumps 6 (trick 9)",
+        "### Round: 2 trumps 3 (trick 1)"
+      ],
+      "note": "Header inventory only; compatibility is established only by the recorded native scenarios."
+    },
+    {
+      "file": "original/Schieber/newGrumpy.JAR",
+      "bytes": 1424,
+      "sha256": "a4248492cfb709dfdcf50a974dd0ac74bb9b4ffa5da8a660b9057b4a92b19447",
+      "workingCopy": "fixtures/Schieber-newGrumpy.JAR",
+      "kind": "round-archive",
+      "headings": [
+        "### Title: Eiche zrugg",
+        "### Number Of Rounds: 1 1",
+        "### Rules:",
+        "### Round: 1 trumps 6 (trick 9)",
+        "### Title: Will Schieben!",
+        "### Number Of Rounds: 1 1",
+        "### Rules:",
+        "### Round: 3 trumps 6 (trick 9)"
+      ],
+      "note": "Header inventory only; compatibility is established only by the recorded native scenarios."
+    },
+    {
+      "file": "original/Schieber/test.jar",
+      "bytes": 1431,
+      "sha256": "e5e3f9ff8a8a43611120fe499080fb3d27cdf1b265e76a60c9cd1aaac605d16d",
+      "workingCopy": "fixtures/Schieber-test.jar",
+      "kind": "round-archive",
+      "headings": [
+        "### Title: Runde 2",
+        "### Number Of Rounds: 1 2",
+        "### Rules:",
+        "### Round: 3 trumps 5 (trick 9)",
+        "### Title: Runde 11",
+        "### Number Of Rounds: 1 11",
+        "### Rules:",
+        "### Round: 3 trumps 5 (trick 9)"
+      ],
+      "note": "Header inventory only; compatibility is established only by the recorded native scenarios."
+    },
+    {
+      "file": "original/Differ/GLOON.JSS",
+      "bytes": 23351,
+      "sha256": "66218b14680cc73b04292bf449b01f87e02b23c83798a11d65890dcd8c8d79f6",
+      "workingCopy": "fixtures/Differ-GLOON.JSS",
+      "kind": "saved-game-or-setup",
+      "headings": [
+        "### Jass-Setup:",
+        "### Rules:",
+        "### Title: Gespeichertes Spiel",
+        "### Number Of Rounds: 9 8",
+        "### Rules:",
+        "### Round: card 24 trump 3 stocksFor 0 stockings 0 (trick 9)",
+        "### Round: card 35 trump 4 stocksFor 0 stockings 0 (trick 9)",
+        "### Round: card 9 trump 1 stocksFor 0 stockings 0 (trick 9)",
+        "### Round: card 3 trump 1 stocksFor 0 stockings 0 (trick 9)",
+        "### Round: card 16 trump 2 stocksFor 0 stockings 0 (trick 9)",
+        "### Round: card 29 trump 4 stocksFor 0 stockings 0 (trick 9)",
+        "### Round: card 34 trump 4 stocksFor 0 stockings 0 (trick 9)",
+        "### Round: card 18 trump 2 stocksFor 0 stockings 0 (trick 9)",
+        "### Round: card 11 trump 2 stocksFor 0 stockings 0 (trick 1)"
+      ],
+      "note": "Header inventory only; compatibility is established only by the recorded native scenarios."
+    },
+    {
+      "file": "original/Differ/MATTHI.JSS",
+      "bytes": 20269,
+      "sha256": "0ae69e473bc7ca3b50bb323d78095ce05d119943600e9f22062376c0aa48a0d5",
+      "workingCopy": "fixtures/Differ-MATTHI.JSS",
+      "kind": "saved-game-or-setup",
+      "headings": [
+        "### Jass-Setup:",
+        "### Rules:",
+        "### Title: Gespeichertes Spiel",
+        "### Number Of Rounds: 1 0",
+        "### Rules:",
+        "### Round: card 18 trump 2 stocksFor 0 stockings 0 (trick 7)"
+      ],
+      "note": "Header inventory only; compatibility is established only by the recorded native scenarios."
+    },
+    {
+      "file": "original/Differ/STOECK.JSS",
+      "bytes": 21548,
+      "sha256": "3b6948c823f7704b0da6eb264cee33cc639624ef73bb0db3525ebaf845ab8990",
+      "workingCopy": "fixtures/Differ-STOECK.JSS",
+      "kind": "saved-game-or-setup",
+      "headings": [
+        "### Jass-Setup:",
+        "### Rules:",
+        "### Title: Gespeichertes Spiel",
+        "### Number Of Rounds: 5 4",
+        "### Rules:",
+        "### Round: card 11 trump 2 stocksFor 0 stockings 0 (trick 9)",
+        "### Round: card 32 trump 4 stocksFor 2 stockings 0 (trick 9)",
+        "### Round: card 22 trump 3 stocksFor 0 stockings 0 (trick 9)",
+        "### Round: card 24 trump 3 stocksFor 0 stockings 0 (trick 9)",
+        "### Round: card 26 trump 3 stocksFor 0 stockings 0 (trick 0)"
+      ],
+      "note": "Header inventory only; compatibility is established only by the recorded native scenarios."
+    },
+    {
+      "file": "original/Differ/TEST.JAR",
+      "bytes": 6575,
+      "sha256": "eeb3538225d984776514e17c4c7666a8a9102f2b95821da89aaaa67699237398",
+      "workingCopy": "fixtures/Differ-TEST.JAR",
+      "kind": "round-archive",
+      "headings": [
+        "### Title: Gloon",
+        "### Number Of Rounds: 3 2",
+        "### Rules:",
+        "### Round: card 27 trump 3 stocksFor 0 stockings 0 (trick 9)",
+        "### Round: card 3 trump 1 stocksFor 0 stockings 0 (trick 9)",
+        "### Round: card 0 trump 0 stocksFor 0 stockings 0 (trick 0)",
+        "### Title: Runde 2",
+        "### Number Of Rounds: 1 1",
+        "### Rules:",
+        "### Round: card 30 trump 4 stocksFor 0 stockings 0 (trick 9)",
+        "### Title: Runde 3",
+        "### Number Of Rounds: 1 1",
+        "### Rules:",
+        "### Round: card 22 trump 3 stocksFor 0 stockings 0 (trick 9)",
+        "### Title: Runde 3",
+        "### Number Of Rounds: 1 1",
+        "### Rules:",
+        "### Round: card 10 trump 2 stocksFor 0 stockings 0 (trick 9)",
+        "### Title: Sämi",
+        "### Number Of Rounds: 1 5",
+        "### Rules:",
+        "### Round: card 0 trump 0 stocksFor 0 stockings 0 (trick 0)",
+        "### Title: Spiel 5",
+        "### Number Of Rounds: 1 5",
+        "### Rules:",
+        "### Round: card 29 trump 4 stocksFor 0 stockings 0 (trick 9)",
+        "### Title: Sepp",
+        "### Number Of Rounds: 1 0",
+        "### Rules:",
+        "### Round: card 12 trump 2 stocksFor 0 stockings 0 (trick 7)",
+        "### Title: Sepp",
+        "### Number Of Rounds: 1 0",
+        "### Rules:",
+        "### Round: card 12 trump 2 stocksFor 0 stockings 0 (trick 7)"
+      ],
+      "note": "Header inventory only; compatibility is established only by the recorded native scenarios."
+    },
+    {
+      "file": "original/Differ/TEST.JSS",
+      "bytes": 28240,
+      "sha256": "ac33f1e58601dbeb83577d0c4fb327aa00bac15456d5a256c724326e35cbf321",
+      "workingCopy": "fixtures/Differ-TEST.JSS",
+      "kind": "saved-game-or-setup",
+      "headings": [
+        "### Jass-Setup:",
+        "### Rules:",
+        "### Title: Gespeichertes Spiel",
+        "### Number Of Rounds: 2 1",
+        "### Rules:",
+        "### Round: card 1 trump 1 (trick 9)",
+        "### Round: card 16 trump 2 (trick 0)"
+      ],
+      "note": "Header inventory only; compatibility is established only by the recorded native scenarios."
+    },
+    {
+      "file": "original/Differ/TEST2.JAR",
+      "bytes": 768,
+      "sha256": "d38e96d97e85393f7b205c40d67f8f03b923b71a47bd8de55e8380c506b3d64c",
+      "workingCopy": "fixtures/Differ-TEST2.JAR",
+      "kind": "round-archive",
+      "headings": [
+        "### Title: Runde 1",
+        "### Number Of Rounds: 1 1",
+        "### Rules:",
+        "### Round: card 10 trump 2 stocksFor 0 stockings 0 (trick 9)"
+      ],
+      "note": "Header inventory only; compatibility is established only by the recorded native scenarios."
+    },
+    {
+      "file": "original/Differ/diff.jss",
+      "bytes": 20274,
+      "sha256": "318d724570e4eb93d854cb5a979dcdf0a8ab3db8d208da18906a8996f50e8960",
+      "workingCopy": "fixtures/Differ-diff.jss",
+      "kind": "saved-game-or-setup",
+      "headings": [
+        "### Jass-Setup:",
+        "### Rules:",
+        "### Title: Gespeichertes Spiel",
+        "### Number Of Rounds: 1 0",
+        "### Rules:",
+        "### Round: card 12 trump 2 stocksFor 0 stockings 0 (trick 7)"
+      ],
+      "note": "Header inventory only; compatibility is established only by the recorded native scenarios."
+    },
+    {
+      "file": "original/Differ/ffffffffff.JSS",
+      "bytes": 20184,
+      "sha256": "77b550f7615ae3328f14d71943d35301ea84aa40fb2265058678d077e43d6a14",
+      "workingCopy": "fixtures/Differ-ffffffffff.JSS",
+      "kind": "saved-game-or-setup",
+      "headings": [
+        "### Jass-Setup:",
+        "### Rules:",
+        "### Title: Gespeichertes Spiel",
+        "### Number Of Rounds: 1 0",
+        "### Rules:",
+        "### Round: card 10 trump 2 stocksFor 0 stockings 0 (trick 0)"
+      ],
+      "note": "Header inventory only; compatibility is established only by the recorded native scenarios."
+    }
+  ],
+  "capturedScenarios": [
+    {
+      "game": "schieber",
+      "label": "setup",
+      "reference": "original/SchiebPl.exe",
+      "referenceSha256": "e459420bece30466a47b5a5016c4b978cb79b5cbd3b624c05f50b94c51722ec9",
+      "fixture": null,
+      "setupAction": null,
+      "commands": [],
+      "rawRecord": "artifacts/m1/native/schieber/setup.json",
+      "screens": [
+        {
+          "step": 0,
+          "action": null,
+          "windowClass": "TDlgNewJass",
+          "title": "Neuer Jass",
+          "dimensions": [
+            470,
+            446
+          ],
+          "file": "screenshots/schieber-setup-0-TDlgNewJass.png",
+          "sha256": "2f0e6c1d8f88e590d83c800832c5f91eeb7ae13592fd4f41169107dfe69c8884",
+          "visibleControlText": [
+            "Zufällig",
+            "M1 Reference",
+            "Regeln...",
+            "Cancel",
+            "OK"
+          ]
+        }
+      ],
+      "cleanup": {
+        "ownedProcessTerminated": true,
+        "exitCode": 1
+      },
+      "observedExitCode": null,
+      "observationStatus": "windows-captured",
+      "error": null,
+      "captureFailures": [],
+      "interpretation": "Observed windows and controls only; see scenarios.md for assertions, caveats and follow-up checks."
+    },
+    {
+      "game": "schieber",
+      "label": "rules",
+      "reference": "original/SchiebPl.exe",
+      "referenceSha256": "e459420bece30466a47b5a5016c4b978cb79b5cbd3b624c05f50b94c51722ec9",
+      "fixture": null,
+      "setupAction": "rules",
+      "commands": [],
+      "rawRecord": "artifacts/m1/native/schieber/rules.json",
+      "screens": [
+        {
+          "step": 0,
+          "action": null,
+          "windowClass": "TPrefDlg",
+          "title": "Einstellungen",
+          "dimensions": [
+            440,
+            472
+          ],
+          "file": "screenshots/schieber-rules-0-TPrefDlg.png",
+          "sha256": "616c6526290e98816a8460a7ed5edb591a0650265c040638121242b95e10a3f4",
+          "visibleControlText": [
+            "Regeln",
+            "Matchbonus",
+            "Bei einer Revanche beginnt ...",
+            "der nächste Spieler",
+            "das Verliererteam",
+            "Trumpffaktoren",
+            "Weisen",
+            "Kreuzweise zählen",
+            "alle 4 Gleiche zählen",
+            "Weisen möglich",
+            "Schieber auf ...",
+            "1250",
+            "12",
+            "Anzahl Spiele",
+            "2500",
+            "Punkte",
+            "Ausmachregel",
+            "Stöck Wyys Stich",
+            "Stöck Stich Wyys",
+            "Cancel",
+            "OK"
+          ]
+        },
+        {
+          "step": 0,
+          "action": null,
+          "windowClass": "TDlgNewJass",
+          "title": "Neuer Jass",
+          "dimensions": [
+            470,
+            446
+          ],
+          "file": "screenshots/schieber-rules-0-TDlgNewJass.png",
+          "sha256": "ac98353911f56d41e0a926f80fbcb45b2414660651d41a68012ed8c2445fb18b",
+          "visibleControlText": [
+            "Zufällig",
+            "M1 Reference",
+            "Regeln...",
+            "Cancel",
+            "OK"
+          ]
+        }
+      ],
+      "cleanup": {
+        "ownedProcessTerminated": true,
+        "exitCode": 1
+      },
+      "observedExitCode": null,
+      "observationStatus": "windows-captured",
+      "error": null,
+      "captureFailures": [],
+      "interpretation": "Observed windows and controls only; see scenarios.md for assertions, caveats and follow-up checks."
+    },
+    {
+      "game": "schieber",
+      "label": "four-player",
+      "reference": "original/SchiebPl.exe",
+      "referenceSha256": "e459420bece30466a47b5a5016c4b978cb79b5cbd3b624c05f50b94c51722ec9",
+      "fixture": null,
+      "setupAction": "cancel",
+      "commands": [
+        29
+      ],
+      "rawRecord": "artifacts/m1/native/schieber/four-player.json",
+      "screens": [
+        {
+          "step": 0,
+          "action": null,
+          "windowClass": "TmainForm",
+          "title": "Stöck Wyys Stich Gold",
+          "dimensions": [
+            800,
+            600
+          ],
+          "file": "screenshots/schieber-four-player-0-TmainForm.png",
+          "sha256": "f6b3d9105a89df3a59bc95b643996272aea8b8f94a17d36ec743fd1ee42b8052",
+          "visibleControlText": []
+        },
+        {
+          "step": 1,
+          "action": 29,
+          "windowClass": "TmainForm",
+          "title": "Stöck Wyys Stich Gold",
+          "dimensions": [
+            800,
+            600
+          ],
+          "file": "screenshots/schieber-four-player-1-TmainForm.png",
+          "sha256": "39b14d7cb39caa0b9ff0b3fe590fa37cbaab408817e9ceaa614fd7db1defa051",
+          "visibleControlText": []
+        }
+      ],
+      "cleanup": {
+        "ownedProcessTerminated": true,
+        "exitCode": 1
+      },
+      "observedExitCode": null,
+      "observationStatus": "windows-captured",
+      "error": null,
+      "captureFailures": [],
+      "interpretation": "Observed windows and controls only; see scenarios.md for assertions, caveats and follow-up checks."
+    },
+    {
+      "game": "schieber",
+      "label": "saved-archive",
+      "reference": "original/SchiebPl.exe",
+      "referenceSha256": "e459420bece30466a47b5a5016c4b978cb79b5cbd3b624c05f50b94c51722ec9",
+      "fixture": "GRUMPY.JAR",
+      "setupAction": null,
+      "commands": [],
+      "rawRecord": "artifacts/m1/native/schieber/saved-archive.json",
+      "screens": [
+        {
+          "step": 0,
+          "action": null,
+          "windowClass": "TrepForm",
+          "title": "Archiv",
+          "dimensions": [
+            800,
+            600
+          ],
+          "file": "screenshots/schieber-saved-archive-0-TrepForm.png",
+          "sha256": "55b21162ecbf723345829751745d491b16ca5e7923118b84a2e7ef578d971581",
+          "visibleControlText": []
+        }
+      ],
+      "cleanup": {
+        "ownedProcessTerminated": true,
+        "exitCode": 1
+      },
+      "observedExitCode": null,
+      "observationStatus": "windows-captured",
+      "error": null,
+      "captureFailures": [],
+      "interpretation": "Observed windows and controls only; see scenarios.md for assertions, caveats and follow-up checks."
+    },
+    {
+      "game": "schieber",
+      "label": "saved-game",
+      "reference": "original/SchiebPl.exe",
+      "referenceSha256": "e459420bece30466a47b5a5016c4b978cb79b5cbd3b624c05f50b94c51722ec9",
+      "fixture": "TEST.JSS",
+      "setupAction": null,
+      "commands": [],
+      "rawRecord": "artifacts/m1/native/schieber/saved-game.json",
+      "screens": [
+        {
+          "step": 0,
+          "action": null,
+          "windowClass": "TmainForm",
+          "title": "Stöck Wyys Stich Gold",
+          "dimensions": [
+            800,
+            600
+          ],
+          "file": "screenshots/schieber-saved-game-0-TmainForm.png",
+          "sha256": "356b82a5c7758a6ee4dcd8f323180dfc75e12df010739bf7614a8bbc8a17b11c",
+          "visibleControlText": []
+        }
+      ],
+      "cleanup": {
+        "ownedProcessTerminated": true,
+        "exitCode": 1
+      },
+      "observedExitCode": null,
+      "observationStatus": "windows-captured",
+      "error": null,
+      "captureFailures": [],
+      "interpretation": "Observed windows and controls only; see scenarios.md for assertions, caveats and follow-up checks."
+    },
+    {
+      "game": "differ",
+      "label": "setup",
+      "reference": "original/DiffPl.exe",
+      "referenceSha256": "73efe1af9e869edabbcc2616c58ae949c1ce15b6b1cfcb110f9605fdffcb03e1",
+      "fixture": null,
+      "setupAction": null,
+      "commands": [],
+      "rawRecord": "artifacts/m1/native/differ/setup.json",
+      "screens": [
+        {
+          "step": 0,
+          "action": null,
+          "windowClass": "TDlgNewJass",
+          "title": "Neuer Jass",
+          "dimensions": [
+            470,
+            437
+          ],
+          "file": "screenshots/differ-setup-0-TDlgNewJass.png",
+          "sha256": "212c3b393a4ed6c1a64eb8d9ad9f484125c86b1c7b3cd97803df9e2f054e17b4",
+          "visibleControlText": [
+            "Zufällig",
+            "M1 Reference",
+            "Regeln...",
+            "Cancel",
+            "OK"
+          ]
+        }
+      ],
+      "cleanup": {
+        "ownedProcessTerminated": true,
+        "exitCode": 1
+      },
+      "observedExitCode": null,
+      "observationStatus": "windows-captured",
+      "error": null,
+      "captureFailures": [],
+      "interpretation": "Observed windows and controls only; see scenarios.md for assertions, caveats and follow-up checks."
+    },
+    {
+      "game": "differ",
+      "label": "rules",
+      "reference": "original/DiffPl.exe",
+      "referenceSha256": "73efe1af9e869edabbcc2616c58ae949c1ce15b6b1cfcb110f9605fdffcb03e1",
+      "fixture": null,
+      "setupAction": "rules",
+      "commands": [],
+      "rawRecord": "artifacts/m1/native/differ/rules.json",
+      "screens": [
+        {
+          "step": 0,
+          "action": null,
+          "windowClass": "TPrefDlg",
+          "title": "Einstellungen",
+          "dimensions": [
+            440,
+            472
+          ],
+          "file": "screenshots/differ-rules-0-TPrefDlg.png",
+          "sha256": "e242a425784f1c275ced7d0c08945d9f3961b1a54387d3a9f09aa9a6c1f77236",
+          "visibleControlText": [
+            "Regeln",
+            "Tafel",
+            "Ränge addieren",
+            "Differenzen addieren",
+            "Bonuspunke",
+            "1 Punkt pro 5 Punkte Ansageabweichung",
+            "10 Punkte bei Differenz Null und Ansage grösser Null",
+            "Ansage ...",
+            "Offen",
+            "Verdeckt bis Ansagenende",
+            "Verdeckt bis Spielende",
+            "Anzahl Spieler ...",
+            "4 Spieler",
+            "3 Spieler",
+            "Differenzler auf ...",
+            "Bei offener Ansage können die Stöcke...",
+            "... dazu oder abgezählt werden",
+            "... dazugezählt werden",
+            "... nicht gezählt werden",
+            "Cancel",
+            "OK"
+          ]
+        },
+        {
+          "step": 0,
+          "action": null,
+          "windowClass": "TDlgNewJass",
+          "title": "Neuer Jass",
+          "dimensions": [
+            470,
+            437
+          ],
+          "file": "screenshots/differ-rules-0-TDlgNewJass.png",
+          "sha256": "6913db4c87de6151698844ab7f92c45606a8e03e4e74b9869225be3ceefae2f3",
+          "visibleControlText": [
+            "Zufällig",
+            "M1 Reference",
+            "Regeln...",
+            "Cancel",
+            "OK"
+          ]
+        }
+      ],
+      "cleanup": {
+        "ownedProcessTerminated": true,
+        "exitCode": 1
+      },
+      "observedExitCode": null,
+      "observationStatus": "windows-captured",
+      "error": null,
+      "captureFailures": [],
+      "interpretation": "Observed windows and controls only; see scenarios.md for assertions, caveats and follow-up checks."
+    },
+    {
+      "game": "differ",
+      "label": "four-player",
+      "reference": "original/DiffPl.exe",
+      "referenceSha256": "73efe1af9e869edabbcc2616c58ae949c1ce15b6b1cfcb110f9605fdffcb03e1",
+      "fixture": null,
+      "setupAction": "cancel",
+      "commands": [
+        28
+      ],
+      "rawRecord": "artifacts/m1/native/differ/four-player.json",
+      "screens": [
+        {
+          "step": 0,
+          "action": null,
+          "windowClass": "TmainForm",
+          "title": "SWS Platin Differenzler",
+          "dimensions": [
+            760,
+            540
+          ],
+          "file": "screenshots/differ-four-player-0-TmainForm.png",
+          "sha256": "94f262e194e3d1732e8f97559f17208f5daa32c79f65cb4ebc2859c550b82533",
+          "visibleControlText": []
+        },
+        {
+          "step": 1,
+          "action": 28,
+          "windowClass": "TmainForm",
+          "title": "SWS Platin Differenzler",
+          "dimensions": [
+            760,
+            540
+          ],
+          "file": "screenshots/differ-four-player-1-TmainForm.png",
+          "sha256": "61b6c74c55d1128d1a4e9746b08014b4e2ccfd58b792d70b9bf03d0629c19dcb",
+          "visibleControlText": []
+        }
+      ],
+      "cleanup": {
+        "ownedProcessTerminated": true,
+        "exitCode": 1
+      },
+      "observedExitCode": null,
+      "observationStatus": "windows-captured",
+      "error": null,
+      "captureFailures": [],
+      "interpretation": "Observed windows and controls only; see scenarios.md for assertions, caveats and follow-up checks."
+    },
+    {
+      "game": "differ",
+      "label": "saved-archive",
+      "reference": "original/DiffPl.exe",
+      "referenceSha256": "73efe1af9e869edabbcc2616c58ae949c1ce15b6b1cfcb110f9605fdffcb03e1",
+      "fixture": "TEST.JAR",
+      "setupAction": null,
+      "commands": [],
+      "rawRecord": "artifacts/m1/native/differ/saved-archive.json",
+      "screens": [
+        {
+          "step": 0,
+          "action": null,
+          "windowClass": "TrepForm",
+          "title": "Archiv anschauen",
+          "dimensions": [
+            760,
+            540
+          ],
+          "file": "screenshots/differ-saved-archive-0-TrepForm.png",
+          "sha256": "3d536b43a8a5af96848424cc2a1caec320d8cae1dc2f9958c62fa2fb1b9b9a4f",
+          "visibleControlText": []
+        }
+      ],
+      "cleanup": {
+        "ownedProcessTerminated": true,
+        "exitCode": 1
+      },
+      "observedExitCode": null,
+      "observationStatus": "windows-captured",
+      "error": null,
+      "captureFailures": [],
+      "interpretation": "Observed windows and controls only; see scenarios.md for assertions, caveats and follow-up checks."
+    },
+    {
+      "game": "differ",
+      "label": "saved-game",
+      "reference": "original/DiffPl.exe",
+      "referenceSha256": "73efe1af9e869edabbcc2616c58ae949c1ce15b6b1cfcb110f9605fdffcb03e1",
+      "fixture": "TEST.JSS",
+      "setupAction": null,
+      "commands": [],
+      "rawRecord": "artifacts/m1/native/differ/saved-game.json",
+      "screens": [],
+      "cleanup": {
+        "ownedProcessTerminated": true,
+        "exitCode": 3221225725
+      },
+      "observedExitCode": 3221225725,
+      "observationStatus": "no-window-captured",
+      "error": null,
+      "captureFailures": [],
+      "interpretation": "Observed windows and controls only; see scenarios.md for assertions, caveats and follow-up checks."
+    },
+    {
+      "game": "differ",
+      "label": "saved-game-current",
+      "reference": "original/DiffPl.exe",
+      "referenceSha256": "73efe1af9e869edabbcc2616c58ae949c1ce15b6b1cfcb110f9605fdffcb03e1",
+      "fixture": "diff.jss",
+      "setupAction": null,
+      "commands": [],
+      "rawRecord": "artifacts/m1/native/differ/saved-game-current.json",
+      "screens": [
+        {
+          "step": 0,
+          "action": null,
+          "windowClass": "TmainForm",
+          "title": "SWS Platin Differenzler",
+          "dimensions": [
+            760,
+            540
+          ],
+          "file": "screenshots/differ-saved-game-current-0-TmainForm.png",
+          "sha256": "29a73d82f46fad791e3b3f53b5e6a6f14141a54d64f9db957749e42d2e48b40f",
+          "visibleControlText": []
+        }
+      ],
+      "cleanup": {
+        "ownedProcessTerminated": true,
+        "exitCode": 1
+      },
+      "observedExitCode": null,
+      "observationStatus": "windows-captured",
+      "error": null,
+      "captureFailures": [],
+      "interpretation": "Observed windows and controls only; see scenarios.md for assertions, caveats and follow-up checks."
+    }
+  ],
+  "limitations": [
+    "Native captures use Windows working copies and owned-window messages, not a virtual machine or a registry sandbox.",
+    "Legacy process startup may show windows despite SW_HIDE. Each owned process is terminated without normal preference-save shutdown.",
+    "Audio files are omitted from the native working copies and audio is configured off; audio timing is untested.",
+    "Screenshots may vary with system fonts, DPI, window size and random initial opponent selection.",
+    "Complete matches, end scoring, all rule variants, AI parity and file-format compatibility for every fixture are later validation work.",
+    "The current browser renderer approximates some legacy AND/OR masks with alpha; mappings preserve exact operations for the later fidelity fix."
+  ]
+}
