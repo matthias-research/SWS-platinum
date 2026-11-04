@@ -19,7 +19,9 @@
     "assets:setup": "node scripts/prepare-setup.mjs",
     "assets:dialogs": "node scripts/prepare-dialogs.mjs",
     "audio:test": "node tests-node/audio.test.mjs",
-    "engine:fixtures": "node scripts/prepare-engine-fixtures.mjs"
+    "engine:fixtures": "node scripts/prepare-engine-fixtures.mjs",
+    "deploy": "wrangler deploy",
+    "deploy:preview": "wrangler dev"
   },
   "engines": {
     "node": ">=22.12.0"
@@ -32,6 +34,7 @@
     "@playwright/test": "^1.64.1",
     "@vitejs/plugin-react": "^6.2.1",
     "sharp": "^0.35.5",
-    "vite": "^8.3.5"
+    "vite": "^8.3.5",
+    "wrangler": "4.157.0"
   }
 }

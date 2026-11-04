@@ -6,6 +6,29 @@ See [project.md](project.md) for the original software investigation, fidelity r
 
 The legacy source, executables and assets are kept locally in `original/`, which is excluded from version control. The original Panel artwork is integrated as the browser welcome screen. Its Schieber and Differenzler buttons open game setup; **Datei → Spiel schliessen** returns here, with the saved game available through **Spiel fortsetzen**.
 
+## Deploy to Cloudflare
+
+The deployment target is **https://sws-platinum.matthi3010.workers.dev**, separate
+from the existing SWS site. Configuration is in `wrangler.jsonc`.
+
+For a fresh checkout:
+
+```sh
+git lfs pull
+npm ci
+npx wrangler login
+npm run deploy
+```
+
+The deploy command builds the app and publishes only `dist/`, including its
+runtime artwork, AI data and audio. Neither `original/` nor development files
+are deployed. `npm run deploy:preview` runs Cloudflare's local preview.
+Deployment is manual: pushing to GitHub alone does not publish updates.
+
+Rules and preferences are saved automatically in browser storage for this
+site. They survive reopening the browser but do not transfer from localhost,
+from the other SWS site, or between browsers/devices.
+
 ## Run locally
 
 Use Node.js 22.12 or newer.
