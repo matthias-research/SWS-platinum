@@ -249,7 +249,7 @@ Preferences use `SCHIEBPL.INI` / `DIFFPL.INI`. Profiles and high scores include 
 
 ## Milestones
 
-This is the implementation roadmap, without assigned dates. The initial investigation is complete. At the user's request, implementation has started with a React/Vite foundation and the Schieber opening screen, including an enhanced table sample. The separate launcher remains excluded. Network multiplayer and the sliding puzzle remain optional follow-up work.
+This is the implementation roadmap, without assigned dates. The initial investigation is complete. At the user's request, implementation has started with a React/Vite foundation and the Schieber opening screen, including an enhanced table sample. The separate launcher remains excluded. Network multiplayer remains optional follow-up work. The sliding puzzle is now restored with the dialog collection.
 
 Current implementation: both games are playable through complete matches, using source-translated rules and the original Pascal AI compiled to JavaScript in a worker. Includes three-/four-player Differenzler, all three Differenzler AI families, setup, human turns, scoring, hints, undo, pause, round forfeits, save/resume/export, archive replay, match history and on-demand sound. Both tables have enhanced background samples; card and interface sheets remain original resolution. All 5,305 WAVs have MP3 copies (346 MB to 61 MB). See [playable-game notes](docs/playable-games.md) and [AI port details](docs/ai-port.md) for validation and explicit fidelity gaps. Full artwork enhancement, personality restoration and exhaustive native parity remain outstanding.
 
@@ -368,3 +368,11 @@ REA supplied complete static PE resource/import inventories. Retained evidence i
 - Differenzler imports: `ev_e9e6fb242251b52b9233920a464c13fb07afe7b25fe9f046d3f263d6f07e09e3`.
 
 These establish static file contents only. The source snapshot was inspected selectively for architecture and key behavior; it has not received a line-by-line correctness audit, a successful build, or gameplay validation.
+
+## Dialog restoration update
+
+Both games now use their original illustrated dialogs and embedded bitmap collection. Rules/preferences, profiles, trump/prediction, Weis/Stoeck, hints, results, high scores, statistics, archive export/playback, rematch/forfeit, automatic-play progress, credits and the picture puzzle are available. The catalog includes all 64 game executable forms and 218 unique recovered bitmap images, excluding the launcher. Original coordinate layouts share the global display scale; bitmap detail enhancement remains M4 work.
+
+See [form-by-form coverage and remaining fidelity limits](docs/dialogs.md). Network/CD-specific dialogs and developer/resource forms are distinguished from player dialogs. Results/statistics/archive paintboxes use browser rendering and still need further native visual comparison; this does not mark M9 complete.
+
+Player announcements now appear in timed, dismissible speech bubbles and an illustrated scrolling feed, following `Log.pas` and `Table.pas`. Original trump symbols, declaration cards and conversation portraits are reused. Bubble duration is configurable, and hidden predictions remain protected in both the engine view and the UI.

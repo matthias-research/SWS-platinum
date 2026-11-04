@@ -5,18 +5,19 @@ for (const kind of ['Schieber', 'Differenzler']) test(`${kind}: play a complete 
   await page.goto('/');
   await page.getByRole('button', { name: `Neuer ${kind}…`, exact: true }).click();
   const dialog = page.getByRole('dialog');
-  if (kind === 'Schieber') {
-    await dialog.getByRole('button',{name:'Regeln…',exact:true}).click();
-    const rules = page.locator('.game-setup');
-    await rules.getByLabel('Auf Punkte spielen').uncheck();
-    await rules.getByLabel('Runden',{exact:true}).fill('1');
-    await rules.getByRole('button',{name:'Übernehmen',exact:true}).click();
-  } else await dialog.getByLabel('Runden', { exact: true }).fill('1');
+  await dialog.getByRole('button',{name:'Regeln…',exact:true}).click();
+  const rules=page.getByRole('dialog',{name:'Spielregeln'});
+  if(kind==='Schieber'){await rules.getByRole('radio',{name:'Anzahl Spiele',exact:true}).check();await rules.getByLabel('Runden',{exact:true}).fill('1');}
+  else await rules.getByLabel('Runden',{exact:true}).selectOption('1');
+  await rules.getByRole('button',{name:'OK',exact:true}).click();
   await dialog.getByRole('button', { name: 'Spielen', exact: true }).click();
   await expect(page.getByRole('group', { name: 'Ihre Karten' }).getByRole('button')).toHaveCount(9);
   await page.screenshot({ path: `artifacts/browser/${kind.toLowerCase()}-deal.png` });
   if (kind === 'Schieber') await page.getByRole('button', {name:'Obenabe',exact:true}).click();
-  else { await page.getByRole('spinbutton', {name:'Ansage',exact:true}).fill('50'); await page.getByRole('button',{name:'Ansagen',exact:true}).click(); }
+  else { await page.getByRole('textbox', {name:'Ansage',exact:true}).fill('50'); await page.getByRole('dialog').getByRole('button',{name:'OK',exact:true}).click(); }
+  await expect(page.getByRole('status')).not.toContainText(/wählt Trumpf|Sie sagt an|…/);
+  if((await page.getByRole('status').textContent()).includes('weist.'))await expect(page.getByRole('dialog',{name:/wollen Sie weisen/})).toBeVisible();
+  if(await page.getByRole('dialog').count())await page.getByRole('dialog').getByRole('button',{name:'Schliessen',exact:true}).click();
   await page.getByLabel('Tempo', { exact: true }).selectOption('50');
   await page.getByRole('button', { name: 'Computer weiterspielen lassen' }).click();
   await expect(page.getByRole('status')).toContainText('Jass beendet', { timeout: 30000 });
@@ -35,18 +36,22 @@ test('human cards, hint, undo and three-player Trashy stay usable', async ({page
   await page.goto('/');
   await page.getByRole('button',{name:'Neuer Differenzler…',exact:true}).click();
   const dialog=page.getByRole('dialog');
-  await dialog.getByRole('combobox',{name:'Spieler',exact:true}).selectOption('3');
   await dialog.getByRole('combobox',{name:'Computer-Spieler',exact:true}).selectOption('trashy');
-  await dialog.getByLabel('Runden',{exact:true}).fill('1');
+  await dialog.getByRole('button',{name:'Regeln…',exact:true}).click();
+  const rules=page.getByRole('dialog',{name:'Spielregeln'});
+  await rules.getByRole('radio',{name:'3 Spieler',exact:true}).check();
+  await rules.getByLabel('Runden',{exact:true}).selectOption('1');
+  await rules.getByRole('button',{name:'OK',exact:true}).click();
   await dialog.getByRole('button',{name:'Spielen',exact:true}).click();
   const cards=page.getByRole('group',{name:'Ihre Karten'});
   await expect(cards.getByRole('button')).toHaveCount(12);
-  await page.getByRole('button',{name:'Tipp',exact:true}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Tipp',exact:true}).click();
   await expect(page.getByText(/^Tipp: \d+ Punkte ansagen/)).toBeVisible();
-  await page.getByRole('button',{name:'Ansagen',exact:true}).click();
+  await page.getByRole('dialog',{name:'Ratschlag'}).getByRole('button',{name:'Abbrechen',exact:true}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'OK',exact:true}).click();
   await page.getByRole('button',{name:'Zurücknehmen',exact:true}).click();
-  await expect(page.getByRole('button',{name:'Ansagen',exact:true})).toBeVisible();
-  await page.getByRole('button',{name:'Ansagen',exact:true}).click();
+  const callDialog=page.getByRole('dialog',{name:/sagt an/});
+  if(await callDialog.count())await callDialog.getByRole('button',{name:'OK',exact:true}).click();else await page.getByRole('button',{name:'Ansagen',exact:true}).click();
   await expect(cards.locator('button:not(:disabled)').first()).toBeEnabled();
   await cards.locator('button:not(:disabled)').first().press('Enter');
   await expect(cards.getByRole('button')).toHaveCount(11);
@@ -71,6 +76,14 @@ test('legacy archive opens, steps through original cards, and shows its score',a
   await page.getByRole('slider',{name:'Spielzug'}).fill('36');
   await expect(page.locator('output')).toHaveText('36 / 36');
   await page.screenshot({path:'artifacts/browser/legacy-replay.png'});
+  await page.getByRole('button',{name:'Archivfenster…'}).click();
+  const archive=page.getByRole('dialog',{name:'Archiv · Bauer'});
+  await archive.getByRole('button',{name:'Anfang',exact:true}).click();
+  await expect(page.locator('output')).toHaveText('0 / 36');
+  await archive.getByRole('button',{name:'Weiter',exact:true}).click();
+  await expect(page.locator('output')).toHaveText('1 / 36');
+  await archive.screenshot({path:'artifacts/browser/dialog-archive.png'});
+  await page.keyboard.press('Escape');
   await page.getByRole('button',{name:'Archiv schliessen'}).click();
   await expect(page.getByRole('region',{name:'Archiv-Wiedergabe'})).toHaveCount(0);
 });

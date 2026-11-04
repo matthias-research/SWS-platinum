@@ -13,7 +13,6 @@ const rectangles = [...source.matchAll(/left:\s*(\d+);top:\s*(\d+);right:\s*(\d+
 const exported = [];
 for (const match of rectangles) {
   const [left, top, right, bottom, id] = match.slice(1).map(Number);
-  if (![5006, ...Array.from({length:12},(_,i)=>7006+Math.floor(i/3)*1000+i%3), ...Array.from({length:20},(_,i)=>5200+i)].includes(id)) continue;
   await sharp(`artifacts/m1/${icons.previewPath}`).extract({left,top,width:right-left,height:bottom-top}).png().toFile(`${output}/${id}.png`);
   exported.push({id,rect:{left,top,right,bottom}});
 }

@@ -17,6 +17,7 @@
     "ai:build": "node scripts/build-ai.mjs",
     "assets:audio": "python scripts/prepare-audio.py",
     "assets:setup": "node scripts/prepare-setup.mjs",
+    "assets:dialogs": "node scripts/prepare-dialogs.mjs",
     "audio:test": "node tests-node/audio.test.mjs",
     "engine:fixtures": "node scripts/prepare-engine-fixtures.mjs"
   },

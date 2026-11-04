@@ -3,9 +3,11 @@ import * as S from './engine/SWSBase';
 import * as D from './engine/DiffBase';
 import { cardName, gameHand, trumpLabels } from './gameDrawing';
 import { NewJassSetup } from './NewJassSetup';
+import { PreferencesDialog } from './dialogs/PreferencesDialog';
+import { GameDecisionDialog, HintDialog } from './dialogs/DecisionDialogs';
 
 export function GameSetup(props) {
-  return props.kind === 'schieber' ? <NewJassSetup {...props} renderRules={(rules,onApply,onClose)=><GameSetupForm {...props} initialRules={rules} rulesOnly onClose={onClose} onStart={options=>onApply(options.rules)} />} /> : <GameSetupForm {...props} />;
+  return <NewJassSetup {...props} renderRules={(rules,onApply,onClose)=><PreferencesDialog kind={props.kind} rules={rules} onApply={onApply} onClose={onClose} settings={props.settings} onSettings={props.onSettings} scale={props.displayScale}/>} />;
 }
 export function GameSetupForm({ kind, onStart, onClose, setId = 1, initialRules, rulesOnly = false }) {
   const trumpNames = trumpLabels(setId);
@@ -56,10 +58,14 @@ export function GameSetupForm({ kind, onStart, onClose, setId = 1, initialRules,
   </dialog>;
 }
 
-export function GameControls({ game, onNew }) {
+export function GameControls({ game, onNew, onDialog, displayScale }) {
   const trumpNames = trumpLabels(game.sound.set);
   const v = game.view, req = v?.request;
   const [call, setCall] = useState(50), [history, setHistory] = useState(false);
+  const [dismissed,setDismissed]=useState(''),[dismissedHint,setDismissedHint]=useState(null);
+  const decisionKey=v?`${v.roundNumber}/${v.phase}/${req?.command}/${v.hand.join(',')}/${v.events.join('|')}`:'';
+  const showDecision=req?.player===v?.human&&!game.automatic&&!game.paused&&req?.command!=='cmdPlay'&&dismissed!==decisionKey;
+  const showHint=game.hint&&game.hint!==dismissedHint;
   const mine = req?.player === v?.human && !game.automatic && !game.paused;
   let status = !v ? 'Wählen Sie einen Jass.' : v.phase === 'done' ? (v.kind === 'schieber'
     ? `Jass beendet. ${v.winner === 1 ? 'Nord & Süd gewinnen.' : v.winner === 2 ? 'West & Ost gewinnen.' : 'Unentschieden.'}`
@@ -74,27 +80,27 @@ export function GameControls({ game, onNew }) {
       {v && !game.automatic && <>
         {v.phase === 'deal' && <button disabled={game.busy} onClick={() => game.action({ type: 'deal' })}>Nächste Runde</button>}
         {v.phase !== 'done' && v.phase !== 'deal' && v.pause && <button disabled={game.busy} onClick={() => game.action({ type: 'continue' })}>Stich abräumen</button>}
-        {mine && ['cmdTrump', 'cmdShift'].includes(req.command) && <>
+        {mine && !showDecision && ['cmdTrump', 'cmdShift'].includes(req.command) && <>
           {trumpNames.slice(1).map((name, i) => <button key={name} disabled={game.busy || !v.rules.fTrumpFactor[i + 1]} onClick={() => game.answer('cmdTrump', { fTrump: i + 1 })}>{name}</button>)}
           {req.command === 'cmdTrump' && <button disabled={game.busy} onClick={() => game.answer('cmdShift')}>Schieben</button>}
         </>}
-        {mine && req.command === 'cmdSuit' && <>
+        {mine && !showDecision && req.command === 'cmdSuit' && <>
           <button disabled={game.busy} onClick={() => game.answer('cmdSuit', { accept: true })}>{S.ValueOfSuit(v.trump, false, req.data.fSuit)} Weis</button>
           <button disabled={game.busy} onClick={() => game.answer('cmdSuit', { accept: false })}>Nicht weisen</button>
         </>}
-        {mine && req.command === 'cmdCall' && <form onSubmit={e => { e.preventDefault(); game.answer('cmdCall', { fCall: call }); }}>
+        {mine && !showDecision && req.command === 'cmdCall' && <form onSubmit={e => { e.preventDefault(); game.answer('cmdCall', { fCall: call }); }}>
           <label>Ansage <input aria-label="Ansage" type="number" required min={0} max={157} value={call} onChange={e => setCall(Number(e.target.value))} /></label><button disabled={game.busy}>Ansagen</button>
         </form>}
-        {mine && req.command === 'cmdStockings' && [0, 1, 2].map((choice) => <button key={choice} disabled={game.busy} onClick={() => game.answer('cmdStockings', { fStockings: choice })}>{['Keine Stöck', 'Stöck +20', 'Stöck −20'][choice]}</button>)}
+        {mine && !showDecision && req.command === 'cmdStockings' && [0, 1, 2].map((choice) => <button key={choice} disabled={game.busy} onClick={() => game.answer('cmdStockings', { fStockings: choice })}>{['Keine Stöck', 'Stöck +20', 'Stöck −20'][choice]}</button>)}
       </>}
       {v && <>
         <button disabled={game.busy || v.phase === 'done'} onClick={() => game.setPaused(!game.paused)}>{game.paused ? 'Fortfahren' : 'Pause'}</button>
         <button disabled={game.busy || !mine || game.paused} onClick={game.getHint}>Tipp</button>
         <button disabled={game.busy} onClick={game.undo}>Zurücknehmen</button>
-        <button disabled={game.busy || ['deal','done'].includes(v.phase)} onClick={()=>game.action({type:'forfeit'})}>Runde aufgeben</button>
+        <button disabled={game.busy || ['deal','done'].includes(v.phase)} onClick={()=>onDialog?.('forfeit')}>Runde aufgeben</button>
         <button aria-pressed={game.automatic} disabled={v.phase === 'done'} onClick={() => game.setAutomatic(!game.automatic)}>{game.automatic ? 'Selbst spielen' : 'Computer weiterspielen lassen'}</button>
         <label>Tempo <select aria-label="Tempo" value={game.speed} onChange={e => game.setSpeed(Number(e.target.value))}><option value={1200}>Ruhig</option><option value={650}>Normal</option><option value={50}>Schnell</option></select></label>
-        <button onClick={() => setHistory(!history)} aria-expanded={history}>Resultate</button>
+        <button onClick={() => onDialog ? onDialog('results') : setHistory(!history)} aria-expanded={history}>Resultate</button>
         <label><input type="checkbox" checked={game.sound.enabled} onChange={e => game.setSound({ ...game.sound, enabled: e.target.checked })} /> Ton</label>
         {game.sound.enabled && <label>Lautstärke <input type="range" min={0} max={1} step={0.1} value={game.sound.volume} onChange={e => game.setSound({...game.sound,volume:Number(e.target.value)})} /></label>}
         {game.sound.enabled && <label>Stimme <select aria-label="Stimme" value={game.sound.voice} onChange={e => game.setSound({...game.sound,voice:Number(e.target.value)})}>
@@ -102,6 +108,8 @@ export function GameControls({ game, onNew }) {
         </select></label>}
       </>}
     </div>
+    {showDecision&&<GameDecisionDialog key={decisionKey} game={game} onClose={()=>setDismissed(decisionKey)} scale={displayScale}/>}
+    {showHint&&<HintDialog game={game} onClose={()=>setDismissedHint(game.hint)} scale={displayScale}/>}
     {game.error && <p role="alert" className="error">{game.error}</p>}
     {game.hint && <p role="status">Tipp: {game.hint.command === 'cmdCard' ? cardName(game.hint.data.fCard, game.sound.set) : game.hint.command === 'cmdTrump' ? trumpNames[game.hint.data.fTrump] : game.hint.command === 'cmdShift' ? 'Schieben' : game.hint.command === 'cmdCall' ? `${game.hint.data.fCall} Punkte ansagen` : game.hint.command === 'cmdSuit' ? 'Weisen' : ['Keine Stöck', 'Stöck +20', 'Stöck −20'][game.hint.data.fStockings ?? 0]}</p>}
     {history && v && <div className="results"><table><caption>Rundenresultate</caption><thead><tr><th>Runde</th>{v.kind === 'schieber' ? <><th>Nord & Süd</th><th>West & Ost</th></> : v.names.slice(1, v.count + 1).map(n => <th key={n}>{n}<br />Ansage / Punkte / Differenz</th>)}</tr></thead><tbody>

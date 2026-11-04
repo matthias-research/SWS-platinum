@@ -25,7 +25,7 @@ Rules are available through **Regeln…**, with changes applied only when confir
 Cancel leaves the current game unchanged. The existing global display scale
 controls the dialog, capped to fit the viewport. Assets retain their original
 pixels; this step matches the original graphics and does not invent portrait
-detail through AI enhancement. Differenzler's setup is unchanged for now.
+detail through AI enhancement. Differenzler now also uses its original three-/four-player backgrounds and the shared rules dialog; see [all dialog coverage](dialogs.md).
 
 Browser checks cover portrait/avatar selection, individual strength propagation,
 rules, cancellation, narrow-screen fitting and starting complete matches.

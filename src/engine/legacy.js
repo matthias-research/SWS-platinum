@@ -3,6 +3,27 @@ import * as D from './DiffBase.js';
 
 const numbers = text => text.trim().split(/\s+/).filter(Boolean).map(Number);
 const check = (condition, message) => { if (!condition) throw new Error(`Jass-Datei: ${message}`); };
+export function archiveText(game, title='Jass', scope='thisJass') {
+  const r=game.rules,clean=s=>String(s).replace(/[\r\n()]/g,' ').slice(0,100);
+  let rounds=game.history.map(h=>game.kind==='differ'?{...h.round,fCall:h.result.call,fMade:h.result.made,fBonus:h.result.bonus}:h.round);
+  const active=!['deal','done'].includes(game.phase)&&game.round.fTrump;
+  if(scope==='lastRound')rounds=rounds.slice(-1);
+  else if(scope==='thisRound')rounds=active?[game.round]:rounds.slice(-1);
+  else if(active)rounds=rounds.concat([game.round]);
+  check(rounds.length,'Noch keine Runde zum Archivieren');
+  const lines=[`### Title: ${clean(title)}`,'### Rules:'];
+  if(game.kind==='schieber')lines.push(`${r.fPointPlay?'pointPlay':'roundPlay'} ${r.fLimit} ${r.fCut} ${r.fRoundLimit} ${r.fLooserBegins?'looserBegins':'nextBegins'}`,`${r.fSuitsEnabled?'suitsOn':'suitsOff'} ${r.fSuitAllFourEqs?'allFourOn':'allFourOff'} ${r.fSuitCrossingOn?'crossingOn':'crossingOff'} ${r.fSuitsComeFirst?'suitsFirst':'tricksFirst'} ${r.fSuitsIncrement} ${r.fMatchBonus}`,r.fTrumpFactor.slice(1).join(' '));
+  else lines.push(`${game.count} ${r.fRoundLimit} ${r.fSumUpRanks?'ranks':'delta'} ${r.fCallMode} ${r.fSCallBonus?'callBonus':'noCallBonus'} ${r.fDZeroBonus} ${r.fStockings}`);
+  for(let p=1;p<=game.count;p++)lines.push(`### Player ${p}: ${clean(game.names[p])} (${active&&rounds.includes(game.round)?game.state.fHands[p].filter(Boolean).join(' '):''})`);
+  for(const round of rounds){
+    lines.push(game.kind==='schieber'?`### Round: ${round.fTrumpedBy} trumps ${round.fTrump} trick ${round.fTrick}`:`### Round: card ${round.fDrawn} trump ${round.fTrump} trick ${round.fTrick} stocksFor ${round.fStocksFor} stockings ${round.fStockings}`);
+    for(let p=1;p<=game.count;p++)lines.push(game.kind==='schieber'?`${p} suits ${round.fSuits[p].fCalls.slice(0,round.fSuits[p].fCount).map(s=>`(${s.fValue} ${[...s.fCards].join(' ')})`).join(' ')}`:`${p} call ${round.fCall[p]} made ${round.fMade[p]} bonus ${round.fBonus[p]}`);
+    // Include the empty next trick: its leader is the previous trick's winner.
+    for(const t of round.fTricks.slice(0,round.fTrick+1)){const leader=t.fLeading||1;lines.push(`${leader} -> ${Array.from({length:game.count},(_,i)=>t.fPlayed[(leader-1+i)%game.count+1]||0).join(' ')}`);}
+    lines.push('### End Of Round.');
+  }
+  lines.push('### End Of Jass.');return lines.join('\n')+'\n';
+}
 // SWSFile/DIFFFILE text records. Private saved AI dumps after End Of Jass are
 // deliberately not interpreted: the archive viewer replays public game records.
 export function parseLegacy(text) {

@@ -10,7 +10,9 @@ export function gameHand(view, sheet) {
   if (!view || !sheet) return [];
   const { width, height } = sheet.cards[0].rect;
   const slots = view.count === 3 ? 12 : 9;
-  return view.hand.map((id, i) => ({ id, x: 5 + Math.floor(i * (758 - width) / (slots - 1)), y: 523 - height, width, height })).filter(c => c.id);
+  let descending=false;try{descending=JSON.parse(localStorage.getItem('sws-preferences')||'{}').viewDescending===true;}catch{}
+  const hand=descending?[...view.hand].filter(Boolean).reverse():view.hand;
+  return hand.map((id, i) => ({ id, x: 5 + Math.floor(i * (758 - width) / (slots - 1)), y: 523 - height, width, height })).filter(c => c.id);
 }
 export function drawGame(canvas, view, sheets, setId = 1) {
   if (!view || !sheets.V || !sheets.H) return;
@@ -34,6 +36,7 @@ export function drawGame(canvas, view, sheets, setId = 1) {
   }
   const { log, score } = layout(768, 528, h);
   ctx.save(); ctx.font = '11px Arial'; ctx.textBaseline = 'top'; ctx.fillStyle = '#111';
+  if(!view.feed){
   const x = log.x + 18; let y = log.y + 54;
   ctx.fillText(view.kind === 'schieber' ? 'Schieber' : 'Differenzler', x, y); y += 20;
   ctx.fillText(`Runde ${view.roundNumber}`, x, y); y += 18;
@@ -43,6 +46,7 @@ export function drawGame(canvas, view, sheets, setId = 1) {
     if (view.calls) { ctx.fillText(`Ansage: ${view.calls[p] < 0 ? 'verdeckt' : view.calls[p]}`, x + 7, y); y += 17; }
   }
   for (const event of view.events.slice(-3)) { if (y + 16 < log.y + log.height - 16) { y += 16; ctx.fillText(event, x, y, log.width - 45); } }
+  }
   ctx.fillStyle = '#fff';
   if (view.kind === 'schieber') {
     ctx.font = '25px Georgia';

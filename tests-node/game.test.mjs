@@ -9,6 +9,20 @@ const differ = await readFile('public/assets/ai/RGDIFF.DAT');
 const tables = { call: await readFile('public/assets/ai/Hcall.dat'), play: await readFile('public/assets/ai/HPLAY.DAT'), trashy: await readFile('public/assets/ai/TRASHY.DAT') };
 const factory = kind => kind === 'schieber' ? new SchieberAI(schieber) : new DifferAI(differ);
 
+for(const mode of [0,1,2])test(`public feed respects Differenzler prediction visibility mode ${mode}`,()=>{
+  const game=new Game({kind:'differ',seed:37,human:3,rules:{fCallMode:mode,fRoundLimit:1}},factory('differ'));
+  game.act({type:'deal'});let calls=0;
+  while(game.phase==='call'){
+    game.computer();calls++;
+    const published=game.view().feed.filter(e=>e.kind==='call');
+    if(mode===0||mode===1&&game.phase==='call')assert.ok(published.every(e=>e.player===3));
+    else assert.equal(published.length,calls);
+  }
+  while(game.phase!=='done'){if(game.pause)game.act({type:'continue'});else game.computer();}
+  assert.equal(game.view().feed.filter(e=>e.kind==='call').length,4);
+  assert.deepEqual(Game.restore(JSON.parse(JSON.stringify(game.save())),factory('differ')).view().feed,game.view().feed);
+});
+
 test('individual setup strengths reach the AI and survive save restoration', () => {
   const levels=[0,0,50,0,99], seen=[];
   const ai={notify:(command,data)=>seen.push({command,data})};

@@ -1,4 +1,5 @@
 import { Game } from './engine/game.js';
+import {archiveText} from './engine/legacy.js';
 let game;
 let assetBase;
 async function createAI(kind, family) {
@@ -19,6 +20,7 @@ async function createAI(kind, family) {
 self.onmessage = async ({ data: message }) => {
   try {
     assetBase = message.assetBase;
+    if(message.type==='archive'){self.postMessage({id:message.id,archive:{format:'sws-archive',version:1,text:archiveText(game,message.title,message.scope)}});return;}
     let hint = null;
     if (message.type === 'new') {
       game = new Game(message.options, await createAI(message.options.kind, message.options.family));

@@ -59,3 +59,9 @@ See [M1 results](docs/m1/README.md) for coverage, [reference scenarios](docs/m1/
 `src/engine/SWSBase.js` and `src/engine/DiffBase.js` directly port the corresponding Pascal routines, retaining function names, record fields and numeric IDs. The translation covers card/trick rules, the original random/dealing algorithm, Weis, Stöck, forfeits, round lifecycle and match scoring. `src/engine/game.js` integrates the command flow with browser controls. The original AI compiles to JavaScript with pas2js and runs in a worker; see [AI build and compatibility notes](docs/ai-port.md).
 
 Run `npm run engine:test` for the headless tests, including legal-play and winner comparisons against two archived original rounds. See [the translation map](docs/m5-core.md) for exact scope, conventions and verification limits.
+
+## Original dialogs
+
+Both games include the recovered graphical setup and decision dialogs. Use Datei for profile/preferences/archive export, Jass for results/statistics/fast play, and Hilfe for credits, the picture puzzle and the bitmap collection. Dialogs follow the selected global display scale.
+
+`npm run assets:dialogs` regenerates the packaged form layouts and images from the M1 extraction. `node tests-node/dialog-assets.test.mjs` validates their dimensions and image bindings. See [dialog coverage](docs/dialogs.md) for all 64 reference forms and the remaining native/browser differences.

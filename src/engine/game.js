@@ -35,13 +35,36 @@ export class Game {
     this.ai = ai; this.state = this.base.SetupJassState(this.rules, options.leading ?? 3);
     this.random = new S.RandomStreams(); this.random.SetRnd(this.random.gDealRnd, options.seed ?? 1);
     this.phase = 'deal'; this.journal = []; this.history = []; this.events = [];
+    this.feed=[];this.feedSequence=0;
     this.lastTrick = null; this.pause = false; this.pending = null;
     this.ai.notify('cmdNew', { fRules: this.rules, fPlayer: this.state.fLeading,
       fTypes: [0, 1, 1, 1, 1].map((v, p) => p === this.human ? 0 : v), fNames: this.names,
       fLevel: playerLevels });
   }
   get round() { return this.state.fRounds[this.state.fRound]; }
-  notify(command, data, recipients) { this.ai.notify(command, data, recipients); }
+  notify(command, data, recipients) {
+    this.ai.notify(command, data, recipients);
+    const round=this.state.fRoundTotal+(command==='cmdCount'?0:1);
+    const add=entry=>{this.feed.push({id:++this.feedSequence,round,...entry});this.feed=this.feed.slice(-50);};
+    const call=(player,value)=>{if(value>=0&&!this.feed.some(e=>e.kind==='call'&&e.round===round&&e.player===player))add({kind:'call',player,value});};
+    if(command==='cmdDeal'){add({kind:'round'});if(this.kind==='differ')add({kind:'drawn',trump:this.round.fTrump,cards:[[data.fDrawn]]});}
+    else if(command==='cmdTrump')add({kind:'trump',player:data.fPlayer,trump:data.fTrump});
+    else if(command==='cmdShift')add({kind:'shift',player:data.fPlayer});
+    else if(command==='cmdCall'){
+      // Never serialize another player's hidden prediction into the public view.
+      if(!recipients)for(let p=1;p<=this.count;p++)call(p,this.round.fCall[p]);
+      else if(recipients.includes(this.human))call(this.human,data.fCall);
+    }
+    else if(command==='cmdSuit'&&data.fSuit.fCount){
+      const suits=data.fSuit.fCalls.slice(0,data.fSuit.fCount).map(s=>[...s.fCards]);
+      add({kind:'suit',player:data.fPlayer,value:S.ValueOfSuit(this.round.fTrump,false,data.fSuit),cards:suits});
+    }
+    else if(command==='cmdStockings'&&data.fStockings)add({kind:'stockings',player:data.fPlayer,subtract:data.fStockings===2,trump:this.round.fTrump});
+    else if(command==='cmdCount'){
+      if(this.kind==='differ')for(let p=1;p<=this.count;p++)call(p,data.fCall[p]);
+      add({kind:'result',points:this.kind==='schieber'?data.fPoints.map((n,i)=>n+data.fSuitPts[i]):data.fMade});
+    }
+  }
   deal() {
     assert(this.phase === 'deal', 'Jetzt können keine Karten verteilt werden.');
     this.pending = null; this.lastTrick = null; this.pause = false;
@@ -186,7 +209,9 @@ export class Game {
       lastTrick: this.lastTrick, pause: this.pause, calls: visibleCalls,
       scores: this.kind === 'schieber' ? this.state.fPoints : this.state.fTotal,
       winner: this.state.fWinner ?? 0, ranks: this.state.fFinal,
-      history: this.history.map(h => h.result), events: this.events.slice(-12),
+      feed:structuredClone(this.feed),characters:this.options.characters,avatar:this.options.avatar,
+      history: this.history.map(h => ({...h.result,trump:h.round.fTrump,trumpedBy:h.round.fTrumpedBy,
+        ...(this.kind==='schieber'?{suitPts:S.ValueOfSuits(this.rules,h.round)}:{})})), events: this.events.slice(-12),
       request: req ? { player: req.player, command: req.command, ...(req.player === this.human ? { data: req.data } : {}) } : null };
   }
   save() { return { format: 'sws-browser', version: 1, options: this.options, actions: this.journal }; }

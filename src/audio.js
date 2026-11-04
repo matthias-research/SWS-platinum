@@ -32,7 +32,7 @@ async function speak(cues, volume) {
   } catch { /* Optional speech must not interrupt the game. */ }
 }
 export function soundForHint(hint, settings) {
-  if (settings.enabled) speak(speechForHint(hint, settings), settings.volume);
+  if (settings.enabled&&settings.hints!==false) speak(speechForHint(hint, settings), settings.volume);
 }
 export async function playOriginal(folder, first, variants = 1, volume = 0.6) {
   const requestedGeneration = generation;
@@ -49,8 +49,10 @@ export async function playOriginal(folder, first, variants = 1, volume = 0.6) {
 }
 export function soundForAction(action, view, settings) {
   if (!settings.enabled || !action) return;
-  if (action.type === 'deal') playOriginal('ANDERE', 1100, 10, settings.volume);
-  else if (action.type === 'continue') playOriginal('ANDERE', 1250, 10, settings.volume);
-  else if (action.command === 'cmdCard') playOriginal('ANDERE', view.phase === 'done' ? 1350 : 1200, 10, settings.volume);
-  speak(speechForAction(action, view, settings), settings.volume);
+  if (settings.noise!==false) {
+    if (action.type === 'deal') playOriginal('ANDERE', 1100, 10, settings.volume);
+    else if (action.type === 'continue') playOriginal('ANDERE', 1250, 10, settings.volume);
+    else if (action.command === 'cmdCard') playOriginal('ANDERE', view.phase === 'done' ? 1350 : 1200, 10, settings.volume);
+  }
+  speak(settings.calls!==false&&(settings.own!==false||action.data?.fPlayer!==view.human)?speechForAction(action, view, settings):[], settings.volume);
 }

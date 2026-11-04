@@ -10,7 +10,7 @@ configurable before starting.
 
 Choose trump or shift, declare Weis, enter a prediction, and click a legal card.
 Illegal cards are disabled. Keyboard users can Tab to a legal card and press
-Enter. After each trick, choose **Stich abräumen**; after a round choose
+Enter. After each trick, click anywhere on the table or choose **Stich abräumen**; after a round choose
 **Nächste Runde**. **Computer weiterspielen lassen** lets the original AI play
 the human seat as well. Tempo controls the wait between computer decisions.
 

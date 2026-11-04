@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { DISPLAY } from './config';
 import { DefaultRules } from './engine/SWSBase';
+import { DefaultRules as DifferRules } from './engine/DiffBase';
+import {useDialogCatalog,formImage} from './dialogs/LegacyDialog';
 const base = `${import.meta.env.BASE_URL}assets/setup/`;
 const seats = [{p:1,name:'Nord',x:208,y:69},{p:2,name:'West',x:93,y:174},{p:4,name:'Ost',x:321,y:174}];
 const strengths = ['Schwach','Mittel','Stark'];
@@ -14,30 +16,34 @@ function savedSelection() {
   return defaults;
 }
 
-export function NewJassSetup({ onStart, onClose, renderRules, displayScale = DISPLAY.scale }) {
+export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules, displayScale = DISPLAY.scale }) {
+  const {data:catalog}=useDialogCatalog();
+  const differ=kind==='differ',offset=differ?-8:0;
   const dialog = useRef(null);
   const [selection,setSelection] = useState(savedSelection);
-  const [rules,setRules] = useState(DefaultRules);
+  const [rules,setRules] = useState(()=>{const fallback=differ?DifferRules():DefaultRules();try{return {...fallback,...JSON.parse(localStorage.getItem(`sws-rules-${kind}`)||'{}')};}catch{return fallback;}});
+  const [family,setFamily]=useState('grumpy');
   const [editingRules,setEditingRules] = useState(false);
   const [picker,setPicker] = useState(null);
   const [name,setName] = useState(()=>{try{return localStorage.getItem('sws-player')||'Sie';}catch{return 'Sie';}});
   const [viewport,setViewport] = useState({width:innerWidth,height:innerHeight});
-  const scale = Math.min(displayScale,(viewport.width-24)/464,(viewport.height-24)/439);
+  const height=differ?431:439;
+  const scale = Math.min(displayScale,(viewport.width-24)/464,(viewport.height-24)/height);
   useEffect(()=>{dialog.current.showModal();const resize=()=>setViewport({width:innerWidth,height:innerHeight});window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize);},[]);
   const change = (key,p,value) => setSelection(s=>({...s,[key]:s[key].map((n,i)=>i===p?value:n)}));
   const start = e => {
     e.preventDefault();
-    try {localStorage.setItem('sws-player',name);localStorage.setItem('sws-setup',JSON.stringify(selection));}catch{}
-    onStart({kind:'schieber',rules,human:3,leading:3,names:['','Nord','West',name,'Ost'],level:99,
+    try {localStorage.setItem('sws-player',name);localStorage.setItem('sws-setup',JSON.stringify(selection));localStorage.setItem(`sws-rules-${kind}`,JSON.stringify(rules));}catch{}
+    onStart({kind,family,rules,human:3,leading:3,names:['','Nord','West',name,'Ost'],level:99,
       levels:selection.strengths.map(n=>levels[n]),characters:selection.characters,avatar:selection.avatar,
       id:crypto.randomUUID(),seed:crypto.getRandomValues(new Uint32Array(1))[0]%2147483646+1});
   };
   return <>
-    <dialog ref={dialog} className="legacy-new-jass" aria-label="Neuer Jass" onCancel={e=>{if(picker!==null){e.preventDefault();setPicker(null);}else onClose();}} style={{width:464*scale,height:439*scale}}>
-      <form onSubmit={start} className="legacy-setup-content" style={{transform:`scale(${scale})`}}>
-        <header className="legacy-caption">Neuer Jass<button type="button" aria-label="Schliessen" onClick={onClose}>×</button></header>
-        <div className="legacy-setup-board" style={{backgroundImage:`url(${base}schieber.png)`}}>
-          {seats.map(({p,name:seat,x,y})=><div key={p} className="legacy-player" style={{left:x,top:y}}>
+    <dialog ref={dialog} className="legacy-new-jass" aria-label="Neuer Jass" onCancel={e=>{if(picker!==null){e.preventDefault();setPicker(null);}else onClose();}} style={{width:464*scale,height:height*scale,'--setup-button-top':`${386+offset}px`}}>
+      <form onSubmit={start} className="legacy-setup-content" style={{height,transform:`scale(${scale})`}}>
+        <header className="legacy-caption">{differ?'Neuer Differenzler':'Neuer Jass'}<button type="button" aria-label="Schliessen" onClick={onClose}>×</button></header>
+        <div className="legacy-setup-board" style={{height:height-22,backgroundImage:`url(${differ?formImage(catalog,'differ','TDLGNEWJASS',rules.fNuPlayers===3?'Back3Image':'BackImage'):base+'schieber.png'})`,backgroundPosition:`0 ${offset}px`}}>
+          {seats.filter(s=>!differ||s.p<=rules.fNuPlayers).map(({p,name:seat,x,y})=><div key={p} className="legacy-player" style={{left:x,top:y+offset}}>
             <button type="button" className="legacy-portrait" aria-label={`${seat}: Figur ${selection.characters[p]+1}, ${strengths[selection.strengths[p]]}. Spieler wählen`} onClick={()=>setPicker(p)}>
               <img src={`${base}${7006+1000*selection.characters[p]+selection.strengths[p]}.png`} alt="" draggable="false" />
             </button>
@@ -47,7 +53,7 @@ export function NewJassSetup({ onStart, onClose, renderRules, displayScale = DIS
               <button type="button" aria-label={`${seat} schwächer`} disabled={selection.strengths[p]===0} onClick={()=>change('strengths',p,selection.strengths[p]-1)}>▶</button>
             </div>
           </div>)}
-          <div className="legacy-player legacy-human" style={{left:208,top:210}}>
+          <div className="legacy-player legacy-human" style={{left:208,top:210+offset}}>
             <img className="legacy-human-frame" src={`${base}5006.png`} alt="Mensch" />
             <button type="button" className="legacy-avatar" aria-label="Ihr Spielerbild wählen" onClick={()=>setPicker(3)}><img src={`${base}${selection.avatar}.png`} alt="" /></button>
             <input className="legacy-player-name" aria-label="Ihr Name" value={name} required maxLength={30} onChange={e=>setName(e.target.value)} />
@@ -59,6 +65,7 @@ export function NewJassSetup({ onStart, onClose, renderRules, displayScale = DIS
             setSelection(s=>({...s,characters:[0,characters[0],characters[1],0,characters[2]]}));
           }}>Zufällig</button>
           <button className="legacy-rules legacy-bottom" type="button" onClick={()=>setEditingRules(true)}>Regeln…</button>
+          {differ&&<label className="setup-family">Computer-Spieler <select aria-label="Computer-Spieler" value={family} onChange={e=>setFamily(e.target.value)}><option value="grumpy">Grumpy Junior</option><option value="hacker">Hacker</option><option value="trashy">Trashy</option></select></label>}
         </div>
         {picker!==null && <div className="legacy-picker" role="group" aria-label={picker===3?'Spielerbild auswählen':'Computer-Spieler auswählen'}>
           <p>{picker===3?'Ihr Spielerbild':'Computer-Spieler'}</p>
