@@ -1,4 +1,4 @@
-import React,{useEffect,useRef,useState} from 'react';
+import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
 import { DISPLAY } from '../config';
 export const dialogBase=`${import.meta.env.BASE_URL}assets/dialogs/`;
 let catalogPromise;
@@ -9,11 +9,32 @@ export function formImage(data,kind,form,name){const c=data?.forms[kind]?.[form]
 export function looseImage(data,name){return imageUrl(data,data?.loose[name.toLowerCase()]);}
 const captions={bkOK:'OK',bkCancel:'Abbrechen',bkYes:'Ja',bkNo:'Nein',bkClose:'Schliessen'};
 const clean=t=>String(t??'').replace(/&/g,'');
-export function DialogFrame({title,width,height,onClose,scale=DISPLAY.scale,children,className=''}) {
+export function DialogFrame({title,width,height,onClose,scale=DISPLAY.scale,children,className='',keepHandVisible=false}) {
   const ref=useRef(null),[viewport,setViewport]=useState({w:innerWidth,h:innerHeight});
+  const [placement,setPlacement]=useState(null);
+  useLayoutEffect(()=>{
+    if(!keepHandVisible)return;
+    const table=document.querySelector('.scene-frame > canvas');if(!table)return;
+    const measure=()=>{
+      const scene=table.getBoundingClientRect(),cards=[...document.querySelectorAll('.card-targets .card-target')].map(el=>el.getBoundingClientRect());
+      const handTop=cards.length?Math.min(...cards.map(r=>r.top)):scene.bottom-118*scene.width/768;
+      const handBottom=cards.length?Math.max(...cards.map(r=>r.bottom)):scene.bottom;
+      const preferred=Math.min(scale,Math.max(1,scene.width/768));
+      const above={top:Math.max(8,scene.top+6),bottom:Math.min(innerHeight-8,handTop-10)};
+      const below={top:Math.max(8,handBottom+10),bottom:innerHeight-8};
+      const fit=area=>Math.max(0,Math.min(preferred,(innerWidth-20)/width,(area.bottom-area.top)/(height+22)));
+      // On a narrow phone the space below the hand allows legible controls.
+      const area=fit(above)<0.8&&fit(below)>fit(above)?below:above,zoom=fit(area);
+      const next={zoom,left:Math.max(8,Math.min(innerWidth-width*zoom-8,scene.left+scene.width/2-width*zoom/2)),top:area.top+Math.max(0,(area.bottom-area.top-(height+22)*zoom)/2)};
+      setPlacement(old=>JSON.stringify(old)===JSON.stringify(next)?old:next);
+    };
+    measure();const observer=new ResizeObserver(measure);observer.observe(table);
+    window.addEventListener('resize',measure);window.addEventListener('scroll',measure,true);
+    return()=>{observer.disconnect();window.removeEventListener('resize',measure);window.removeEventListener('scroll',measure,true);};
+  },[keepHandVisible,width,height,scale]);
   useEffect(()=>{ref.current.showModal();const resize=()=>setViewport({w:innerWidth,h:innerHeight});window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize);},[]);
-  const zoom=Math.min(scale,(viewport.w-20)/width,(viewport.h-20)/(height+22));
-  return <dialog ref={ref} aria-label={title} className={`original-dialog ${className}`} onCancel={e=>{e.preventDefault();onClose();}} style={{width:width*zoom,height:(height+22)*zoom}}>
+  const zoom=keepHandVisible&&placement?placement.zoom:Math.min(scale,(viewport.w-20)/width,(viewport.h-20)/(height+22));
+  return <dialog ref={ref} aria-label={title} className={`original-dialog ${keepHandVisible?'decision-dialog':''} ${className}`} onCancel={e=>{e.preventDefault();onClose();}} style={{width:width*zoom,height:(height+22)*zoom,...(keepHandVisible&&placement?{position:'fixed',inset:'auto',left:placement.left,top:placement.top,margin:0}:{})}}>
     <div className="original-dialog-content" style={{width,height:height+22,transform:`scale(${zoom})`}}>
       <header className="original-caption">{title}<button type="button" aria-label="Schliessen" onClick={onClose}>×</button></header>
       <div className="original-client" style={{height}}>{children}</div>
@@ -21,7 +42,7 @@ export function DialogFrame({title,width,height,onClose,scale=DISPLAY.scale,chil
   </dialog>;
 }
 
-export function LegacyDialog({kind='schieber',form,title,onClose,onAction,values={},onChange=()=>{},overrides={},render,children,initialTab=0,scale,hide=[],readOnly=false,width,height}) {
+export function LegacyDialog({kind='schieber',form,title,onClose,onAction,values={},onChange=()=>{},overrides={},render,children,initialTab=0,scale,hide=[],readOnly=false,width,height,keepHandVisible=false}) {
   const {data,error}=useDialogCatalog(); const [tab,setTab]=useState(initialTab);
   if(error)return <DialogFrame title="Fehler" width={350} height={100} onClose={onClose}><p role="alert">{error}</p></DialogFrame>;
   if(!data)return null;
@@ -33,7 +54,7 @@ export function LegacyDialog({kind='schieber',form,title,onClose,onAction,values
   const rect=c=>{let x=c.properties.Left||0,y=c.properties.Top||0,path=c.path;while((path=path.slice(0,path.lastIndexOf('.')))&&path!==root.path){const p=byPath.get(path)?.properties;x+=p?.Left||0;y+=p?.Top||0;}return{left:x,top:y,width:c.properties.Width,height:c.properties.Height};};
   const action=c=>{if(onAction)onAction(c.name,values,c);else onClose();};
   const notebook=controls.find(c=>c.className==='TTabbedNotebook');
-  return <DialogFrame title={title||clean(rp.Caption)||'Stöck Wyys Stich'} width={width||rp.ClientWidth||rp.Width||640} height={height||rp.ClientHeight||rp.Height||480} onClose={onClose} scale={scale}>
+  return <DialogFrame title={title||clean(rp.Caption)||'Stöck Wyys Stich'} width={width||rp.ClientWidth||rp.Width||640} height={height||rp.ClientHeight||rp.Height||480} onClose={onClose} scale={scale} keepHandVisible={keepHandVisible}>
     {tabs.length>0&&<div className="original-tabs" style={notebook?{left:rect(notebook).left+4,top:rect(notebook).top+2}:undefined} role="tablist">{tabs.map((t,i)=><button key={t.path} type="button" role="tab" aria-selected={i===tab} onClick={()=>setTab(i)}>{clean(t.properties.Caption)}</button>)}</div>}
     {controls.map(c=>{
       const p={...c.properties,...overrides[c.name]},r=rect({...c,properties:p}),cls=c.className;

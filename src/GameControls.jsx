@@ -64,9 +64,9 @@ export function GameControls({ game, onNew, onDialog, displayScale }) {
   const [call, setCall] = useState(50), [history, setHistory] = useState(false);
   const [dismissed,setDismissed]=useState(''),[dismissedHint,setDismissedHint]=useState(null);
   const decisionKey=v?`${v.roundNumber}/${v.phase}/${req?.command}/${v.hand.join(',')}/${v.events.join('|')}`:'';
-  const showDecision=req?.player===v?.human&&!game.automatic&&!game.paused&&req?.command!=='cmdPlay'&&dismissed!==decisionKey;
+  const showDecision=Boolean(v&&req&&req.player===v.human&&!game.automatic&&!game.paused&&req.command!=='cmdPlay'&&dismissed!==decisionKey);
   const showHint=game.hint&&game.hint!==dismissedHint;
-  const mine = req?.player === v?.human && !game.automatic && !game.paused;
+  const mine = Boolean(v&&req&&req.player===v.human&&!game.automatic&&!game.paused);
   let status = !v ? 'Wählen Sie einen Jass.' : v.phase === 'done' ? (v.kind === 'schieber'
     ? `Jass beendet. ${v.winner === 1 ? 'Nord & Süd gewinnen.' : v.winner === 2 ? 'West & Ost gewinnen.' : 'Unentschieden.'}`
     : `Jass beendet. ${v.names.filter((_, p) => p && v.ranks[p] === 1).join(' und ')} gewinnen.`)

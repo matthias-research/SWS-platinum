@@ -18,7 +18,7 @@ export function GameDecisionDialog({game,onClose,scale}) {
   if(!data)return null;
   if(['cmdTrump','cmdShift'].includes(req.command)) {
     const img=looseImage(data,setId===1?'trumpd.bmp':[3,5].includes(setId)?'trumpf4.bmp':'trumpf2.bmp');
-    return <DialogFrame title={`${v.names[v.human]}, wählen Sie den Trumpf!`} width={225} height={235} scale={scale} onClose={onClose}>
+    return <DialogFrame keepHandVisible title={`${v.names[v.human]}, wählen Sie den Trumpf!`} width={225} height={235} scale={scale} onClose={onClose}>
       <div className="trump-board" style={{backgroundImage:`url(${img})`}}>
         <TrumpCanvas src={img} selected={pressed} shift={req.command!=='cmdShift'} factors={v.rules.fTrumpFactor} partner={7000+1000*(game.saved()?.options.characters?.[1]||0)} name={v.names[1]}/>
         {trumpRects.map(([x,y,w,h],i)=><button type="button" key={i} className="picture-hit" style={{left:x,top:y,width:w,height:h}} aria-label={i===6?'Schieben':trumpLabels(setId)[i+1]} disabled={game.busy||(i===6?req.command==='cmdShift':!v.rules.fTrumpFactor[i+1])} onPointerDown={()=>setPressed(i)} onPointerUp={()=>setPressed(null)} onPointerLeave={()=>setPressed(null)} onClick={()=>i===6?answer('cmdShift',{}):answer('cmdTrump',{fTrump:i+1})}/>)}
@@ -29,7 +29,7 @@ export function GameDecisionDialog({game,onClose,scale}) {
   }
   if(req.command==='cmdCall') {
     const y=206-(call<=80?call:80+44*(call-80)/77);
-    return <LegacyDialog kind="differ" form="TCALLDLG" title={`${v.names[v.human]} sagt an…`} onClose={onClose} scale={scale} hide={['BackGround','Gloon0','Gloon1','Gloon2','Gloon3']} values={{Edit:call}} overrides={{Edit:{Left:142,Top:31,Width:38,Height:20,'aria-label':'Ansage'}}} onChange={(n,value)=>{if(n==='Edit')setCall(Math.max(0,Math.min(157,Number(value)||0)));}} onAction={n=>n==='BitBtn1'?answer('cmdCall',{fCall:call}):onClose()} render={c=>c.name==='PaintBox'?<div className="prediction-board" style={{backgroundImage:`url(${formImage(data,'differ','TCALLDLG','BackGround')})`}}>
+    return <LegacyDialog kind="differ" form="TCALLDLG" keepHandVisible title={`${v.names[v.human]} sagt an…`} onClose={onClose} scale={scale} hide={['BackGround','Gloon0','Gloon1','Gloon2','Gloon3']} values={{Edit:call}} overrides={{Edit:{Left:142,Top:31,Width:38,Height:20,'aria-label':'Ansage'}}} onChange={(n,value)=>{if(n==='Edit')setCall(Math.max(0,Math.min(157,Number(value)||0)));}} onAction={n=>n==='BitBtn1'?answer('cmdCall',{fCall:call}):onClose()} render={c=>c.name==='PaintBox'?<div className="prediction-board" style={{backgroundImage:`url(${formImage(data,'differ','TCALLDLG','BackGround')})`}}>
       <PredictionCanvas data={data} value={call}/>
       <button type="button" className="gloon-hint" aria-label="Tipp" onClick={game.getHint}/>
       <input className="prediction-slider" aria-label="Ansage-Schieber" type="range" min="0" max="124" value={206-y} onChange={e=>{const h=Number(e.target.value);setCall(Math.round(h<=80?h:80+(h-80)*77/44));}}/>
@@ -44,7 +44,7 @@ export function HintDialog({game,onClose,scale}) {
   const {data}=useDialogCatalog();if(!data||!game.hint)return null;
   const hint=game.hint,kind=game.view.kind;
   const description=hint.command==='cmdCard'?cardName(hint.data.fCard,game.sound.set):hint.command==='cmdCall'?`${hint.data.fCall} Punkte`:hint.command==='cmdTrump'?trumpLabels(game.sound.set)[hint.data.fTrump]:hint.command==='cmdShift'?'Schieben':'Weisen';
-  return <LegacyDialog kind={kind} form="THINTDLG" onClose={onClose} scale={scale} hide={['BackG','Arm','ArmM','CallBox']} onAction={name=>{if(name==='Button1')game.answer(hint.command,hint.command==='cmdSuit'?{accept:true}:hint.data);onClose();}}>
+  return <LegacyDialog kind={kind} form="THINTDLG" keepHandVisible onClose={onClose} scale={scale} hide={['BackG','Arm','ArmM','CallBox']} onAction={name=>{if(name==='Button1')game.answer(hint.command,hint.command==='cmdSuit'?{accept:true}:hint.data);onClose();}}>
     <div className="hint-picture" style={{backgroundImage:`url(${formImage(data,kind,'THINTDLG','BackG')})`}}>
       {hint.command==='cmdCard'?<div style={{position:'absolute',left:66,top:39,width:104,height:42,overflow:'hidden'}}><DialogCards width={104} height={118} setId={game.sound.set} rows={[[hint.data.fCard]]}/></div>:<div style={{position:'absolute',left:66,top:21,width:96,height:60,backgroundImage:`url(${formImage(data,kind,'THINTDLG','CallBox')})`,display:'grid',placeItems:'center'}}>{description}</div>}
       <HintArm data={data} kind={kind}/>

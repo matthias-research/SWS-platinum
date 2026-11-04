@@ -134,7 +134,7 @@ function App() {
       {!reviewEnabled&&!replay.view&&game.view?.pause&&!['deal','done'].includes(game.view.phase)&&!game.busy&&!game.paused&&!game.automatic&&<button type="button" className="trick-clear-target" aria-label="Stich auf dem Tisch abräumen" onClick={()=>game.action({type:'continue'})}/>}
       {!assets && !error && <p className="loading" role="status">Tisch wird geladen…</p>}
     </div>
-    {!reviewEnabled && (replay.view ? <LegacyReplay replay={replay} setId={cardSet} /> : <GameControls game={game} onNew={setNewGame} onDialog={openDialog} displayScale={requestedScale}/>)}
+    {!reviewEnabled && (replay.view ? <LegacyReplay replay={replay} setId={cardSet} /> : <GameControls key={game.view?(game.saved()?.options.id||game.view.kind):'idle'} game={game} onNew={setNewGame} onDialog={openDialog} displayScale={requestedScale}/>)}
 
     {newGame && <GameSetup key={newGame} kind={newGame} setId={cardSet} settings={settings} onSettings={applySettings} displayScale={requestedScale} onClose={() => setNewGame(null)} onStart={options => { replay.close();game.start({...options,...(dealSeed!==null?{seed:dealSeed}:{})});setMessages([]); setNewGame(null); }} />}
     {matchHistory && <MatchHistory onClose={() => setMatchHistory(false)} />}

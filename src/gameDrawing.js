@@ -14,9 +14,17 @@ export function gameHand(view, sheet) {
   const hand=descending?[...view.hand].filter(Boolean).reverse():view.hand;
   return hand.map((id, i) => ({ id, x: 5 + Math.floor(i * (758 - width) / (slots - 1)), y: 523 - height, width, height })).filter(c => c.id);
 }
+export function drawTrumpCorners(ctx,sheet,trump) {
+  if(!sheet||trump<1||trump>6)return;
+  // JassBmps.ShowTrump / Table.CarpetRect: 22px symbols below the four card rows.
+  const size=22,s=sheet.assetScale,sourceY=4*(sheet.cards[0].rect.height-1);
+  for(const x of [269,501-size])for(const y of [52,284-size])
+    ctx.drawImage(sheet.image,(trump-1)*size*s,sourceY*s,size*s,size*s,x,y,size,size);
+}
 export function drawGame(canvas, view, sheets, setId = 1) {
   if (!view || !sheets.V || !sheets.H) return;
   const ctx = canvas.getContext('2d'), { width: w, height: h } = sheets.V.cards[0].rect;
+  drawTrumpCorners(ctx,sheets.V,view.trump);
   const mx = 385, my = 168, carpet = { x: 269, y: 52, right: 501, bottom: 284 };
   const positions = [null, { x: mx - Math.floor(w / 2), y: Math.max(carpet.y, my - h + 2), width: w, height: h },
     { x: Math.max(carpet.x, mx - h + 2), y: my - Math.floor(w / 2), width: h, height: w },

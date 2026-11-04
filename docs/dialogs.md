@@ -10,6 +10,8 @@ Run `npm run reference:extract`, `npm run assets:setup`, and `npm run assets:dia
 
 Both games now use the illustrated setup. Human decisions open the original graphical trump/prediction, Weis and Stoeck dialogs, with cancel returning to the inline controls. Rules are editable before play and locked during a match. Profiles, sound choices, card order and card set persist. Opening supporting dialogs pauses play; closing restores the previous pause state.
 
+Trump, prediction and hint windows fit into the space above the actual hand bounds, with a transparent backdrop so the cards remain readable. On narrow screens they use space below the hand when that allows larger controls. Their size follows the displayed table rather than blindly using the requested magnification. The active trump is drawn at all four carpet corners using the original 22-pixel symbols from the selected card sheet, following `Table.pas` and `JassBmps.ShowTrump`.
+
 Archive export writes a UTF-8 JSON envelope containing the original text record structure. It preserves remaining hands, finalized Differenzler bonuses and the empty next-trick record carrying the last winner. Reopen the download through **Datei > Spiel oeffnen**; **Archivfenster** opens the recovered playback control layout. Existing native archives remain supported. The archive table is reconstructed rather than a complete translation of REPWIN's painter.
 
 ## Fidelity boundaries
