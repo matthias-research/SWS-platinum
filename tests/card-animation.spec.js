@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 
 test('card animation setting is enabled, persists, and zero skips transitions',async({page})=>{
-  await page.goto('/');
+  await page.goto('/?review=cards');
   await page.getByRole('button',{name:'Einstellungen',exact:true}).click();
   await page.getByRole('button',{name:'Darstellungen…',exact:true}).click();
   const slider=page.getByRole('slider',{name:'Kartenanimation',exact:true});

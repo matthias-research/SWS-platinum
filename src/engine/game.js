@@ -1,3 +1,4 @@
+import {playerLabel} from '../germanText.js';
 import * as S from './SWSBase.js';
 import * as D from './DiffBase.js';
 
@@ -30,7 +31,7 @@ export class Game {
         && this.rules.fTrumpFactor.every(n => Number.isInteger(n) && n >= 0 && n <= 10)
         && this.rules.fTrumpFactor.slice(1).some(n => n > 0), 'Ungültige Trumpffaktoren oder Zielpunkte');
     } else assert([0, 1, 2].includes(this.rules.fCallMode) && [0, 1, 2].includes(this.rules.fStockings), 'Ungültiger Ansage- oder Stöck-Modus');
-    this.names = options.names ?? ['', 'Nord', 'West', 'Sie', 'Ost'];
+    this.names = (options.names ?? ['', 'Nord', 'West', 'Du', 'Ost']).map(playerLabel);
     assert(Array.isArray(this.names) && this.names.length === 5 && this.names.every(n => typeof n === 'string' && n.length <= 80), 'Ungültige Spielernamen');
     this.ai = ai; this.state = this.base.SetupJassState(this.rules, options.leading ?? 3);
     this.random = new S.RandomStreams(); this.random.SetRnd(this.random.gDealRnd, options.seed ?? 1);
@@ -184,7 +185,7 @@ export class Game {
     else if (action.type === 'forfeit') {
       assert(!['deal','done'].includes(this.phase),'Keine laufende Runde');
       this.base.ForfaitRound(this.state,this.human);
-      this.pause=false;this.pending=null;this.lastTrick=null;this.events.push(`${this.names[this.human]} gibt die Runde auf.`);
+      this.pause=false;this.pending=null;this.lastTrick=null;this.events.push('Du gibst die Runde auf.');
       this.finish();
     }
     else throw new Error('Unbekannte Aktion');

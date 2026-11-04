@@ -34,9 +34,9 @@ export function PreferencesDialog({kind,rules,onClose,onApply,settings={},onSett
     if(c.name==='viewPaint')return <DialogCards width={p.Width} height={p.Height} setId={Math.max(1,['Deutsch','Französisch','Französisch (4 Farben)','Französisch 3D','Französisch 3D (4 Farben)'].indexOf(prefs.viewCardsBox)+1)} rows={[prefs.viewDescending?[9,8,7,6,5,4,3,2,1]:[1,2,3,4,5,6,7,8,9]]}/>;
     if(c.name==='viewBubbleS')return <input aria-label="Sprechblasen Dauer" type="range" min="0" max="20" value={prefs.viewBubbleS??5} onChange={e=>change(c.name,Number(e.target.value))}/>;
     if(c.name==='viewBubbleL')return <span>{prefs.viewBubbleS===0?'Aus':`${prefs.viewBubbleS??5} s`}</span>;
-    if(c.name==='viewSlideS')return <input aria-label="Kartenanimation" type="range" min="0" max="50" value={prefs.viewSlideS??15} onChange={e=>change(c.name,Number(e.target.value))}/>;
-    if(c.name==='viewSlideL')return <span>{prefs.viewSlideS===0?'Aus':`${prefs.viewSlideS??15}`}</span>;
-    if(c.name==='viewThinkS')return <input aria-label="Spielverzögerung" type="range" min="50" max="2000" step="50" value={prefs.viewThinkS||500} onChange={e=>change(c.name,Number(e.target.value))}/>;
-    if(c.name==='viewThinkL')return <span>{((prefs.viewThinkS||500)/1000).toFixed(2)} s</span>;
+    if(c.name==='viewSlideS')return <input aria-label="Kartenanimation" type="range" min="0" max="60" value={prefs.viewSlideS??60} onChange={e=>change(c.name,Number(e.target.value))}/>;
+    if(c.name==='viewSlideL')return <span>{prefs.viewSlideS===0?'Aus':`${prefs.viewSlideS??60}`}</span>;
+    if(c.name==='viewThinkS')return <input aria-label="Spielverzögerung" type="range" min="50" max="2000" step="50" value={prefs.viewThinkS??50} onChange={e=>change(c.name,Number(e.target.value))}/>;
+    if(c.name==='viewThinkL')return <span>{((prefs.viewThinkS??50)/1000).toFixed(2)} s</span>;
   }}>{error&&<p role="alert" className="original-error">{error}</p>}</LegacyDialog>;
 }

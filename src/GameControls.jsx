@@ -1,8 +1,10 @@
+import {createPortal} from 'react-dom';
 import React, { useEffect, useRef, useState } from 'react';
 import * as S from './engine/SWSBase';
 import * as D from './engine/DiffBase';
 import { cardName, gameHand, trumpLabels } from './gameDrawing';
 import { NewJassSetup } from './NewJassSetup';
+import {DialogFrame} from './dialogs/LegacyDialog';
 import { PreferencesDialog } from './dialogs/PreferencesDialog';
 import { GameDecisionDialog, HintDialog } from './dialogs/DecisionDialogs';
 
@@ -15,7 +17,7 @@ export function GameSetupForm({ kind, onStart, onClose, setId = 1, initialRules,
   const [rules, setRules] = useState(() => initialRules || (kind === 'schieber' ? S.DefaultRules() : D.DefaultRules()));
   const [level, setLevel] = useState(66);
   const [family, setFamily] = useState('grumpy');
-  const [playerName, setPlayerName] = useState(() => { try { return localStorage.getItem('sws-player') || 'Sie'; } catch { return 'Sie'; } });
+  const [playerName, setPlayerName] = useState(() => { try { return localStorage.getItem('sws-player') || 'Du'; } catch { return 'Du'; } });
   const change = (key, value) => setRules(r => ({ ...r, [key]: value }));
   useEffect(() => { dialog.current.showModal(); }, []);
   const number = (key, label, min, max) => <label>{label}<input type="number" min={min} max={max} required value={rules[key]} onChange={e => change(key, Number(e.target.value))} /></label>;
@@ -25,8 +27,8 @@ export function GameSetupForm({ kind, onStart, onClose, setId = 1, initialRules,
       onStart({ kind, rules, level, family, human: 3, leading: 3, names:['','Nord','West',playerName,'Ost'], id:crypto.randomUUID(), seed: crypto.getRandomValues(new Uint32Array(1))[0] % 2147483646 + 1 }); }}>
       <h1>{rulesOnly ? 'Schieber-Regeln' : `Neuer ${kind === 'schieber' ? 'Schieber' : 'Differenzler'}`}</h1>
       {!rulesOnly && <>
-      <p>Sie spielen im Süden. {kind === 'schieber' ? 'Nord ist Ihr Partner.' : 'Jeder spielt für sich.'}</p>
-      <label>Ihr Name<input value={playerName} required maxLength={30} onChange={e=>setPlayerName(e.target.value)} /></label>
+      <p>Du spielst im Süden. {kind === 'schieber' ? 'Nord ist dein Partner.' : 'Jeder spielt für sich.'}</p>
+      <label>Dein Name<input value={playerName} required maxLength={30} onChange={e=>setPlayerName(e.target.value)} /></label>
       <label>Spielstärke<select value={level} onChange={e => setLevel(Number(e.target.value))}>
         <option value={33}>Schwach</option><option value={66}>Mittel</option><option value={99}>Stark</option>
       </select></label>
@@ -58,20 +60,22 @@ export function GameSetupForm({ kind, onStart, onClose, setId = 1, initialRules,
   </dialog>;
 }
 
-export function GameControls({ game, onNew, onDialog, displayScale, lowLevel=false }) {
+export function GameControls({ game, onNew, onDialog, displayScale, lowLevel=false, sceneRef }) {
   const trumpNames = trumpLabels(game.sound.set);
   const v = game.view, req = v?.request;
   const [call, setCall] = useState(50), [history, setHistory] = useState(false);
   const [dismissed,setDismissed]=useState(''),[dismissedHint,setDismissedHint]=useState(null);
   const decisionKey=v?`${v.roundNumber}/${v.phase}/${req?.command}/${v.hand.join(',')}/${v.events.join('|')}`:'';
   const showDecision=Boolean(v&&req&&req.player===v.human&&!game.automatic&&!game.paused&&req.command!=='cmdPlay'&&dismissed!==decisionKey);
-  const showHint=game.hint&&game.hint!==dismissedHint;
+  const inlineHint=['cmdTrump','cmdShift','cmdCard'].includes(game.hint?.command);
+  const showHint=game.hint&&game.hint!==dismissedHint&&!inlineHint;
+  useEffect(()=>{if(['cmdTrump','cmdShift'].includes(game.hint?.command))setDismissed('');},[game.hint]);
   const mine = Boolean(v&&req&&req.player===v.human&&!game.automatic&&!game.paused);
-  let status = !v ? 'Wählen Sie einen Jass.' : v.phase === 'done' ? (v.kind === 'schieber'
+  let status = !v ? 'Wähle einen Jass.' : v.phase === 'done' ? (v.kind === 'schieber'
     ? `Jass beendet. ${v.winner === 1 ? 'Nord & Süd gewinnen.' : v.winner === 2 ? 'West & Ost gewinnen.' : 'Unentschieden.'}`
     : `Jass beendet. ${v.names.filter((_, p) => p && v.ranks[p] === 1).join(' und ')} gewinnen.`)
-    : v.phase === 'deal' ? 'Runde beendet.' : v.pause ? `${v.names[v.trick.winner]} gewinnt den Stich.`
-    : req ? `${v.names[req.player]} ${req.command === 'cmdPlay' ? 'spielt.' : req.command === 'cmdCall' ? 'sagt an.' : req.command === 'cmdSuit' ? 'weist.' : req.command === 'cmdStockings' ? 'meldet Stöck.' : 'wählt Trumpf.'}` : '';
+    : v.phase === 'deal' ? 'Runde beendet.' : v.pause ? v.trick.winner===v.human?'Du gewinnst den Stich.':`${v.names[v.trick.winner]} gewinnt den Stich.`
+    : req ? req.player===v.human?`Du ${req.command==='cmdPlay'?'spielst.':req.command==='cmdCall'?'sagst an.':req.command==='cmdSuit'?'weist.':req.command==='cmdStockings'?'meldest Stöck.':'wählst Trumpf.'}`:`${v.names[req.player]} ${req.command === 'cmdPlay' ? 'spielt.' : req.command === 'cmdCall' ? 'sagt an.' : req.command === 'cmdSuit' ? 'weist.' : req.command === 'cmdStockings' ? 'meldet Stöck.' : 'wählt Trumpf.'}` : '';
   return <section className="game-controls" aria-label="Spielsteuerung">
     {lowLevel&&<div className="game-status" role="status">{status}{game.busy && ' …'}</div>}
     {lowLevel&&<div className="game-actions">
@@ -108,6 +112,8 @@ export function GameControls({ game, onNew, onDialog, displayScale, lowLevel=fal
         </select></label>}
       </>}
     </div>}
+    {mine&&!game.busy&&!showHint&&dismissed===decisionKey&&req.command!=='cmdPlay'&&sceneRef?.current&&createPortal(
+      <button type="button" className="trick-clear-target decision-resume-target" aria-label="Spiel fortsetzen: Auswahl wieder öffnen" onClick={()=>setDismissed('')}/>,sceneRef.current)}
     {showDecision&&<GameDecisionDialog key={decisionKey} game={game} onClose={()=>setDismissed(decisionKey)} scale={displayScale}/>}
     {showHint&&<HintDialog game={game} onClose={()=>setDismissedHint(game.hint)} scale={displayScale}/>}
     {game.error && <p role="alert" className="error">{game.error}</p>}
@@ -118,12 +124,12 @@ export function GameControls({ game, onNew, onDialog, displayScale, lowLevel=fal
   </section>;
 }
 
-export function MatchHistory({ onClose }) {
-  const dialog = useRef(null);
+export function MatchHistory({ onClose, scale=1 }) {
+
   const [matches] = useState(() => { try { const rows = JSON.parse(localStorage.getItem('sws-history') || '[]'); return Array.isArray(rows) ? rows : []; } catch { return []; } });
-  useEffect(() => { dialog.current.showModal(); }, []);
-  return <dialog ref={dialog} onCancel={onClose} className="game-setup">
-    <h1>Gespielte Jass</h1>
+
+  return <DialogFrame title="Gespielte Jass" width={410} height={360} scale={scale} onClose={onClose}><div style={{padding:16,height:360,overflow:'auto'}}>
+
     <p>Die letzten 100 abgeschlossenen Spiele in diesem Browser.</p>
     {!matches.length ? <p>Noch keine abgeschlossenen Spiele.</p> : <div className="results"><table>
       <thead><tr><th>Datum</th><th>Spiel</th><th>Resultat</th><th>Computerhilfe</th></tr></thead>
@@ -132,13 +138,13 @@ export function MatchHistory({ onClose }) {
         <td>{m.computerAssisted ? 'Ja' : 'Nein'}</td></tr>)}</tbody>
     </table></div>}
     <button onClick={onClose} autoFocus>Schliessen</button>
-  </dialog>;
+  </div></DialogFrame>;
 }
 
 export function GameCardTargets({ game, sheet, scale, setId, size }) {
   const v = game.view, cards = gameHand(v, sheet,size), req = v?.request;
-  return <div className="card-targets" role="group" aria-label="Ihre Karten">
-    {cards.map((card, i) => <button key={card.id} className="card-target" aria-label={cardName(card.id, setId)} data-card-id={card.id}
+  return <div className="card-targets" role="group" aria-label="Deine Karten">
+    {cards.map((card, i) => <button key={card.id} className={`card-target ${game.hint?.command==='cmdCard'&&game.hint.data.fCard===card.id?'hint-highlight':''}`} data-suggested={game.hint?.command==='cmdCard'&&game.hint.data.fCard===card.id||undefined} title={game.hint?.command==='cmdCard'&&game.hint.data.fCard===card.id?'Tipp: Spiele diese Karte':undefined} aria-label={cardName(card.id, setId)} data-card-id={card.id}
       disabled={game.busy || game.automatic || game.paused || req?.player !== v.human || req.command !== 'cmdPlay' || !req.data.fLegal.includes(card.id)}
       style={{ left: card.x * scale, top: card.y * scale, width: Math.min(card.width, cards[i + 1] ? cards[i + 1].x - card.x : card.width) * scale, height: card.height * scale }}
       onClick={() => game.answer('cmdCard', { fCard: card.id })} />)}

@@ -77,10 +77,19 @@ export function jokerRect(assets,kind,cardHeight=118,size=BASE_TABLE){
 }
 export function drawTableJoker(canvas,overlay,assets,kind,cardHeight,pressed,size=BASE_TABLE){
   const r=jokerRect(assets,kind,cardHeight,size),ctx=canvas.getContext('2d'),t=ctx.getTransform();
-  sprite(ctx,assets,pressed?89:90,r.x,r.y,pressed?91:92);
-  // Keep the sprite above the HTML feed, with the original table beneath its mask.
+  // Keep the joker on a transparent layer so enlarging it does not enlarge
+  // a rectangular patch of the board behind it.
   overlay.width=Math.round(r.width*t.a);overlay.height=Math.round(r.height*t.d);
-  overlay.getContext('2d').drawImage(canvas,r.x*t.a,r.y*t.d,r.width*t.a,r.height*t.d,0,0,overlay.width,overlay.height);
+  const out=overlay.getContext('2d');out.setTransform(t.a,0,0,t.d,0,0);
+  sprite(out,assets,pressed?89:90,0,0,pressed?91:92);
+  const mask=assets.manifest.rects[pressed?91:92],source=assets.pieces.maskSource||assets.pieces;
+  const ms=assets.pieces.maskSource?1:assets.manifest.assetScale;
+  const matte=document.createElement('canvas');matte.width=overlay.width;matte.height=overlay.height;
+  const m=matte.getContext('2d');m.imageSmoothingEnabled=false;
+  m.drawImage(source,mask.x*ms,mask.y*ms,mask.width*ms,mask.height*ms,0,0,matte.width,matte.height);
+  const pixels=out.getImageData(0,0,overlay.width,overlay.height),alpha=m.getImageData(0,0,matte.width,matte.height).data;
+  for(let i=0;i<pixels.data.length;i+=4)pixels.data[i+3]=255-alpha[i];
+  out.putImageData(pixels,0,0);
 }
 
 // Port of JassBmps.ShowBorder: retain the sixteen edge/corner pieces and four masks.

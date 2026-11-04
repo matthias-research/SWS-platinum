@@ -20,11 +20,13 @@ hr { border: 0; border-top: 1px solid #ccc; margin: 4px; }
 .scene-frame { position: relative; isolation:isolate; border: 2px inset #fff; background: #ddd; }
 .table-joker {position:absolute;z-index:4;border:0;padding:0;background:transparent;cursor:pointer;}
 .table-joker:disabled {cursor:default;}
-.table-joker:not(:disabled) {border-radius:12px;outline:2px solid #ffe078;outline-offset:3px;box-shadow:0 0 12px 4px #ffcf5470;}
+.table-joker {transform-origin:50% 100%;transition:transform 150ms ease-out;}
+.table-joker:not(:disabled) {transform:scale(1.08);}
 .table-joker:not(:disabled)::after {content:'Tipp';position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);padding:2px 8px;border:1px solid #805c18;border-radius:8px;background:#fff0b5;color:#352508;font:bold 12px Arial,sans-serif;box-shadow:0 1px 3px #0006;pointer-events:none;}
-.table-joker:not(:disabled):hover {outline-color:#fff4bd;box-shadow:0 0 16px 6px #ffcf5499;}
-.table-joker:focus-visible {outline:2px solid #ffeb70;outline-offset:2px;}
+.table-joker:not(:disabled):hover, .table-joker:not(:disabled):focus-visible {transform:scale(1.1);}
+.table-joker:focus-visible {outline:none;}
 .trick-clear-target {position:absolute;inset:0;width:100%;height:100%;border:0;padding:0;background:transparent;z-index:5;cursor:pointer;}
+.decision-resume-target {z-index:1;}
 canvas { display: block; }
 .table-players {position:absolute;left:0;top:0;width:768px;height:528px;transform-origin:top left;pointer-events:none;overflow:hidden;}
 .table-portrait {position:absolute;width:56px;height:72px;}
@@ -52,8 +54,10 @@ dialog button { display: block; margin-left: auto; min-width: 80px; padding: 6px
 .review-controls label { display: flex; flex-direction: column; gap: 3px; }
 .review-controls select { font: inherit; padding: 4px; }
 .card-targets { position: absolute; inset: 0; pointer-events: none; }
+.card-motion-layer { position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:3; }
 .card-target { position: absolute; border: none; padding: 0; background: transparent; pointer-events: auto; }
 .card-target:focus-visible { outline: 2px solid #ffce37; outline-offset: -3px; }
+.card-target.hint-highlight { outline:3px solid #ffdf45; outline-offset:-3px; border-radius:7px; box-shadow:0 0 10px 3px #ffd447bb; }
 .game-controls { max-width: var(--scene-width); padding: 8px 0; font-size: 14px; }
 .game-status { margin-bottom: 6px; min-height: 18px; }
 .game-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
@@ -135,7 +139,16 @@ dialog.decision-dialog { box-shadow:3px 3px 8px #0004; }
 .trump-board { width:225px;height:235px;background-repeat:no-repeat;position:relative; }
 .original-dialog button.picture-hit { position:absolute;border:0;background:transparent; }
 .picture-hit:hover { box-shadow:inset 0 0 0 2px #ffeb70; }
-.picture-hit:disabled { background:#aaa8!important; }
+.original-dialog .trump-choice:hover, .original-dialog .trump-choice:focus-visible {box-shadow:none;outline:none;}
+.original-dialog .trump-choice.hint-highlight {outline:3px solid #ffdf45;outline-offset:-3px;border-radius:7px;box-shadow:0 0 10px 3px #ffd447bb;}
+.trump-art {position:absolute;inset:0;pointer-events:none;}
+.trump-symbol {position:absolute;opacity:0;transform:scale(1);transition:transform 150ms ease-out,opacity 150ms ease-out,filter 150ms ease-out;}
+.trump-symbol.hovered {opacity:1;transform:scale(1.25);filter:drop-shadow(0 2px 2px #0008);}
+.trump-joker-symbol {opacity:1;transform-origin:50% 100%;}
+.trump-joker-symbol.hovered {transform:scale(1.1);}
+.trump-symbol.suggested {opacity:0;transform:scale(1);filter:none;}
+@media (prefers-reduced-motion:reduce) {.trump-symbol, .table-joker {transition:none;}}
+.picture-hit[data-unavailable=true] { background:#aaa8!important; }
 .prediction-board { position:relative;width:209px;height:257px;background-repeat:no-repeat;overflow:hidden; }
 .original-dialog .gloon-hint { position:absolute;left:0;top:42px;width:120px;height:190px;border:0;background:none;padding:0; }
 .gloon-hint img {width:100%;height:100%;}

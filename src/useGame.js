@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { soundForAction, soundForHint, stopAudio } from './audio';
 import {cardTransition} from './cardAnimation';
 function soundPreferences() {
@@ -11,11 +11,12 @@ function soundPreferences() {
 export function useGame() {
   const worker = useRef(null), latest = useRef(null), sequence = useRef(0);
   const [view, setView] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
-  const lastView=useRef(null),animationTimer=useRef(null);
+  const lastView=useRef(null);
   const [animation,setAnimation]=useState(null);
+  const finishAnimation=useCallback(completed=>setAnimation(current=>current===completed?null:current),[]);
   const [automatic, setAutomatic] = useState(false), [speed, setSpeed] = useState(()=>{
     try {const value=JSON.parse(localStorage.getItem('sws-preferences')||'{}').viewThinkS;if(Number.isFinite(value)&&value>=0&&value<=2000)return value;}catch{}
-    return 500;
+    return 50;
   });
   const [series,setSeries]=useState(1);
   const [paused, setPaused] = useState(false), [hint, setHint] = useState(null);
@@ -24,21 +25,23 @@ export function useGame() {
   const soundRef = useRef(sound); soundRef.current = sound;
   function send(message, restart = false) {
     if (restart || !worker.current) {
-      if (restart) { stopAudio(); setView(null); setHint(null); setPaused(false);lastView.current=null;clearTimeout(animationTimer.current);setAnimation(null); }
+      if (restart) { stopAudio(); setView(null); setHint(null); setPaused(false);lastView.current=null;setAnimation(null); }
       worker.current?.terminate(); worker.current = new Worker(new URL('./game.worker.js', import.meta.url), { type: 'module' });
       worker.current.onmessage = ({ data }) => {
         setBusy(false);
         if(data.archive){const url=URL.createObjectURL(new Blob([JSON.stringify(data.archive)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='jass.sws-archive.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}
         if (data.error) { setError(data.error); setAutomatic(false); return; }
-        let steps=15;try{steps=JSON.parse(localStorage.getItem('sws-preferences')||'{}').viewSlideS??15;}catch{}
+        // Advice is calculated on a copy: retain the current view and artwork.
+        if(data.hint){setHint(data.hint);soundForHint(data.hint,soundRef.current);return;}
+        let steps=60;try{steps=JSON.parse(localStorage.getItem('sws-preferences')||'{}').viewSlideS??60;}catch{}
         const transition=cardTransition(lastView.current,data.view,steps);
-        clearTimeout(animationTimer.current);setAnimation(transition);
-        if(transition)animationTimer.current=setTimeout(()=>setAnimation(null),transition.duration);
+        setAnimation(transition);
+
         lastView.current=data.view;
         setView(data.view); latest.current = data.saved;
         setHint(data.hint);
         soundForAction(data.soundAction, data.view, soundRef.current);
-        if (data.hint) soundForHint(data.hint, soundRef.current);
+
         try {
           localStorage.setItem('sws-game', JSON.stringify(data.saved));
           if (data.view.phase === 'done' && data.saved.options.id) {
@@ -53,10 +56,11 @@ export function useGame() {
       };
       worker.current.onerror = e => { setError(e.message || 'Der Computer-Spieler konnte nicht geladen werden.'); setBusy(false); setAutomatic(false); };
     }
+    if(message.type!=='hint')setHint(null);
     setBusy(true); setError(''); worker.current.postMessage({ ...message, id: ++sequence.current,
       assetBase: new URL(`${import.meta.env.BASE_URL}assets/ai/`, document.baseURI).href });
   }
-  useEffect(() => () => { worker.current?.terminate(); stopAudio();clearTimeout(animationTimer.current); }, []);
+  useEffect(() => () => { worker.current?.terminate(); stopAudio(); }, []);
   useEffect(() => {
     if (!view || busy || animation || error || paused) return;
     let message;
@@ -69,8 +73,8 @@ export function useGame() {
     else if (view.request && (automatic || view.request.player !== view.human)) message = { type: 'computer' };
     if (message) { const timer = setTimeout(() => send(message), speed); return () => clearTimeout(timer); }
   }, [view, busy, animation, automatic, speed, error, paused,series]);
-  return { view, busy:busy||Boolean(animation), animation, error, automatic, setAutomatic, speed, setSpeed, paused, setPaused, hint,series,
-    end:()=>{worker.current?.terminate();worker.current=null;stopAudio();clearTimeout(animationTimer.current);setAnimation(null);lastView.current=null;setView(null);setHint(null);setAutomatic(false);setPaused(false);},
+  return { view, busy:busy||Boolean(animation), animation, finishAnimation, error, automatic, setAutomatic, speed, setSpeed, paused, setPaused, hint,series,
+    end:()=>{worker.current?.terminate();worker.current=null;stopAudio();setAnimation(null);lastView.current=null;setView(null);setHint(null);setAutomatic(false);setPaused(false);},
     saved: () => latest.current,
     archive: (title,scope) => send({type:'archive',title,scope}),
     playSeries: count=>{setSeries(count);setAutomatic(true);},

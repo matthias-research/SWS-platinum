@@ -16,12 +16,12 @@ for (const kind of ['Schieber', 'Differenzler']) test(`${kind}: play a complete 
   else await rules.getByLabel('Runden',{exact:true}).selectOption('1');
   await rules.getByRole('button',{name:'OK',exact:true}).click();
   await dialog.getByRole('button', { name: 'Spielen', exact: true }).click();
-  await expect(page.getByRole('group', { name: 'Ihre Karten' }).getByRole('button')).toHaveCount(9);
+  await expect(page.getByRole('group', { name: 'Deine Karten' }).getByRole('button')).toHaveCount(9);
   await page.screenshot({ path: `artifacts/browser/${kind.toLowerCase()}-deal.png` });
   if (kind === 'Schieber') await page.getByRole('button', {name:'Obenabe',exact:true}).click();
   else { await page.getByRole('textbox', {name:'Ansage',exact:true}).fill('50'); await page.getByRole('dialog').getByRole('button',{name:'OK',exact:true}).click(); }
-  await expect(page.getByRole('status')).not.toContainText(/wählt Trumpf|Sie sagt an|…/);
-  if((await page.getByRole('status').textContent()).includes('weist.'))await expect(page.getByRole('dialog',{name:/wollen Sie weisen/})).toBeVisible();
+  await expect(page.getByRole('status')).not.toContainText(/wählt Trumpf|Du sagst an|…/);
+  if((await page.getByRole('status').textContent()).includes('weist.'))await expect(page.getByRole('dialog',{name:/Möchtest du weisen/})).toBeVisible();
   if(await page.getByRole('dialog').count())await page.getByRole('dialog').getByRole('button',{name:'Schliessen',exact:true}).click();
   await page.getByLabel('Tempo', { exact: true }).selectOption('50');
   await page.getByRole('button', { name: 'Computer weiterspielen lassen' }).click();
@@ -57,7 +57,7 @@ test('human cards, hint, undo and three-player Trashy stay usable', async ({page
   await rules.getByLabel('Runden',{exact:true}).selectOption('1');
   await rules.getByRole('button',{name:'OK',exact:true}).click();
   await dialog.getByRole('button',{name:'Spielen',exact:true}).click();
-  const cards=page.getByRole('group',{name:'Ihre Karten'});
+  const cards=page.getByRole('group',{name:'Deine Karten'});
   await expect(cards.getByRole('button')).toHaveCount(12);
   await page.getByRole('dialog').getByRole('button',{name:'Tipp',exact:true}).click();
   await expect(page.getByText(/^Tipp: \d+ Punkte ansagen/)).toBeVisible();

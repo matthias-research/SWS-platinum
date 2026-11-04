@@ -31,7 +31,7 @@ test('enhanced canvas crops and glyphs retain logical dimensions',async({page})=
   await page.goto('/');
   await page.getByRole('button',{name:'Neuer Schieber…',exact:true}).click();
   await page.getByRole('button',{name:'Spielen',exact:true}).click();
-  const dialog=page.getByRole('dialog',{name:/wählen Sie den Trumpf/});
+  const dialog=page.getByRole('dialog',{name:/Wähle deinen Trumpf/});
   await expect(dialog).toBeVisible();
   await expect.poll(()=>dialog.locator('canvas').evaluate(c=>c.width)).toBe(450);
   expect(await dialog.locator('canvas').evaluate(c=>c.style.width)).toBe('225px');

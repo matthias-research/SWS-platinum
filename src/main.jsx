@@ -1,10 +1,11 @@
+import {migratePlayerLabel} from './germanText';
 import {loadRules,saveRules} from './settingsStorage';
 import {WelcomePanel} from './WelcomePanel';
 import {TablePlayers} from './TablePlayers';
 import {roundInformation} from './informationWindows';
 import {InformationDialog} from './dialogs/SupportingDialogs';
 import {useGraphics,setGraphics} from './graphics';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { DISPLAY, fitScale } from './config';
 import { drawTable, loadAssets, jokerRect, drawTableJoker } from './table';
@@ -13,7 +14,8 @@ import { drawHand, loadCardManifest, loadCardSheet } from './cards';
 import { CardReviewControls, CardTargets, useCardReview } from './CardReview';
 import { useGame } from './useGame';
 import { GameSetup, GameControls, GameCardTargets, MatchHistory } from './GameControls';
-import { drawGame,drawCardAnimation } from './gameDrawing';
+import {CardMotionLayer} from './CardMotionLayer';
+import { drawGame } from './gameDrawing';
 import {GameFeed} from './GameFeed';
 import {DifferPoints} from './DifferPoints';
 import { parseLegacy } from './engine/legacy';
@@ -29,6 +31,8 @@ const reviewEnabled = new URLSearchParams(location.search).get('review') === 'ca
 function displayPreference(key, fallback) {
   try { const value = JSON.parse(localStorage.getItem('sws-display') || '{}')[key]; return typeof value === typeof fallback ? value : fallback; } catch { return fallback; }
 }
+
+migratePlayerLabel();
 
 function App() {
   const review = useCardReview(reviewEnabled);
@@ -69,7 +73,16 @@ function App() {
     if(notices.length)setInformation(old=>old.concat(notices.map(n=>({...n,view:v}))));
   },[game.view,game.automatic,game.series,game.animation,preferences]);
   useEffect(()=>{if(information.length&&!activeDialog)openDialog('information');},[information,activeDialog]);
-  const nextInformation=()=>{setInformation(items=>items.slice(1));if(information.length<=1)closeDialog();};
+  const nextInformation=()=>{
+    const notice=information[0];
+    setInformation(items=>items.slice(1));
+    if(information.length<=1){
+      closeDialog();
+      if(['round','differ','match','conter'].includes(notice?.type)&&
+        game.view?.phase==='deal'&&!game.view.pause&&!game.busy&&
+        notice.view.roundNumber===game.view.roundNumber)game.action({type:'deal'});
+    }
+  };
   const cardNames=['Deutsch','Französisch','Französisch (4 Farben)','Französisch 3D','Französisch 3D (4 Farben)'];
   const [cardSet, setCardSet] = useState(() => Math.max(1,Math.min(5,displayPreference('cardSet',1))));
   const [sheets, setSheets] = useState({});
@@ -78,13 +91,13 @@ function App() {
   const [assets, setAssets] = useState(null);
   const [error, setError] = useState('');
   const artwork=useGraphics(),setArtwork=setGraphics;
-  const [fit, setFit] = useState(() => displayPreference('resolution',null) ? displayPreference('resolution')==='adaptive' : displayPreference('fit',DISPLAY.fitToWindow));
+  const [fit, setFit] = useState(() => displayPreference('resolution','') ? displayPreference('resolution','')==='adaptive' : displayPreference('fit',DISPLAY.fitToWindow));
   const requestedScale=fit?Infinity:1;
   const [viewport, setViewport] = useState({ width: document.documentElement.getBoundingClientRect().width, height: innerHeight, dpr: devicePixelRatio });
   const [menu, setMenu] = useState(null);
   // Keep the auxiliary controls available for development; normal startup hides them.
   const [lowLevel,setLowLevel]=useState(false);
-  const canvas = useRef(null);
+  const canvas = useRef(null),sceneRef=useRef(null);
   const jokerCanvas=useRef(null),[jokerPressed,setJokerPressed]=useState(false);
   const jokerAssets=game.view?.kind==='differ'?assets?.differ:assets;
 
@@ -118,25 +131,14 @@ function App() {
     return () => { active = false; window.removeEventListener('resize', resize); };
   }, [artwork]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (assets && canvas.current) {
       drawTable(canvas.current, activeKind === 'differ' ? assets.differ : assets, artwork, scale, viewport.dpr, reviewEnabled ? review.sheet?.cards[0].rect.height : sheets.V?.cards[0].rect.height,tableSize);
       if (reviewEnabled && review.sheet) drawHand(canvas.current, review.sheet, review.cards, review.selected);
       const animation=!reviewEnabled&&!replay.view?game.animation:null;
       if (!reviewEnabled && (replay.view || game.view)) drawGame(canvas.current, replay.view || game.view, sheets, cardSet,animation,tableSize);
       if(!reviewEnabled&&!replay.view&&game.view&&jokerCanvas.current)drawTableJoker(canvas.current,jokerCanvas.current,jokerAssets,game.view.kind,sheets.V?.cards[0].rect.height,jokerPressed&&canHint,tableSize);
-      if(animation){
-        const target=canvas.current,ctx=target.getContext('2d'),background=document.createElement('canvas');
-        background.width=target.width;background.height=target.height;background.getContext('2d').drawImage(target,0,0);
-        const start=performance.now();let frame;
-        const tick=now=>{
-          ctx.save();ctx.resetTransform();ctx.drawImage(background,0,0);ctx.restore();
-          const progress=Math.min(1,(now-start)/animation.duration);
-          drawCardAnimation(ctx,animation,sheets,progress,tableSize);
-          if(progress<1)frame=requestAnimationFrame(tick);
-        };
-        tick(start);return()=>cancelAnimationFrame(frame);
-      }
+
     }
   }, [assets, artwork, scale, tableSize, activeKind, showWelcome, viewport.dpr, review.sheet, review.cards, review.selected, game.view, sheets, cardSet, replay.games, replay.selected, replay.round, replay.step, preferences,jokerPressed,canHint,game.animation]);
 
@@ -179,12 +181,13 @@ function App() {
       </div>)}
     </nav>}
     {reviewEnabled && <CardReviewControls review={review} />}
-    {showWelcome?<WelcomePanel lowLevel={lowLevel} onNew={setNewGame} onResume={game.resume} scale={fit?Math.min((viewport.width-24)/430,(viewport.height-(lowLevel?70:24))/432):1}/>:<div className="scene-frame" style={{ width: tableSize.width * scale + 4, height: tableSize.height * scale + 4 }}>
+    {showWelcome?<WelcomePanel lowLevel={lowLevel} onNew={setNewGame} onResume={game.resume} scale={fit?Math.min((viewport.width-24)/430,(viewport.height-(lowLevel?70:24))/432):1}/>:<div ref={sceneRef} className="scene-frame" style={{ width: tableSize.width * scale + 4, height: tableSize.height * scale + 4 }}>
       <canvas ref={canvas} data-animation={game.animation?.type||'none'} data-ready={Boolean(assets && (!reviewEnabled || review.sheet))} data-artwork={artwork} data-game-kind={activeKind} data-scale={scale} data-resolution={fit?'adaptive':'fixed'} data-card-size={cardSize}
         style={{ width: tableSize.width * scale, height: tableSize.height * scale }}
         role="img" aria-label={reviewEnabled ? "Schieber-Spieltisch mit Karten-Vorschau" : displayView ? `${displayView.kind === 'differ' ? 'Differenzler' : 'Schieber'}-Spieltisch, Runde ${displayView.roundNumber}` : `${activeKind==='differ'?'Differenzler':'Schieber'}-Spieltisch`}>
         Schieber-Spieltisch mit Schreibblock und Spieltafel.
       </canvas>
+      {!reviewEnabled&&!replay.view&&game.animation&&<CardMotionLayer animation={game.animation} sheets={sheets} size={tableSize} scale={scale} pixelRatio={viewport.dpr} onComplete={game.finishAnimation}/>}
       {reviewEnabled && assets && <CardTargets review={review} scale={scale} canvas={canvas} />}
       {!reviewEnabled && !replay.view && game.view && <GameCardTargets game={game} sheet={sheets.V} scale={scale} size={tableSize} setId={cardSet} />}
       {!reviewEnabled&&!replay.view&&game.view&&<TablePlayers view={game.animation?.type==='collect'?game.animation.before:game.view} scale={scale} size={tableSize}/>}
@@ -195,10 +198,10 @@ function App() {
       {!reviewEnabled&&!replay.view&&game.view?.phase==='deal'&&!game.view.pause&&!game.busy&&!game.paused&&!game.automatic&&<button type="button" className="trick-clear-target" aria-label="Nächste Runde durch Klick auf den Tisch" onClick={()=>game.action({type:'deal'})}/>}
       {!assets && !error && <p className="loading" role="status">Tisch wird geladen…</p>}
     </div>}
-    {!reviewEnabled && !showWelcome && (replay.view ? <LegacyReplay lowLevel={lowLevel} replay={replay} setId={cardSet} /> : <GameControls lowLevel={lowLevel} key={game.view?(game.saved()?.options.id||game.view.kind):'idle'} game={game} onNew={setNewGame} onDialog={openDialog} displayScale={requestedScale}/>)}
+    {!reviewEnabled && !showWelcome && (replay.view ? <LegacyReplay lowLevel={lowLevel} replay={replay} setId={cardSet} /> : <GameControls sceneRef={sceneRef} lowLevel={lowLevel} key={game.view?(game.saved()?.options.id||game.view.kind):'idle'} game={game} onNew={setNewGame} onDialog={openDialog} displayScale={scale}/>)}
 
-    {newGame && <GameSetup key={newGame} kind={newGame} setId={cardSet} settings={settings} onSettings={applySettings} displayScale={requestedScale} onClose={() => setNewGame(null)} onStart={options => { setStartingKind(options.kind);replay.close();game.start({...options,...(dealSeed!==null?{seed:dealSeed}:{})});setMessages([]); setNewGame(null); }} />}
-    {matchHistory && <MatchHistory onClose={() => setMatchHistory(false)} />}
+    {newGame && <GameSetup key={newGame} kind={newGame} setId={cardSet} settings={settings} onSettings={applySettings} displayScale={scale} onClose={() => setNewGame(null)} onStart={options => { setStartingKind(options.kind);replay.close();game.start({...options,...(dealSeed!==null?{seed:dealSeed}:{})});setMessages([]); setNewGame(null); }} />}
+    {matchHistory && <MatchHistory scale={scale} onClose={() => setMatchHistory(false)} />}
     <input type="file" ref={openFile} hidden accept=".json,.sws.json,.jss,.jar" onChange={async e => {
       const file = e.target.files[0]; e.target.value = '';
       if (!file) return;
@@ -210,23 +213,23 @@ function App() {
       catch (error) { setError(error.message); }
     }} />
     {error && <p role="alert" className="error">{error}</p>}
-    {activeDialog?.startsWith('preferences-')&&<PreferencesDialog key={activeDialog} title={{'preferences-general':'Allgemein','preferences-rules':'Regeln','preferences-display':'Darstellungen'}[activeDialog]} kind={activeKind} rules={game.view&&game.view.phase!=='done'?game.view.rules:loadRules(activeKind,activeKind==='differ'?DifferRules():SchieberRules())} locked={Boolean(game.view&&game.view.phase!=='done')} initialTab={{'preferences-general':0,'preferences-rules':1,'preferences-display':2}[activeDialog]} settings={settings} onSettings={applySettings} onApply={rules=>{if(activeDialog==='preferences-rules')saveRules(activeKind,rules);closeDialog();}} onClose={closeDialog} scale={requestedScale}/>}
-    {activeDialog==='profile'&&<ProfileDialog kind={activeKind} onClose={closeDialog} scale={requestedScale}/>}
-    {activeDialog==='seed'&&<SeedDialog kind={activeKind} seed={dealSeed} onClose={closeDialog} onApply={seed=>{setDealSeed(seed);closeDialog();}} scale={requestedScale}/>}
-    {['about','exit'].includes(activeDialog)&&<AboutDialog kind={activeKind} exit={activeDialog==='exit'} onSave={game.download} onEnd={closeGame} onClose={closeDialog} scale={requestedScale}/>}
-    {activeDialog==='results'&&<ResultsDialog game={game} onClose={closeDialog} scale={requestedScale}/>}
-    {activeDialog==='information'&&information[0]&&<InformationDialog key={`${information[0].type}/${information[0].view.roundNumber}`} notice={information[0]} onClose={nextInformation} scale={requestedScale}/>}
-    {activeDialog==='highscores'&&<HighScoresDialog kind={activeKind} onClose={closeDialog} scale={requestedScale}/>}
-    {activeDialog==='statistics'&&<StatisticsDialog kind={activeKind} game={game} onClose={closeDialog} scale={requestedScale}/>}
-    {activeDialog==='say'&&<ConversationDialog kind={activeKind} onSay={text=>setMessages(m=>m.concat({id:crypto.randomUUID(),kind:'say',player:game.view.human,text,after:game.view.feed.at(-1)?.id||0}))} onClose={closeDialog} scale={requestedScale}/>}
-    {activeDialog==='archive'&&<ArchiveDialog kind={activeKind} game={game} onClose={closeDialog} scale={requestedScale}/>}
-    {activeDialog==='auto'&&<AutoPlayDialog kind={activeKind} onApply={(count,speed)=>{closeDialog();game.setSpeed(speed);game.setPaused(false);game.playSeries(count);if(speed<=50)setActiveDialog('fast');}} onClose={closeDialog} scale={requestedScale}/>}
-    {['forfeit','rematch'].includes(activeDialog)&&<ConfirmDialog kind={activeKind} action={activeDialog} onConfirm={()=>{closeDialog();if(activeDialog==='forfeit')game.action({type:'forfeit'});else game.start({...game.saved().options,id:crypto.randomUUID(),seed:crypto.getRandomValues(new Uint32Array(1))[0]%2147483646+1});}} onClose={closeDialog} scale={requestedScale}/>}
-    {['team','publisher','intro'].includes(activeDialog)&&<LegacyDialog kind={activeKind} form={{team:'TTEAMDLG',publisher:'THPDLG',intro:'TINTRODLG'}[activeDialog]} title={{team:'Entwicklungsteam',publisher:'Graphik design',intro:'Stöck Wyys Stich'}[activeDialog]} onClose={closeDialog} scale={requestedScale}/>}
-    {activeDialog==='puzzle'&&<PuzzleDialog onClose={closeDialog} scale={requestedScale}/>}
-    {activeDialog==='highname'&&<HighNameDialog onClose={closeDialog} scale={requestedScale}/>}
-    {activeDialog==='fast'&&game.view&&<FastPlayDialog game={game} onClose={()=>{setActiveDialog(null);game.setAutomatic(false);}} scale={requestedScale}/>}
-    {activeDialog==='art'&&<AssetLibraryDialog onClose={closeDialog} scale={requestedScale}/>}
+    {activeDialog?.startsWith('preferences-')&&<PreferencesDialog key={activeDialog} title={{'preferences-general':'Allgemein','preferences-rules':'Regeln','preferences-display':'Darstellungen'}[activeDialog]} kind={activeKind} rules={game.view&&game.view.phase!=='done'?game.view.rules:loadRules(activeKind,activeKind==='differ'?DifferRules():SchieberRules())} locked={Boolean(game.view&&game.view.phase!=='done')} initialTab={{'preferences-general':0,'preferences-rules':1,'preferences-display':2}[activeDialog]} settings={settings} onSettings={applySettings} onApply={rules=>{if(activeDialog==='preferences-rules')saveRules(activeKind,rules);closeDialog();}} onClose={closeDialog} scale={scale}/>}
+    {activeDialog==='profile'&&<ProfileDialog kind={activeKind} onClose={closeDialog} scale={scale}/>}
+    {activeDialog==='seed'&&<SeedDialog kind={activeKind} seed={dealSeed} onClose={closeDialog} onApply={seed=>{setDealSeed(seed);closeDialog();}} scale={scale}/>}
+    {['about','exit'].includes(activeDialog)&&<AboutDialog kind={activeKind} exit={activeDialog==='exit'} onSave={game.download} onEnd={closeGame} onClose={closeDialog} scale={scale}/>}
+    {activeDialog==='results'&&<ResultsDialog game={game} onClose={closeDialog} scale={scale}/>}
+    {activeDialog==='information'&&information[0]&&<InformationDialog key={`${information[0].type}/${information[0].view.roundNumber}`} notice={information[0]} onClose={nextInformation} scale={scale}/>}
+    {activeDialog==='highscores'&&<HighScoresDialog kind={activeKind} onClose={closeDialog} scale={scale}/>}
+    {activeDialog==='statistics'&&<StatisticsDialog kind={activeKind} game={game} onClose={closeDialog} scale={scale}/>}
+    {activeDialog==='say'&&<ConversationDialog kind={activeKind} onSay={text=>setMessages(m=>m.concat({id:crypto.randomUUID(),kind:'say',player:game.view.human,text,after:game.view.feed.at(-1)?.id||0}))} onClose={closeDialog} scale={scale}/>}
+    {activeDialog==='archive'&&<ArchiveDialog kind={activeKind} game={game} onClose={closeDialog} scale={scale}/>}
+    {activeDialog==='auto'&&<AutoPlayDialog kind={activeKind} onApply={(count,speed)=>{closeDialog();game.setSpeed(speed);game.setPaused(false);game.playSeries(count);if(speed<=50)setActiveDialog('fast');}} onClose={closeDialog} scale={scale}/>}
+    {['forfeit','rematch'].includes(activeDialog)&&<ConfirmDialog kind={activeKind} action={activeDialog} onConfirm={()=>{closeDialog();if(activeDialog==='forfeit')game.action({type:'forfeit'});else game.start({...game.saved().options,id:crypto.randomUUID(),seed:crypto.getRandomValues(new Uint32Array(1))[0]%2147483646+1});}} onClose={closeDialog} scale={scale}/>}
+    {['team','publisher','intro'].includes(activeDialog)&&<LegacyDialog kind={activeKind} form={{team:'TTEAMDLG',publisher:'THPDLG',intro:'TINTRODLG'}[activeDialog]} title={{team:'Entwicklungsteam',publisher:'Graphik design',intro:'Stöck Wyys Stich'}[activeDialog]} onClose={closeDialog} scale={scale}/>}
+    {activeDialog==='puzzle'&&<PuzzleDialog onClose={closeDialog} scale={scale}/>}
+    {activeDialog==='highname'&&<HighNameDialog onClose={closeDialog} scale={scale}/>}
+    {activeDialog==='fast'&&game.view&&<FastPlayDialog game={game} onClose={()=>{setActiveDialog(null);game.setAutomatic(false);}} scale={scale}/>}
+    {activeDialog==='art'&&<AssetLibraryDialog onClose={closeDialog} scale={scale}/>}
   </main>;
 }
 

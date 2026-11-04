@@ -8,7 +8,7 @@ const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))??fa
 export function downloadJSON(value,name){const url=URL.createObjectURL(new Blob([JSON.stringify(value)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 export function ProfileDialog({kind,onClose,scale}){
   const saved=read('sws-profile',{}),selection=read('sws-setup',{});
-  const [values,setValues]=useState({NickEdit:localStorage.getItem('sws-player')||'Sie',NameEdit:saved.fullName||'',MaleRadio:saved.gender!=='female',FemaleRadio:saved.gender==='female',IconScroll:(selection.avatar||5208)-5200});
+  const [values,setValues]=useState({NickEdit:localStorage.getItem('sws-player')||'Du',NameEdit:saved.fullName||'',MaleRadio:saved.gender!=='female',FemaleRadio:saved.gender==='female',IconScroll:(selection.avatar||5208)-5200});
   const [error,setError]=useState('');
   return <LegacyDialog kind={kind} form="TPROFILEDLG" onClose={onClose} scale={scale} values={values} overrides={{NickEdit:{'aria-label':'Übername',MaxLength:30},NameEdit:{'aria-label':'Voller Name',MaxLength:80},IconScroll:{Max:19,'aria-label':'Spielerbild'}}} onChange={(n,v)=>setValues(s=>({...s,[n]:v,...(n==='MaleRadio'?{FemaleRadio:false}:n==='FemaleRadio'?{MaleRadio:false}:{})}))} onAction={n=>{if(n==='BitBtn1'){if(!values.NickEdit.trim()){setError('Bitte einen Übernamen eingeben.');return;}localStorage.setItem('sws-player',values.NickEdit.trim());localStorage.setItem('sws-profile',JSON.stringify({fullName:values.NameEdit,gender:values.FemaleRadio?'female':'male'}));localStorage.setItem('sws-setup',JSON.stringify({...selection,characters:selection.characters||[0,0,2,0,3],strengths:selection.strengths||[0,2,2,0,2],avatar:5200+values.IconScroll}));}onClose();}} render={c=>c.name==='IconBox'?<img width="41" height="47" src={graphicsUrl(`setup/${5100+values.IconScroll}.png`)} alt="Gewähltes Spielerbild"/>:undefined}>{error&&<p role="alert" className="original-error">{error}</p>}</LegacyDialog>;
 }
@@ -113,7 +113,7 @@ function histogram(values,low,high,bins=24){const result=Array(bins).fill(0);for
 export function StatisticsDialog({kind,game,onClose,scale}){
   const {data}=useDialogCatalog(),[player,setPlayer]=useState(3);if(!data)return null;
   const completed=read('sws-history',[]).filter(h=>h.kind===kind),rounds=completed.flatMap(h=>h.rounds||[]),current=game.view?.kind===kind?game.view.history:[];
-  const all=game.view?.phase==='done'?rounds:rounds.concat(current),names=game.view?.kind===kind?game.view.names:completed[0]?.names||['','Nord','West','Sie','Ost'];
+  const all=game.view?.phase==='done'?rounds:rounds.concat(current),names=game.view?.kind===kind?game.view.names:completed[0]?.names||['','Nord','West','Du','Ost'];
   const diffs=kind==='differ'?all.map(r=>D.DeltaOf(r.call[player],r.made[player],r.bonus[player])):all.map(r=>r.pts[1]-r.pts[2]);
   const avg=values=>values.length?(values.reduce((a,b)=>a+b,0)/values.length).toFixed(1):'0';
   const def=data.forms[kind].TSTATISTICSDLG,values={};
@@ -140,7 +140,7 @@ export function ConversationDialog({kind,onClose,onSay,scale}){
 }
 export function ConfirmDialog({kind,action,onClose,onConfirm,scale}){
   const form=action==='rematch'?'TREVDLG':kind==='schieber'?'TDIRTYDLG':'TREVDLG';
-  return <LegacyDialog kind={kind} form={form} title={action==='rematch'?'Revanche':'Runde aufgeben'} onClose={onClose} scale={scale} hide={['againCheck','SaveBtn']} overrides={{Label1:{Caption:action==='rematch'?'Wollen Sie eine Revanche?':'Wollen Sie diese Runde aufgeben?'},YesBtn:{Caption:'Ja'},NoBtn:{Caption:'Nein'}}} onAction={(n,v,c)=>{if(['OKBtn','YesBtn'].includes(n)||c.properties.Kind==='bkYes')onConfirm();else onClose();}}/>;
+  return <LegacyDialog kind={kind} form={form} title={action==='rematch'?'Revanche':'Runde aufgeben'} onClose={onClose} scale={scale} hide={['againCheck','SaveBtn']} overrides={{Label1:{Caption:action==='rematch'?'Möchtest du eine Revanche?':'Möchtest du diese Runde aufgeben?'},YesBtn:{Caption:'Ja'},NoBtn:{Caption:'Nein'}}} onAction={(n,v,c)=>{if(['OKBtn','YesBtn'].includes(n)||c.properties.Kind==='bkYes')onConfirm();else onClose();}}/>;
 }
 export function AutoPlayDialog({kind,onClose,onApply,scale}){
   const [values,setValues]=useState({SpinEdit:1,maximalRadio:true,offRadio:false,minimalRadio:false,reducedRadio:false});
@@ -163,7 +163,7 @@ export function FastPlayDialog({game,onClose,scale}){
 
 export function HighNameDialog({onClose,scale}){
   const entries=read('sws-history',[]),latest=entries.find(h=>h.kind==='differ');
-  const [name,setName]=useState(latest?.names[3]||localStorage.getItem('sws-player')||'Sie');
+  const [name,setName]=useState(latest?.names[3]||localStorage.getItem('sws-player')||'Du');
   const rank=latest?entries.filter(h=>h.kind==='differ'&&h.scores[3]<latest.scores[3]).length+1:0;
   return <LegacyDialog kind="differ" form="THIGHNAMEDLG" onClose={onClose} scale={scale} values={{Edit:name,IndexLabel:rank?`${rank}. Rang`:'Noch kein Spiel'}} overrides={{Edit:{'aria-label':'Ranglistenname',MaxLength:30},Button1:{Enabled:!!latest&&!!name.trim()}}} onChange={(n,v)=>setName(v)} onAction={()=>{if(latest&&name.trim()){latest.names[3]=name.trim();localStorage.setItem('sws-history',JSON.stringify(entries));onClose();}}}/>;
 }

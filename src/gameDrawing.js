@@ -31,22 +31,23 @@ export function trickPositions(sheet,size=BASE_TABLE){
     { x: mx - Math.floor(w / 2), y: Math.min(my - 2, carpet.bottom - h), width: w, height: h },
     { x: Math.min(mx - 2, carpet.right - h), y: my - Math.floor(w / 2), width: h, height: w }];
 }
-export function drawCardAnimation(ctx,animation,sheets,progress,size=BASE_TABLE){
-  if(!sheets.V||!sheets.H)return;
-  const positions=trickPositions(sheets.V,size),t=1-Math.pow(1-progress,2);
-  const mix=(a,b)=>Object.fromEntries(['x','y','width','height'].map(k=>[k,a[k]+(b[k]-a[k])*t]));
+export function cardMotions(animation,sheets,size=BASE_TABLE){
+  if(!sheets.V||!sheets.H)return [];
+  const positions=trickPositions(sheets.V,size);
   if(animation.type==='play'){
     const {player,card,before}=animation,to=positions[player];
     const c=carpetRect(size),boards=layout(size.width,size.height,sheets.V.cards[0].rect.height);
     const from=player===before.human?gameHand(before,sheets.V,size).find(c=>c.id===card):
       {...to,...[null,{x:c.x+116-to.width/2,y:-to.height},{x:boards.log.x+boards.log.width-to.width,y:c.y+116-to.height/2},{x:c.x+116-to.width/2,y:size.height},{x:boards.score.x+18,y:c.y+116-to.height/2}][player]};
-    if(from)drawCard(ctx,player%2?sheets.V:sheets.H,card,mix(from,to));
+    return from?[{player,card,from,to}]:[];
   }else{
     const p=animation.winner,n=Math.max(0,(animation.after.pickedTricks[p]||1)-1);
     const r=pileRect(p,n,size),to={x:r.left,y:r.top,width:r.width,height:r.height};
+    const motions=[];
     let player=animation.before.trick.fLeading;
     for(let i=0;i<animation.before.count;i++,player=player===animation.before.count?1:player+1)
-      drawCard(ctx,player%2?sheets.V:sheets.H,animation.before.trick.fPlayed[player],mix(positions[player],to));
+      motions.push({player,card:animation.before.trick.fPlayed[player],from:positions[player],to});
+    return motions;
   }
 }
 export function drawGame(canvas, view, sheets, setId = 1, animation=null, size=BASE_TABLE) {

@@ -10,7 +10,7 @@ test('Lowlevel menu defaults off and toggles retained controls and title-screen 
   };
   await page.getByRole('button',{name:'Neuer Schieber…',exact:true}).click();
   await page.getByRole('button',{name:'Spielen',exact:true}).click();
-  await expect(page.getByRole('dialog',{name:/wählen Sie den Trumpf/})).toBeVisible();
+  await expect(page.getByRole('dialog',{name:/Wähle deinen Trumpf/})).toBeVisible();
   await page.getByRole('dialog').getByRole('button',{name:'Abbrechen',exact:true}).click();
   await expect(page.locator('.game-actions')).toHaveCount(0);
   await toggle(true);

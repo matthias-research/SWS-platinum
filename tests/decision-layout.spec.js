@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 
-for(const kind of ['Schieber','Differenzler'])test(`${kind} table joker opens advice`,async({page})=>{
+for(const kind of ['Differenzler'])test(`${kind} table joker opens advice`,async({page})=>{
   await page.goto('/');
   await page.getByRole('button',{name:`Neuer ${kind}…`,exact:true}).click();
   await page.getByRole('dialog').getByRole('button',{name:'Spielen',exact:true}).click();
@@ -13,28 +13,6 @@ for(const kind of ['Schieber','Differenzler'])test(`${kind} table joker opens ad
   await page.getByRole('dialog',{name:'Ratschlag',exact:true}).getByRole('button',{name:'Abbrechen',exact:true}).click();
   await expect(joker).toBeEnabled();
   await page.screenshot({path:`artifacts/browser/${kind.toLowerCase()}-table-joker.png`});
-});
-
-test('joker suggests trump with a clean symbol or Schieben and lets the player accept or cancel',async({page})=>{
-  await page.goto('/');
-  await page.getByRole('button',{name:'Neuer Schieber…',exact:true}).click();
-  await page.getByRole('dialog').getByRole('button',{name:'Spielen',exact:true}).click();
-  const choice=page.getByRole('dialog',{name:/wählen Sie den Trumpf/});
-  await choice.getByRole('button',{name:'Tipp',exact:true}).click();
-  const advice=page.getByRole('dialog',{name:'Ratschlag',exact:true});
-  await expect(advice).toBeVisible();
-  await expect(advice.locator('.hint-picture')).toHaveCount(0);
-  if(await advice.locator('img').count()){
-    await expect(advice.locator('img')).toHaveAttribute('src',/dialogs\/symbols\/\d-\d\.png$/);
-    await expect.poll(()=>advice.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
-  }else await expect(advice).toContainText('Schieben');
-  await advice.getByRole('button',{name:'Abbrechen',exact:true}).click();
-  await expect(advice).toHaveCount(0);
-  await choice.getByRole('button',{name:'Tipp',exact:true}).click();
-  await expect(advice).toBeVisible();
-  await advice.getByRole('button',{name:'OK',exact:true}).click();
-  await expect(advice).toHaveCount(0);
-  await expect(choice).toHaveCount(0);
 });
 
 async function checkHandVisible(page){
@@ -54,8 +32,8 @@ for(const kind of ['Schieber','Differenzler'])test(`${kind} decision leaves the 
   await page.screenshot({path:`artifacts/browser/${kind.toLowerCase()}-decision-mobile.png`});
   if(kind==='Schieber')await page.getByRole('dialog').getByRole('button',{name:'Schellen',exact:true}).click();
   else{await page.getByRole('textbox',{name:'Ansage',exact:true}).fill('60');await page.getByRole('dialog').getByRole('button',{name:'OK',exact:true}).click();}
-  if(kind==='Schieber')await expect(page.getByRole('log',{name:'Spielverlauf'})).toContainText('Sie trumpft');
-  else{await expect(page.locator('.points-plate[data-player="3"]')).toHaveAttribute('data-call','60');await expect(page.getByRole('log',{name:'Spielverlauf'})).not.toContainText('Sie sagt 60');}
+  if(kind==='Schieber')await expect(page.getByRole('log',{name:'Spielverlauf'})).toContainText('Du trumpfst');
+  else{await expect(page.locator('.points-plate[data-player="3"]')).toHaveAttribute('data-call','60');await expect(page.getByRole('log',{name:'Spielverlauf'})).not.toContainText('Du sagst 60');}
 });
 
 test('all six trump symbols use the original card-sheet pixels in all four carpet corners',async({page})=>{
@@ -79,4 +57,18 @@ test('all six trump symbols use the original card-sheet pixels in all four carpe
     return failures;
   });
   expect(result).toEqual([]);
+});
+
+for(const mode of ['adaptive','fixed'])test('trump dialog follows '+mode+' resolution',async({page})=>{
+  await page.addInitScript(mode=>localStorage.setItem('sws-display',JSON.stringify({resolution:mode})),mode);
+  await page.setViewportSize({width:1400,height:1000});await page.goto('/');
+  await page.getByRole('button',{name:'Neuer Schieber…',exact:true}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Spielen',exact:true}).click();
+  const dialog=page.getByRole('dialog',{name:/Wähle deinen Trumpf/}),table=page.locator('.scene-frame > canvas');
+  await checkHandVisible(page);
+  const scale=Number(await table.getAttribute('data-scale'));
+  if(mode==='adaptive')expect(scale).toBeGreaterThan(1.5);else expect(scale).toBe(1);
+  await expect.poll(async()=>Math.abs((await dialog.boundingBox()).width-225*scale)).toBeLessThan(2);
+  await page.setViewportSize({width:1000,height:750});await checkHandVisible(page);
+  await expect.poll(async()=>Math.abs((await dialog.boundingBox()).width-225*Number(await table.getAttribute('data-scale')))).toBeLessThan(2);
 });

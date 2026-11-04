@@ -1,3 +1,4 @@
+import {informalCaption} from '../germanText';
 import {graphicsUrl,useGraphics} from '../graphics';
 import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
 export const dialogBase=`${import.meta.env.BASE_URL}assets/dialogs/`;
@@ -8,10 +9,10 @@ export function imageUrl(data,id){return id&&data.images[id]?graphicsUrl(`dialog
 export function formImage(data,kind,form,name){const c=data?.forms[kind]?.[form]?.components.find(c=>c.name===name);return c&&imageUrl(data,Object.values(c.images)[0]);}
 export function looseImage(data,name){return imageUrl(data,data?.loose[name.toLowerCase()]);}
 const captions={bkOK:'OK',bkCancel:'Abbrechen',bkYes:'Ja',bkNo:'Nein',bkClose:'Schliessen'};
-const clean=t=>String(t??'').replace(/&/g,'');
-export function DialogFrame({title,width,height,onClose,children,className='',keepHandVisible=false}) {
-  // Dialog size is independent of table zoom and enhanced bitmap resolution.
-  const scale=1;
+const clean=t=>informalCaption(String(t??'').replace(/&/g,''));
+export function DialogFrame({title,width,height,onClose,children,className='',keepHandVisible=false,scale:tableScale=1}) {
+  // All dialogs follow the selected resolution mode, capped to the viewport.
+  const scale=Number.isFinite(tableScale)&&tableScale>0?tableScale:1;
   const ref=useRef(null),[viewport,setViewport]=useState({w:innerWidth,h:innerHeight});
   const [placement,setPlacement]=useState(null);
   useLayoutEffect(()=>{
@@ -21,7 +22,7 @@ export function DialogFrame({title,width,height,onClose,children,className='',ke
       const scene=table.getBoundingClientRect(),cards=[...document.querySelectorAll('.card-targets .card-target')].map(el=>el.getBoundingClientRect());
       const handTop=cards.length?Math.min(...cards.map(r=>r.top)):scene.bottom-118*scene.width/768;
       const handBottom=cards.length?Math.max(...cards.map(r=>r.bottom)):scene.bottom;
-      const preferred=Math.min(scale,Math.max(1,scene.width/768));
+      const preferred=scale;
       const above={top:Math.max(8,scene.top+6),bottom:Math.min(innerHeight-8,handTop-10)};
       const below={top:Math.max(8,handBottom+10),bottom:innerHeight-8};
       const fit=area=>Math.max(0,Math.min(preferred,(innerWidth-20)/width,(area.bottom-area.top)/(height+22)));
@@ -46,7 +47,7 @@ export function DialogFrame({title,width,height,onClose,children,className='',ke
 
 export function LegacyDialog({kind='schieber',form,title,onClose,onAction,values={},onChange=()=>{},overrides={},render,children,initialTab=0,hideTabs=false,scale,hide=[],readOnly=false,width,height,keepHandVisible=false}) {
   const {data,error}=useDialogCatalog(); const [tab,setTab]=useState(initialTab);
-  if(error)return <DialogFrame title="Fehler" width={350} height={100} onClose={onClose}><p role="alert">{error}</p></DialogFrame>;
+  if(error)return <DialogFrame title="Fehler" scale={scale} width={350} height={100} onClose={onClose}><p role="alert">{error}</p></DialogFrame>;
   if(!data)return null;
   const definition=data.forms[kind][form];
   if(!definition)throw new Error(`Unknown original dialog ${kind}/${form}`);

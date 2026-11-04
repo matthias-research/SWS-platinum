@@ -5,14 +5,16 @@ import {layout} from './table';
 import {trumpLabels} from './gameDrawing';
 import {DialogCards} from './dialogs/DecisionDialogs';
 
+const trumpAnnouncement=(event,view)=>event.player===view.human?'Du trumpfst':`${view.names[event.player]} trumpft`;
+
 export function eventText(event,view,setId){
-  const name=view.names[event.player]||'';
+  const human=event.player===view.human,name=human?'Du':view.names[event.player]||'';
   switch(event.kind){
     case 'round':return `Spiel ${event.round}`;
     case 'drawn':return `Trumpfkarte · ${trumpLabels(setId)[event.trump]}`;
-    case 'trump':return `${name} trumpft ${trumpLabels(setId)[event.trump]}`;
-    case 'shift':return `${name} schiebt`;
-    case 'call':return `${name} sagt ${event.value}`;
+    case 'trump':return `${trumpAnnouncement(event,view)} ${trumpLabels(setId)[event.trump]}`;
+    case 'shift':return human?'Du schiebst':`${name} schiebt`;
+    case 'call':return `${name} ${human?'sagst':'sagt'} ${event.value}`;
     case 'suit':return `${name} weist: ${event.value}`;
     case 'stockings':return `${name}: Stöck ${event.subtract?'abziehen':'dazuzählen'}`;
     case 'say':return `${name}: ${event.text}`;
@@ -24,7 +26,7 @@ function EventContent({event,view,setId}){
   const cards=event.kind==='stockings'?[[9*(event.trump-1)+7,9*(event.trump-1)+8]]:event.cards?.filter(row=>row.length);
   const icon=event.player===view.human?5100+((view.avatar||5208)-5200):7101+1000*(view.characters?.[event.player]||0);
   return <>
-    <div className="feed-line">{event.kind==='say'&&<img className="feed-portrait" src={graphicsUrl(`setup/${icon}.png`)} alt=""/>}<span>{event.kind==='trump'?`${view.names[event.player]} trumpft`:eventText(event,view,setId)}</span>{event.kind==='trump'&&<img className="feed-trump" src={graphicsUrl(`dialogs/symbols/${setId}-${event.trump}.png`)} alt={trumpLabels(setId)[event.trump]}/>}</div>
+    <div className="feed-line">{event.kind==='say'&&<img className="feed-portrait" src={graphicsUrl(`setup/${icon}.png`)} alt=""/>}<span>{event.kind==='trump'?trumpAnnouncement(event,view):eventText(event,view,setId)}</span>{event.kind==='trump'&&<img className="feed-trump" src={graphicsUrl(`dialogs/symbols/${setId}-${event.trump}.png`)} alt={trumpLabels(setId)[event.trump]}/>}</div>
     {cards?.length>0&&<div className="feed-cards"><DialogCards setId={setId} width={148} height={cards.length*59} rows={cards}/></div>}
   </>;
 }

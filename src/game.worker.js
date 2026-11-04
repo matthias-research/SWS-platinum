@@ -31,7 +31,7 @@ self.onmessage = async ({ data: message }) => {
     } else if (message.type === 'hint') {
       const copy = Game.restore(game.save(), await createAI(game.kind, game.options.families??game.options.family));
       const request = copy.request();
-      if (!request || request.player !== copy.human) throw new Error('Ein Tipp ist nur während Ihres Zuges möglich.');
+      if (!request || request.player !== copy.human) throw new Error('Ein Tipp ist nur während deines Zuges möglich.');
       const answer = copy.ai.request(request.player, request.command, request.data);
       hint = { command: answer.command, data: { ...answer.data } };
     } else if (message.type === 'undo') {

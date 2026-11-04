@@ -54,9 +54,9 @@ test('original Schieber setup selects portraits, strengths and human profile bef
   await dialog.getByRole('button',{name:/^Nord:.*Spieler wählen/}).click();
   await dialog.getByRole('button',{name:'Figur 2',exact:true}).click();
   await expect(dialog.getByRole('button',{name:/^Nord: Figur 2, Mittel/})).toBeVisible();
-  await dialog.getByRole('button',{name:'Ihr Spielerbild wählen'}).click();
+  await dialog.getByRole('button',{name:'Dein Spielerbild wählen'}).click();
   await dialog.getByRole('button',{name:'Spielerbild 4',exact:true}).click();
-  await dialog.getByRole('textbox',{name:'Ihr Name'}).fill('Matthi');
+  await dialog.getByRole('textbox',{name:'Dein Name'}).fill('Matthi');
   await dialog.getByRole('button',{name:'Spielen',exact:true}).click();
   await expect(page.getByRole('button',{name:'Obenabe',exact:true})).toBeVisible();
   const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('sws-game')));

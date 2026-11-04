@@ -27,7 +27,7 @@ function savedSelection(kind) {
   return {...defaults,characters:randomCharacters()};
 }
 
-export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules }) {
+export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules, displayScale=1 }) {
   const {data:catalog}=useDialogCatalog();
   const differ=kind==='differ',offset=differ?-8:0;
   const dialog = useRef(null);
@@ -35,10 +35,10 @@ export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules })
   const [rules,setRules] = useState(()=>loadRules(kind,differ?DifferRules():DefaultRules()));
   const [editingRules,setEditingRules] = useState(false);
   const [picker,setPicker] = useState(null);
-  const [name,setName] = useState(()=>{try{return localStorage.getItem('sws-player')||'Sie';}catch{return 'Sie';}});
+  const [name,setName] = useState(()=>{try{return localStorage.getItem('sws-player')||'Du';}catch{return 'Du';}});
   const [viewport,setViewport] = useState({width:innerWidth,height:innerHeight});
   const height=differ?431:439;
-  const scale = Math.min(1,(viewport.width-24)/464,(viewport.height-24)/height);
+  const scale = Math.min(displayScale,(viewport.width-24)/464,(viewport.height-24)/height);
   useEffect(()=>{dialog.current.showModal();const resize=()=>setViewport({width:innerWidth,height:innerHeight});window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize);},[]);
   const change = (key,p,value) => setSelection(s=>({...s,[key]:s[key].map((n,i)=>i===p?value:n)}));
   const start = e => {
@@ -67,8 +67,8 @@ export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules })
           </div>)}
           <div className="legacy-player legacy-human" style={{left:208,top:210+offset}}>
             <img className="legacy-human-frame" src={graphicsUrl(`setup/5006.png`)} alt="Mensch" />
-            <button type="button" className="legacy-avatar" aria-label="Ihr Spielerbild wählen" onClick={()=>setPicker(3)}><img src={graphicsUrl(`setup/${selection.avatar}.png`)} alt="" /></button>
-            <input className="legacy-player-name" aria-label="Ihr Name" value={name} required maxLength={30} onChange={e=>setName(e.target.value)} />
+            <button type="button" className="legacy-avatar" aria-label="Dein Spielerbild wählen" onClick={()=>setPicker(3)}><img src={graphicsUrl(`setup/${selection.avatar}.png`)} alt="" /></button>
+            <input className="legacy-player-name" aria-label="Dein Name" value={name} required maxLength={30} onChange={e=>setName(e.target.value)} />
           </div>
           <button className="legacy-ok legacy-bottom" type="submit" aria-label="Spielen"><span>✓</span>OK</button>
           <button className="legacy-cancel legacy-bottom" type="button" aria-label="Cancel" onClick={onClose}><span aria-hidden="true">✖</span>Cancel</button>
@@ -78,7 +78,7 @@ export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules })
           <button className="legacy-rules legacy-bottom" type="button" onClick={()=>setEditingRules(true)}>Regeln…</button>
         </div>
         {picker!==null && <div className="legacy-picker" role="group" aria-label={picker===3?'Spielerbild auswählen':'Computer-Spieler auswählen'}>
-          <p>{picker===3?'Ihr Spielerbild':'Computer-Spieler'}</p>
+          <p>{picker===3?'Dein Spielerbild':'Computer-Spieler'}</p>
           <div>{Array.from({length:picker===3?20:4},(_,i)=>{
             const id=picker===3?5200+i:7008+i*1000;
             return <button type="button" key={id} aria-label={picker===3?`Spielerbild ${i+1}`:`Figur ${i+1}`} onClick={()=>{if(picker===3)setSelection(s=>({...s,avatar:id}));else change('characters',picker,i);setPicker(null);}}><img src={graphicsUrl(`setup/${id}.png`)} alt="" /></button>;
