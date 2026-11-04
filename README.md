@@ -4,7 +4,7 @@ A JavaScript browser revival of the original Delphi Schieber and Differenzler ga
 
 See [project.md](project.md) for the original software investigation, fidelity requirements, asset strategy and implementation milestones.
 
-The legacy source, executables and assets are kept locally in `original/`, which is excluded from version control. The separate original launcher is outside the browser port's scope.
+The legacy source, executables and assets are kept locally in `original/`, which is excluded from version control. The original Panel artwork is integrated as the browser welcome screen. Its Schieber and Differenzler buttons open game setup; **Datei → Spiel schliessen** returns here, with the saved game available through **Spiel fortsetzen**.
 
 ## Run locally
 
@@ -26,7 +26,7 @@ Open the local URL printed by Vite. `npm run build` creates the static site in `
 
 Choose **Neuer Schieber…** or **Neuer Differenzler…** to play complete matches against the original Pascal computer players. Differenzler supports three or four players and Grumpy Junior, Hacker or Trashy. Setup includes difficulty and rule variants. Hints, undo, pause, round results, automatic saves, file export/import and legacy archive replay are available. See [playing and compatibility notes](docs/playable-games.md).
 
-Under **Ansicht**, **Verbesserte Grafik** switches tables, cards, portraits, dialogs and sprites to the enhanced 2× assets; **Originalgrafik** restores the originals. Choose 1×/2×/3×, select card sets/sizes, or fit the table to the window. **Fenster** offers fullscreen. Enable **Ton** below the table for sounds loaded on demand. Restart a stopped development server with `npm run dev` from this directory.
+Under **Ansicht**, **Verbesserte Grafik** switches tables, cards, portraits, dialogs and sprites to the enhanced 2× assets; **Originalgrafik** restores the originals. Choose 1×/2×/3×, select card sets/sizes, or fit the table to the window. **Einstellungen…** opens preferences directly from the top menu. Enable **Ton** below the table for sounds loaded on demand. Restart a stopped development server with `npm run dev` from this directory.
 
 ## Scaling and assets
 

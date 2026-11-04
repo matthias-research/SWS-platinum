@@ -1,5 +1,42 @@
 import {test,expect} from '@playwright/test';
 
+for(const kind of ['Schieber','Differenzler'])test(`${kind} table joker opens advice`,async({page})=>{
+  await page.goto('/');
+  await page.getByRole('button',{name:`Neuer ${kind}…`,exact:true}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Spielen',exact:true}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Abbrechen',exact:true}).click();
+  const joker=page.getByRole('button',{name:'Joker: Ratschlag',exact:true});
+  await expect(joker).toBeEnabled();
+  await expect.poll(()=>joker.locator('canvas').evaluate(c=>c.width)).toBeGreaterThan(0);
+  await joker.click();
+  await expect(page.getByRole('dialog',{name:'Ratschlag',exact:true})).toBeVisible();
+  await page.getByRole('dialog',{name:'Ratschlag',exact:true}).getByRole('button',{name:'Abbrechen',exact:true}).click();
+  await expect(joker).toBeEnabled();
+  await page.screenshot({path:`artifacts/browser/${kind.toLowerCase()}-table-joker.png`});
+});
+
+test('joker suggests trump with a clean symbol or Schieben and lets the player accept or cancel',async({page})=>{
+  await page.goto('/');
+  await page.getByRole('button',{name:'Neuer Schieber…',exact:true}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Spielen',exact:true}).click();
+  const choice=page.getByRole('dialog',{name:/wählen Sie den Trumpf/});
+  await choice.getByRole('button',{name:'Tipp',exact:true}).click();
+  const advice=page.getByRole('dialog',{name:'Ratschlag',exact:true});
+  await expect(advice).toBeVisible();
+  await expect(advice.locator('.hint-picture')).toHaveCount(0);
+  if(await advice.locator('img').count()){
+    await expect(advice.locator('img')).toHaveAttribute('src',/dialogs\/symbols\/\d-\d\.png$/);
+    await expect.poll(()=>advice.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+  }else await expect(advice).toContainText('Schieben');
+  await advice.getByRole('button',{name:'Abbrechen',exact:true}).click();
+  await expect(advice).toHaveCount(0);
+  await choice.getByRole('button',{name:'Tipp',exact:true}).click();
+  await expect(advice).toBeVisible();
+  await advice.getByRole('button',{name:'OK',exact:true}).click();
+  await expect(advice).toHaveCount(0);
+  await expect(choice).toHaveCount(0);
+});
+
 async function checkHandVisible(page){
   const dialog=page.locator('dialog.decision-dialog[open]');await expect(dialog).toBeVisible();
   await expect.poll(()=>page.evaluate(()=>{

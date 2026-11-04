@@ -1,6 +1,5 @@
 import {graphicsUrl,useGraphics} from '../graphics';
 import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
-import { DISPLAY } from '../config';
 export const dialogBase=`${import.meta.env.BASE_URL}assets/dialogs/`;
 let catalogPromise;
 export function loadDialogCatalog(){return catalogPromise??=fetch(`${dialogBase}manifest.json`).then(r=>{if(!r.ok)throw new Error('Dialoggrafiken fehlen');return r.json();});}
@@ -10,7 +9,9 @@ export function formImage(data,kind,form,name){const c=data?.forms[kind]?.[form]
 export function looseImage(data,name){return imageUrl(data,data?.loose[name.toLowerCase()]);}
 const captions={bkOK:'OK',bkCancel:'Abbrechen',bkYes:'Ja',bkNo:'Nein',bkClose:'Schliessen'};
 const clean=t=>String(t??'').replace(/&/g,'');
-export function DialogFrame({title,width,height,onClose,scale=DISPLAY.scale,children,className='',keepHandVisible=false}) {
+export function DialogFrame({title,width,height,onClose,children,className='',keepHandVisible=false}) {
+  // Dialog size is independent of table zoom and enhanced bitmap resolution.
+  const scale=1;
   const ref=useRef(null),[viewport,setViewport]=useState({w:innerWidth,h:innerHeight});
   const [placement,setPlacement]=useState(null);
   useLayoutEffect(()=>{
@@ -43,7 +44,7 @@ export function DialogFrame({title,width,height,onClose,scale=DISPLAY.scale,chil
   </dialog>;
 }
 
-export function LegacyDialog({kind='schieber',form,title,onClose,onAction,values={},onChange=()=>{},overrides={},render,children,initialTab=0,scale,hide=[],readOnly=false,width,height,keepHandVisible=false}) {
+export function LegacyDialog({kind='schieber',form,title,onClose,onAction,values={},onChange=()=>{},overrides={},render,children,initialTab=0,hideTabs=false,scale,hide=[],readOnly=false,width,height,keepHandVisible=false}) {
   const {data,error}=useDialogCatalog(); const [tab,setTab]=useState(initialTab);
   if(error)return <DialogFrame title="Fehler" width={350} height={100} onClose={onClose}><p role="alert">{error}</p></DialogFrame>;
   if(!data)return null;
@@ -56,7 +57,7 @@ export function LegacyDialog({kind='schieber',form,title,onClose,onAction,values
   const action=c=>{if(onAction)onAction(c.name,values,c);else onClose();};
   const notebook=controls.find(c=>c.className==='TTabbedNotebook');
   return <DialogFrame title={title||clean(rp.Caption)||'Stöck Wyys Stich'} width={width||rp.ClientWidth||rp.Width||640} height={height||rp.ClientHeight||rp.Height||480} onClose={onClose} scale={scale} keepHandVisible={keepHandVisible}>
-    {tabs.length>0&&<div className="original-tabs" style={notebook?{left:rect(notebook).left+4,top:rect(notebook).top+2}:undefined} role="tablist">{tabs.map((t,i)=><button key={t.path} type="button" role="tab" aria-selected={i===tab} onClick={()=>setTab(i)}>{clean(t.properties.Caption)}</button>)}</div>}
+    {!hideTabs&&tabs.length>0&&<div className="original-tabs" style={notebook?{left:rect(notebook).left+4,top:rect(notebook).top+2}:undefined} role="tablist">{tabs.map((t,i)=><button key={t.path} type="button" role="tab" aria-selected={i===tab} onClick={()=>setTab(i)}>{clean(t.properties.Caption)}</button>)}</div>}
     {controls.map(c=>{
       const p={...c.properties,...overrides[c.name]},r=rect({...c,properties:p}),cls=c.className;
       if(hide.includes(c.name)||p.Visible===false||tabs.some((t,i)=>i!==tab&&c.path.startsWith(t.path+'.'))||['TTabPage','TTabbedNotebook','TMediaPlayer','TTimer','TPopupMenu','TMainMenu','TMenuItem','TOpenDialog','TSaveDialog','TFontDialog'].includes(cls))return null;

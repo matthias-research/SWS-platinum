@@ -1,6 +1,5 @@
 import {graphicsUrl} from './graphics';
 import React, { useEffect, useRef, useState } from 'react';
-import { DISPLAY } from './config';
 import { DefaultRules } from './engine/SWSBase';
 import { DefaultRules as DifferRules } from './engine/DiffBase';
 import {useDialogCatalog,formImage} from './dialogs/LegacyDialog';
@@ -17,7 +16,7 @@ function savedSelection() {
   return defaults;
 }
 
-export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules, displayScale = DISPLAY.scale }) {
+export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules }) {
   const {data:catalog}=useDialogCatalog();
   const differ=kind==='differ',offset=differ?-8:0;
   const dialog = useRef(null);
@@ -28,7 +27,7 @@ export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules, d
   const [name,setName] = useState(()=>{try{return localStorage.getItem('sws-player')||'Sie';}catch{return 'Sie';}});
   const [viewport,setViewport] = useState({width:innerWidth,height:innerHeight});
   const height=differ?431:439;
-  const scale = Math.min(displayScale,(viewport.width-24)/464,(viewport.height-24)/height);
+  const scale = Math.min(1,(viewport.width-24)/464,(viewport.height-24)/height);
   useEffect(()=>{dialog.current.showModal();const resize=()=>setViewport({width:innerWidth,height:innerHeight});window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize);},[]);
   const change = (key,p,value) => setSelection(s=>({...s,[key]:s[key].map((n,i)=>i===p?value:n)}));
   const start = e => {

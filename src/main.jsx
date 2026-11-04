@@ -1,14 +1,16 @@
+import {WelcomePanel} from './WelcomePanel';
+import {TablePlayers} from './TablePlayers';
 import {useGraphics,setGraphics} from './graphics';
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { DISPLAY, fitScale } from './config';
-import { drawTable, loadAssets } from './table';
+import { drawTable, loadAssets, jokerRect, drawTableJoker } from './table';
 import './style.css';
 import { drawHand, loadCardManifest, loadCardSheet } from './cards';
 import { CardReviewControls, CardTargets, useCardReview } from './CardReview';
 import { useGame } from './useGame';
 import { GameSetup, GameControls, GameCardTargets, MatchHistory } from './GameControls';
-import { drawGame } from './gameDrawing';
+import { drawGame,drawCardAnimation } from './gameDrawing';
 import {GameFeed} from './GameFeed';
 import {DifferPoints} from './DifferPoints';
 import { parseLegacy } from './engine/legacy';
@@ -37,17 +39,19 @@ function App() {
   const [preferences,setPreferences]=useState(()=>{try{return JSON.parse(localStorage.getItem('sws-preferences')||'{}');}catch{return {};}});
   const openDialog=name=>{previousPause.current=game.paused;game.setPaused(true);setActiveDialog(name);};
   const closeDialog=()=>{setActiveDialog(null);game.setPaused(previousPause.current);};
+  const closeGame=()=>{setActiveDialog(null);setNewGame(null);setMessages([]);replay.close();game.end();};
+  const showWelcome=!reviewEnabled&&!displayView;
   const activeKind=game.view?.kind||'schieber';
   const lastRoundNotice=useRef('');
   useEffect(()=>{
     const v=game.view;
     if(!v){lastRoundNotice.current='';return;}
-    if(!v.history.length||!['deal','done'].includes(v.phase))return;
+    if(game.animation||!v.history.length||!['deal','done'].includes(v.phase))return;
     const key=`${game.saved()?.options.id}:${v.history.length}`;
     if(lastRoundNotice.current===key)return;
     lastRoundNotice.current=key;
     if(!game.automatic||(v.phase==='done'&&game.series<=1))openDialog('results');
-  },[game.view,game.automatic,game.series]);
+  },[game.view,game.automatic,game.series,game.animation]);
   const cardNames=['Deutsch','Französisch','Französisch (4 Farben)','Französisch 3D','Französisch 3D (4 Farben)'];
   const [cardSet, setCardSet] = useState(() => Math.max(1,Math.min(5,displayPreference('cardSet',1)))), [cardSize, setCardSize] = useState(() => displayPreference('cardSize',1)===2?2:1);
   const [sheets, setSheets] = useState({});
@@ -61,6 +65,10 @@ function App() {
   const [viewport, setViewport] = useState({ width: document.documentElement.getBoundingClientRect().width, height: innerHeight, dpr: devicePixelRatio });
   const [menu, setMenu] = useState(null);
   const canvas = useRef(null);
+  const jokerCanvas=useRef(null),[jokerPressed,setJokerPressed]=useState(false);
+  const jokerAssets=game.view?.kind==='differ'?assets?.differ:assets;
+  const joker=game.view&&jokerAssets?jokerRect(jokerAssets,game.view.kind,sheets.V?.cards[0].rect.height):null;
+  const canHint=Boolean(game.view?.request?.player===game.view?.human&&game.view?.request&&!game.busy&&!game.paused&&!game.automatic);
   const navigation = useRef(null);
   const scale = fitScale(viewport.width - 16, viewport.height - (reviewEnabled ? 180 : 145), requestedScale, fit);
   useEffect(() => { try {localStorage.setItem('sws-display',JSON.stringify({cardSet,cardSize,artwork,scale:requestedScale,fit}));}catch{} },[cardSet,cardSize,artwork,requestedScale,fit]);
@@ -86,9 +94,23 @@ function App() {
     if (assets && canvas.current) {
       drawTable(canvas.current, (replay.view || game.view)?.kind === 'differ' ? assets.differ : assets, artwork, scale, viewport.dpr, reviewEnabled ? review.sheet?.cards[0].rect.height : sheets.V?.cards[0].rect.height);
       if (reviewEnabled && review.sheet) drawHand(canvas.current, review.sheet, review.cards, review.selected);
-      if (!reviewEnabled && (replay.view || game.view)) drawGame(canvas.current, replay.view || game.view, sheets, cardSet);
+      const animation=!reviewEnabled&&!replay.view?game.animation:null;
+      if (!reviewEnabled && (replay.view || game.view)) drawGame(canvas.current, replay.view || game.view, sheets, cardSet,animation);
+      if(!reviewEnabled&&!replay.view&&game.view&&jokerCanvas.current)drawTableJoker(canvas.current,jokerCanvas.current,jokerAssets,game.view.kind,sheets.V?.cards[0].rect.height,jokerPressed&&canHint);
+      if(animation){
+        const target=canvas.current,ctx=target.getContext('2d'),background=document.createElement('canvas');
+        background.width=target.width;background.height=target.height;background.getContext('2d').drawImage(target,0,0);
+        const start=performance.now();let frame;
+        const tick=now=>{
+          ctx.save();ctx.resetTransform();ctx.drawImage(background,0,0);ctx.restore();
+          const progress=Math.min(1,(now-start)/animation.duration);
+          drawCardAnimation(ctx,animation,sheets,progress);
+          if(progress<1)frame=requestAnimationFrame(tick);
+        };
+        tick(start);return()=>cancelAnimationFrame(frame);
+      }
     }
-  }, [assets, artwork, scale, viewport.dpr, review.sheet, review.cards, review.selected, game.view, sheets, cardSet, replay.games, replay.selected, replay.round, replay.step, preferences]);
+  }, [assets, artwork, scale, viewport.dpr, review.sheet, review.cards, review.selected, game.view, sheets, cardSet, replay.games, replay.selected, replay.round, replay.step, preferences,jokerPressed,canHint,game.animation]);
 
   useEffect(() => {
     const outside = e => { if (!navigation.current?.contains(e.target)) setMenu(null); };
@@ -102,10 +124,10 @@ function App() {
   const applySettings=value=>{setPreferences(value);try{localStorage.setItem('sws-preferences',JSON.stringify(value));}catch{}if(cardNames.includes(value.viewCardsBox))setCardSet(cardNames.indexOf(value.viewCardsBox)+1);if(value.viewThinkS)game.setSpeed(value.viewThinkS);game.setSound({...game.sound,enabled:Boolean(value.genNoise||value.genCalls||value.genHint),noise:value.genNoise,calls:value.genCalls,hints:value.genHint,own:value.genOwn});};
 
   const act = action => { action(); setMenu(null); };
-  const item = (label, action, selected) => <button type="button" className="menu-item" onClick={() => act(action)}
+  const item = (label, action, selected, disabled=false) => <button type="button" className="menu-item" disabled={disabled} onClick={() => act(action)}
     aria-pressed={selected} key={label}><span className="check">{selected ? '✓' : ''}</span>{label}</button>;
   const menus = {
-    Datei: <>{item('Spiel öffnen…', () => openFile.current.click())}{item('Spiel speichern…', game.download)}{item('Letztes Spiel fortsetzen', () => {replay.close();game.resume();})}{game.view&&item('Archivieren…',()=>openDialog('archive'))}{item('Spielerdaten…',()=>openDialog('profile'))}{item('Einstellungen…',()=>openDialog('preferences'))}{item('Beenden…',()=>openDialog('exit'))}</>,
+    Datei: <>{displayView&&item('Spiel schliessen',closeGame)}{item('Spiel öffnen…', () => openFile.current.click())}{item('Spiel speichern…', game.download)}{item('Letztes Spiel fortsetzen', () => {replay.close();game.resume();})}{game.view&&item('Archivieren…',()=>openDialog('archive'))}{item('Spielerdaten…',()=>openDialog('profile'))}{item('Beenden…',()=>openDialog('exit'))}</>,
     Jass: <>{item('Neuer Schieber…', () => setNewGame('schieber'))}{item('Neuer Differenzler…', () => setNewGame('differ'))}{item('Kartenverteilungen…',()=>openDialog('seed'))}{game.view&&<>{item('Computer Schnellspiel…',()=>openDialog('auto'))}{item('Gespräche…',()=>openDialog('say'))}{item('Spielstand…',()=>openDialog('results'))}{game.view.phase==='done'&&item('Revanche…',()=>openDialog('rematch'))}</>}{item('Gespielte Jass…', () => setMatchHistory(true))}{item('Bestenliste…',()=>openDialog('highscores'))}{activeKind==='differ'&&item('Ranglistenname…',()=>openDialog('highname'))}{item('Statistik…',()=>openDialog('statistics'))}</>,
     Ansicht: <>
       {item('Verbesserte Grafik', () => setArtwork('enhanced'), artwork === 'enhanced')}
@@ -118,10 +140,7 @@ function App() {
       {item('An Fenster anpassen', () => setFit(!fit), fit)}
       {[1, 2, 3].map(value => item(`${value}× Vergrösserung`, () => setRequestedScale(value), requestedScale === value))}
     </>,
-    Fenster: item('Vollbild', async () => {
-      try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); }
-      catch { setError('Vollbild ist in diesem Browser nicht verfügbar.'); }
-    }),
+    Einstellungen: <>{item('Allgemein…',()=>openDialog('preferences-general'))}{item('Regeln…',()=>openDialog('preferences-rules'),undefined,Boolean(game.view&&game.view.phase!=='done'))}{item('Darstellungen…',()=>openDialog('preferences-display'))}</>,
     Hilfe: <>{item('Über Stöck Wyys Stich…', () => openDialog('about'))}{item('Entwicklungsteam…',()=>openDialog('team'))}{item('Herausgeber…',()=>openDialog('publisher'))}{item('Titelbild…',()=>openDialog('intro'))}{item('Originalbilder…',()=>openDialog('art'))}{item('Puzzle…',()=>openDialog('puzzle'))}</>,
   };
 
@@ -134,21 +153,23 @@ function App() {
       </div>)}
     </nav>
     {reviewEnabled && <CardReviewControls review={review} />}
-    <div className="scene-frame" style={{ width: DISPLAY.width * scale + 4, height: DISPLAY.height * scale + 4 }}>
-      <canvas ref={canvas} data-ready={Boolean(assets && (!reviewEnabled || review.sheet))} data-artwork={artwork} data-scale={scale}
+    {showWelcome?<WelcomePanel onNew={setNewGame} onResume={game.resume} scale={Math.min(requestedScale,(viewport.width-24)/430,(viewport.height-110)/432)}/>:<div className="scene-frame" style={{ width: DISPLAY.width * scale + 4, height: DISPLAY.height * scale + 4 }}>
+      <canvas ref={canvas} data-animation={game.animation?.type||'none'} data-ready={Boolean(assets && (!reviewEnabled || review.sheet))} data-artwork={artwork} data-scale={scale}
         style={{ width: DISPLAY.width * scale, height: DISPLAY.height * scale }}
         role="img" aria-label={reviewEnabled ? "Schieber-Spieltisch mit Karten-Vorschau" : displayView ? `${displayView.kind === 'differ' ? 'Differenzler' : 'Schieber'}-Spieltisch, Runde ${displayView.roundNumber}` : "Schieber-Spieltisch: grüner Filz auf blauem Glastisch, links ein leerer Schreibblock, rechts die Spieltafel für West und Ost sowie Nord und Süd."}>
         Schieber-Spieltisch mit Schreibblock und Spieltafel.
       </canvas>
       {reviewEnabled && assets && <CardTargets review={review} scale={scale} canvas={canvas} />}
       {!reviewEnabled && !replay.view && game.view && <GameCardTargets game={game} sheet={sheets.V} scale={scale} setId={cardSet} />}
+      {!reviewEnabled&&!replay.view&&game.view&&<TablePlayers view={game.animation?.type==='collect'?game.animation.before:game.view} scale={scale}/>}
       {!reviewEnabled&&!replay.view&&game.view&&<DifferPoints view={game.view} scale={scale}/>}
       {!reviewEnabled&&!replay.view&&game.view&&<GameFeed key={game.saved()?.options.id||'game'} view={game.view} scale={scale} setId={cardSet} cardHeight={sheets.V?.cards[0].rect.height} messages={messages} duration={preferences.viewBubbleS??5}/>}
+      {!reviewEnabled&&!replay.view&&joker&&<button type="button" className="table-joker" aria-label="Joker: Ratschlag" title="Ratschlag" disabled={!canHint} style={{left:joker.x*scale,top:joker.y*scale,width:joker.width*scale,height:joker.height*scale}} onPointerDown={()=>setJokerPressed(true)} onPointerUp={()=>setJokerPressed(false)} onPointerLeave={()=>setJokerPressed(false)} onPointerCancel={()=>setJokerPressed(false)} onClick={()=>{setJokerPressed(false);game.getHint();}}><canvas ref={jokerCanvas} aria-hidden="true" style={{width:'100%',height:'100%'}}/></button>}
       {!reviewEnabled&&!replay.view&&game.view?.pause&&!['deal','done'].includes(game.view.phase)&&!game.busy&&!game.paused&&!game.automatic&&<button type="button" className="trick-clear-target" aria-label="Stich auf dem Tisch abräumen" onClick={()=>game.action({type:'continue'})}/>}
       {!reviewEnabled&&!replay.view&&game.view?.phase==='deal'&&!game.busy&&!game.paused&&!game.automatic&&<button type="button" className="trick-clear-target" aria-label="Nächste Runde durch Klick auf den Tisch" onClick={()=>game.action({type:'deal'})}/>}
       {!assets && !error && <p className="loading" role="status">Tisch wird geladen…</p>}
-    </div>
-    {!reviewEnabled && (replay.view ? <LegacyReplay replay={replay} setId={cardSet} /> : <GameControls key={game.view?(game.saved()?.options.id||game.view.kind):'idle'} game={game} onNew={setNewGame} onDialog={openDialog} displayScale={requestedScale}/>)}
+    </div>}
+    {!reviewEnabled && !showWelcome && (replay.view ? <LegacyReplay replay={replay} setId={cardSet} /> : <GameControls key={game.view?(game.saved()?.options.id||game.view.kind):'idle'} game={game} onNew={setNewGame} onDialog={openDialog} displayScale={requestedScale}/>)}
 
     {newGame && <GameSetup key={newGame} kind={newGame} setId={cardSet} settings={settings} onSettings={applySettings} displayScale={requestedScale} onClose={() => setNewGame(null)} onStart={options => { replay.close();game.start({...options,...(dealSeed!==null?{seed:dealSeed}:{})});setMessages([]); setNewGame(null); }} />}
     {matchHistory && <MatchHistory onClose={() => setMatchHistory(false)} />}
@@ -163,10 +184,10 @@ function App() {
       catch (error) { setError(error.message); }
     }} />
     {error && <p role="alert" className="error">{error}</p>}
-    {activeDialog==='preferences'&&<PreferencesDialog kind={activeKind} rules={game.view?.rules||(activeKind==='differ'?DifferRules():SchieberRules())} locked={Boolean(game.view&&game.view.phase!=='done')} initialTab={0} settings={settings} onSettings={applySettings} onApply={rules=>{try{localStorage.setItem(`sws-rules-${activeKind}`,JSON.stringify(rules));}catch{}closeDialog();}} onClose={closeDialog} scale={requestedScale}/>}
+    {activeDialog?.startsWith('preferences-')&&<PreferencesDialog key={activeDialog} title={{'preferences-general':'Allgemein','preferences-rules':'Regeln','preferences-display':'Darstellungen'}[activeDialog]} kind={activeKind} rules={game.view?.rules||(activeKind==='differ'?DifferRules():SchieberRules())} locked={Boolean(game.view&&game.view.phase!=='done')} initialTab={{'preferences-general':0,'preferences-rules':1,'preferences-display':2}[activeDialog]} settings={settings} onSettings={applySettings} onApply={rules=>{try{localStorage.setItem(`sws-rules-${activeKind}`,JSON.stringify(rules));}catch{}closeDialog();}} onClose={closeDialog} scale={requestedScale}/>}
     {activeDialog==='profile'&&<ProfileDialog kind={activeKind} onClose={closeDialog} scale={requestedScale}/>}
     {activeDialog==='seed'&&<SeedDialog kind={activeKind} seed={dealSeed} onClose={closeDialog} onApply={seed=>{setDealSeed(seed);closeDialog();}} scale={requestedScale}/>}
-    {['about','exit'].includes(activeDialog)&&<AboutDialog kind={activeKind} exit={activeDialog==='exit'} onSave={game.download} onEnd={()=>{closeDialog();replay.close();game.end();}} onClose={closeDialog} scale={requestedScale}/>}
+    {['about','exit'].includes(activeDialog)&&<AboutDialog kind={activeKind} exit={activeDialog==='exit'} onSave={game.download} onEnd={closeGame} onClose={closeDialog} scale={requestedScale}/>}
     {activeDialog==='results'&&<ResultsDialog game={game} onClose={closeDialog} scale={requestedScale}/>}
     {activeDialog==='highscores'&&<HighScoresDialog kind={activeKind} onClose={closeDialog} scale={requestedScale}/>}
     {activeDialog==='statistics'&&<StatisticsDialog kind={activeKind} game={game} onClose={closeDialog} scale={requestedScale}/>}

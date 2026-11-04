@@ -67,6 +67,21 @@ function sprite(ctx, assets, id, x, y, maskId) {
   }
 }
 
+// Original TTable.GloonRect: the joker sits over the bottom edge of its board.
+export function jokerRect(assets,kind,cardHeight=118){
+  const {log,score}=layout(DISPLAY.width,DISPLAY.height,cardHeight),r=assets.manifest.rects;
+  const board=kind==='differ'?log:score,base=kind==='differ'?39:59;
+  return {x:board.x+board.width-r[base+6].width-(kind==='differ'?18:0)-r[90].width,
+    y:board.y+board.height-r[base+10].height-53,width:r[90].width,height:r[90].height};
+}
+export function drawTableJoker(canvas,overlay,assets,kind,cardHeight,pressed){
+  const r=jokerRect(assets,kind,cardHeight),ctx=canvas.getContext('2d'),t=ctx.getTransform();
+  sprite(ctx,assets,pressed?89:90,r.x,r.y,pressed?91:92);
+  // Keep the sprite above the HTML feed, with the original table beneath its mask.
+  overlay.width=Math.round(r.width*t.a);overlay.height=Math.round(r.height*t.d);
+  overlay.getContext('2d').drawImage(canvas,r.x*t.a,r.y*t.d,r.width*t.a,r.height*t.d,0,0,overlay.width,overlay.height);
+}
+
 // Port of JassBmps.ShowBorder: retain the sixteen edge/corner pieces and four masks.
 function border(ctx, assets, b, base) {
   const w = n => assets.manifest.rects[base + n].width;

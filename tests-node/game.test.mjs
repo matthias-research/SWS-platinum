@@ -10,6 +10,19 @@ const differ = await readFile('public/assets/ai/RGDIFF.DAT');
 const tables = { call: await readFile('public/assets/ai/Hcall.dat'), play: await readFile('public/assets/ai/HPLAY.DAT'), trashy: await readFile('public/assets/ai/TRASHY.DAT') };
 const factory = kind => kind === 'schieber' ? new SchieberAI(schieber) : new DifferAI(differ);
 
+for(const kind of ['schieber','differ'])test(`${kind}: collected trick piles count cleared tricks and reset on deal`,()=>{
+  const game=new Game({kind,seed:37,rules:{fPointPlay:false,fRoundLimit:2}},factory(kind));
+  game.act({type:'deal'});while(!game.pause)game.computer();
+  const before=structuredClone(game.save()),winner=game.lastTrick.winner;
+  assert.deepEqual(game.view().pickedTricks,[0,0,0,0,0]);
+  game.act({type:'continue'});assert.equal(game.view().pickedTricks[winner],1);
+  assert.deepEqual(Game.restore(game.save(),factory(kind)).view().pickedTricks,game.view().pickedTricks);
+  assert.deepEqual(Game.restore(before,factory(kind)).view().pickedTricks,[0,0,0,0,0]);
+  while(game.phase!=='deal'){if(game.pause)game.act({type:'continue'});else game.computer();}
+  assert.equal(game.view().pickedTricks.reduce((a,b)=>a+b),9);
+  game.act({type:'deal'});assert.deepEqual(game.view().pickedTricks,[0,0,0,0,0]);
+});
+
 for(const count of [3,4])test(`Differenzler ${count}: plates count cleared tricks, reset each round and survive undo/replay`,()=>{
   const game=new Game({kind:'differ',seed:37,rules:{fNuPlayers:count,fRoundLimit:2,fStockings:0}},factory('differ'));
   game.act({type:'deal'});while(!game.pause)game.computer();

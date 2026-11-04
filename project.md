@@ -8,7 +8,7 @@ Rebuild the two Delphi games in JavaScript so they run in a browser:
 
 - **Schieber**, represented by `original/SchiebPl.exe` and the `original/Schieber/` source project.
 - **Differenzler**, represented by `original/DiffPl.exe` and the `original/Differ/` source project.
-- **Exclude the separate launcher/panel** from the browser implementation, as requested. Its source and artwork remain useful historical references.
+- **Integrate the Panel artwork as the welcome screen**, following the updated request. It appears before starting a game and after closing one; its buttons open the existing game setup dialogs. Do not create a separate launcher application.
 
 This document records the initial investigation and subsequent milestone progress. Findings come from Pascal source, decoded Delphi forms, executable resource/import tables, supplied media/data files, and the M1 native reference runs. The initial investigation was static; M1 subsequently ran working copies of both selected game executables and captured setup, rules, table and saved-file screens. No Delphi rebuild was attempted, and full behavioral/source-to-executable equivalence remains unverified. Nothing under `original/` was changed.
 

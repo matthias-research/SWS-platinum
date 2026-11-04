@@ -2,6 +2,10 @@ import { test, expect } from '@playwright/test';
 
 for (const kind of ['Schieber', 'Differenzler']) test(`${kind}: play a complete match in the browser`, async ({ page }) => {
   const errors = []; page.on('pageerror', e => errors.push(e.message));
+  await page.addInitScript(()=>{
+    window.cardAnimations=[];
+    new MutationObserver(records=>{for(const r of records)if(r.attributeName==='data-animation')window.cardAnimations.push(r.target.dataset.animation);}).observe(document,{subtree:true,attributes:true,attributeFilter:['data-animation']});
+  });
   await page.goto('/');
   await page.getByRole('button', { name: `Neuer ${kind}…`, exact: true }).click();
   const dialog = page.getByRole('dialog');
@@ -34,6 +38,7 @@ for (const kind of ['Schieber', 'Differenzler']) test(`${kind}: play a complete 
   }
   await expect(page.getByRole('alert')).toHaveCount(0);
   expect(errors).toEqual([]);
+  expect(await page.evaluate(()=>window.cardAnimations)).toEqual(expect.arrayContaining(['play','collect','none']));
   await page.reload();
   await page.getByRole('button',{name:'Spiel fortsetzen',exact:true}).click();
   await expect(page.getByRole('status')).toContainText('Jass beendet');
@@ -97,7 +102,7 @@ test('legacy archive opens, steps through original cards, and shows its score',a
 
 test('original MP3 effects load on demand and decode',async({page})=>{
   const audioRequests=[];page.on('request',r=>{if(r.url().includes('/assets/audio/'))audioRequests.push(r.url());});
-  await page.goto('/');await expect(page.getByRole('img')).toHaveAttribute('data-ready','true');
+  await page.goto('/');await page.locator('.welcome-background').evaluate(img=>img.decode());
   expect(audioRequests).toEqual([]);
   const duration=await page.evaluate(async()=>{
     const audio=new Audio('/assets/audio/ANDERE/1100.mp3');

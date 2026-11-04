@@ -198,6 +198,14 @@ export class Game {
   view() {
     const req = this.request(), active = !['deal', 'done'].includes(this.phase);
     const r = active ? this.round : this.history.at(-1)?.round;
+    const pickedTricks=Array(5).fill(0);
+    if(r){
+      const cleared=Math.max(0,r.fTrick-(active&&this.pause?1:0));
+      for(let i=0;i<cleared;i++){
+        const trick=r.fTricks[i],winner=r.fTricks[i+1]?.fLeading;
+        if(winner&&trick.fPlayed.slice(1,this.count+1).every(Boolean))pickedTricks[winner]++;
+      }
+    }
     const visibleCalls = this.kind === 'differ' && r ? r.fCall.map((call, p) =>
       p === this.human || !active || this.rules.fCallMode === D.kShowShow || (this.rules.fCallMode === D.kHideShow && this.phase !== 'call') ? call : D.NoCall) : null;
     let collected=null,bonuses=null;
@@ -219,10 +227,11 @@ export class Game {
       hand: [...this.state.fHands[this.human]],
       handCounts: this.state.fHands.map(h => h.filter(Boolean).length),
       trick: this.pause ? this.lastTrick : active ? this.base.GetCurrentTrick(this.state) : this.lastTrick,
-      lastTrick: this.lastTrick, pause: this.pause, calls: visibleCalls,collected,bonuses,
+      lastTrick: this.lastTrick, pause: this.pause, calls: visibleCalls,collected,bonuses,pickedTricks,
       scores: this.kind === 'schieber' ? this.state.fPoints : this.state.fTotal,
       winner: this.state.fWinner ?? 0, ranks: this.state.fFinal,
       feed:structuredClone(this.feed),characters:this.options.characters,avatar:this.options.avatar,
+      portraitLevels:(this.options.levels||Array(5).fill(this.options.level??66)).map(level=>level<33?0:level<66?1:2),
       history: this.history.map(h => ({...h.result,trump:h.round.fTrump,trumpedBy:h.round.fTrumpedBy,
         ...(this.kind==='schieber'?{suitPts:S.ValueOfSuits(this.rules,h.round)}:{})})), events: this.events.slice(-12),
       request: req ? { player: req.player, command: req.command, ...(req.player === this.human ? { data: req.data } : {}) } : null };

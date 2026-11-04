@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { soundForAction, soundForHint, stopAudio } from './audio';
+import {cardTransition} from './cardAnimation';
 function soundPreferences() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem('sws-sound') || '{}'); } catch {}
@@ -10,6 +11,8 @@ function soundPreferences() {
 export function useGame() {
   const worker = useRef(null), latest = useRef(null), sequence = useRef(0);
   const [view, setView] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
+  const lastView=useRef(null),animationTimer=useRef(null);
+  const [animation,setAnimation]=useState(null);
   const [automatic, setAutomatic] = useState(false), [speed, setSpeed] = useState(650);
   const [series,setSeries]=useState(1);
   const [paused, setPaused] = useState(false), [hint, setHint] = useState(null);
@@ -18,12 +21,17 @@ export function useGame() {
   const soundRef = useRef(sound); soundRef.current = sound;
   function send(message, restart = false) {
     if (restart || !worker.current) {
-      if (restart) { stopAudio(); setView(null); setHint(null); setPaused(false); }
+      if (restart) { stopAudio(); setView(null); setHint(null); setPaused(false);lastView.current=null;clearTimeout(animationTimer.current);setAnimation(null); }
       worker.current?.terminate(); worker.current = new Worker(new URL('./game.worker.js', import.meta.url), { type: 'module' });
       worker.current.onmessage = ({ data }) => {
         setBusy(false);
         if(data.archive){const url=URL.createObjectURL(new Blob([JSON.stringify(data.archive)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='jass.sws-archive.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}
         if (data.error) { setError(data.error); setAutomatic(false); return; }
+        let steps=25;try{steps=JSON.parse(localStorage.getItem('sws-preferences')||'{}').viewSlideS??25;}catch{}
+        const transition=cardTransition(lastView.current,data.view,steps);
+        clearTimeout(animationTimer.current);setAnimation(transition);
+        if(transition)animationTimer.current=setTimeout(()=>setAnimation(null),transition.duration);
+        lastView.current=data.view;
         setView(data.view); latest.current = data.saved;
         setHint(data.hint);
         soundForAction(data.soundAction, data.view, soundRef.current);
@@ -45,9 +53,9 @@ export function useGame() {
     setBusy(true); setError(''); worker.current.postMessage({ ...message, id: ++sequence.current,
       assetBase: new URL(`${import.meta.env.BASE_URL}assets/ai/`, document.baseURI).href });
   }
-  useEffect(() => () => { worker.current?.terminate(); stopAudio(); }, []);
+  useEffect(() => () => { worker.current?.terminate(); stopAudio();clearTimeout(animationTimer.current); }, []);
   useEffect(() => {
-    if (!view || busy || error || paused) return;
+    if (!view || busy || animation || error || paused) return;
     let message;
     if (view.phase === 'done') {
       if(automatic&&series>1){const timer=setTimeout(()=>{setSeries(n=>n-1);send({type:'new',options:{...latest.current.options,id:crypto.randomUUID(),seed:crypto.getRandomValues(new Uint32Array(1))[0]%2147483646+1}},true);},speed);return()=>clearTimeout(timer);}
@@ -57,9 +65,9 @@ export function useGame() {
     else if (view.pause && automatic) message = { type: 'action', action: { type: 'continue' } };
     else if (view.request && (automatic || view.request.player !== view.human)) message = { type: 'computer' };
     if (message) { const timer = setTimeout(() => send(message), speed); return () => clearTimeout(timer); }
-  }, [view, busy, automatic, speed, error, paused,series]);
-  return { view, busy, error, automatic, setAutomatic, speed, setSpeed, paused, setPaused, hint,series,
-    end:()=>{worker.current?.terminate();worker.current=null;stopAudio();setView(null);setHint(null);setAutomatic(false);setPaused(false);},
+  }, [view, busy, animation, automatic, speed, error, paused,series]);
+  return { view, busy:busy||Boolean(animation), animation, error, automatic, setAutomatic, speed, setSpeed, paused, setPaused, hint,series,
+    end:()=>{worker.current?.terminate();worker.current=null;stopAudio();clearTimeout(animationTimer.current);setAnimation(null);lastView.current=null;setView(null);setHint(null);setAutomatic(false);setPaused(false);},
     saved: () => latest.current,
     archive: (title,scope) => send({type:'archive',title,scope}),
     playSeries: count=>{setSeries(count);setAutomatic(true);},

@@ -1,10 +1,25 @@
 import { test, expect } from '@playwright/test';
 
+test('settings menu opens three separate dialogs without tabs',async({page})=>{
+  await page.goto('/');
+  for(const title of ['Allgemein','Regeln','Darstellungen']){
+    await page.getByRole('button',{name:'Einstellungen',exact:true}).click();
+    await page.getByRole('button',{name:`${title}…`,exact:true}).click();
+    const dialog=page.getByRole('dialog',{name:title,exact:true});
+    await expect(dialog).toBeVisible();await expect(dialog.getByRole('tablist')).toHaveCount(0);
+    expect((await dialog.boundingBox()).width).toBeLessThan(450);
+    if(title==='Allgemein')await expect(dialog.getByRole('combobox',{name:'Differenzler Computer-Spieler'})).toBeVisible();
+    if(title==='Regeln')await expect(dialog.getByRole('radio',{name:'Auf Punkte spielen'})).toBeVisible();
+    if(title==='Darstellungen')await expect(dialog.getByRole('slider',{name:'Sprechblasen Dauer'})).toBeVisible();
+    await dialog.getByRole('button',{name:'Abbrechen',exact:true}).click();
+  }
+});
+
 test('Differenzler uses the AI choice saved in settings, without a setup dropdown',async({page})=>{
   await page.goto('/');
-  await page.getByRole('button',{name:'Datei',exact:true}).click();
-  await page.getByRole('button',{name:'Einstellungen…',exact:true}).click();
-  const settings=page.getByRole('dialog',{name:'Einstellungen',exact:true});
+  await page.getByRole('button',{name:'Einstellungen',exact:true}).click();
+  await page.getByRole('button',{name:'Allgemein…',exact:true}).click();
+  const settings=page.getByRole('dialog',{name:'Allgemein',exact:true});
   await settings.getByRole('combobox',{name:'Differenzler Computer-Spieler'}).selectOption('hacker');
   await settings.getByRole('button',{name:'OK',exact:true}).click();
   await page.reload();

@@ -1,4 +1,4 @@
-import {useGraphics,bitmapContext} from '../graphics';
+import {useGraphics,bitmapContext,graphicsUrl} from '../graphics';
 import React,{useEffect,useRef,useState} from 'react';
 import {DialogFrame,LegacyDialog,useDialogCatalog,looseImage,formImage} from './LegacyDialog';
 import {loadCardManifest,loadCardSheet,drawCard} from '../cards';
@@ -23,7 +23,7 @@ export function GameDecisionDialog({game,onClose,scale}) {
       <div className="trump-board" style={{backgroundImage:`url(${img})`}}>
         <TrumpCanvas src={img} selected={pressed} shift={req.command!=='cmdShift'} factors={v.rules.fTrumpFactor} partner={7000+1000*(game.saved()?.options.characters?.[1]||0)} name={v.names[1]}/>
         {trumpRects.map(([x,y,w,h],i)=><button type="button" key={i} className="picture-hit" style={{left:x,top:y,width:w,height:h}} aria-label={i===6?'Schieben':trumpLabels(setId)[i+1]} disabled={game.busy||(i===6?req.command==='cmdShift':!v.rules.fTrumpFactor[i+1])} onPointerDown={()=>setPressed(i)} onPointerUp={()=>setPressed(null)} onPointerLeave={()=>setPressed(null)} onClick={()=>i===6?answer('cmdShift',{}):answer('cmdTrump',{fTrump:i+1})}/>)}
-        <button type="button" className="picture-hit" style={{left:77,top:84,width:70,height:115}} aria-label="Tipp" onClick={game.getHint}/>
+        <button type="button" className="picture-hit" style={{left:77,top:84,width:70,height:115}} aria-label="Tipp" disabled={game.busy} onClick={game.getHint}/>
         <button type="button" style={{position:'absolute',left:64,top:202,width:100,height:25}} onClick={onClose}>Abbrechen</button>
       </div>
     </DialogFrame>;
@@ -45,9 +45,18 @@ export function HintDialog({game,onClose,scale}) {
   const {data}=useDialogCatalog();if(!data||!game.hint)return null;
   const hint=game.hint,kind=game.view.kind;
   const description=hint.command==='cmdCard'?cardName(hint.data.fCard,game.sound.set):hint.command==='cmdCall'?`${hint.data.fCall} Punkte`:hint.command==='cmdTrump'?trumpLabels(game.sound.set)[hint.data.fTrump]:hint.command==='cmdShift'?'Schieben':'Weisen';
+  if(['cmdCard','cmdTrump','cmdShift'].includes(hint.command))return <DialogFrame title="Ratschlag" keepHandVisible width={182} height={hint.command==='cmdCard'?170:126} onClose={onClose}>
+    <div style={{height:hint.command==='cmdCard'?134:90,display:'grid',placeItems:'center',fontSize:20}}>
+      {hint.command==='cmdCard'?<DialogCards width={75} height={118} setId={game.sound.set} rows={[[hint.data.fCard]]}/>:hint.command==='cmdShift'?'Schieben':<img src={graphicsUrl(`dialogs/symbols/${game.sound.set}-${hint.data.fTrump}.png`)} alt={description} width={52} height={52}/>}
+    </div>
+    <div style={{display:'flex',justifyContent:'center',gap:8}}>
+      <button type="button" style={{width:68,height:25}} disabled={game.busy} onClick={()=>{game.answer(hint.command,hint.data);onClose();}}>OK</button>
+      <button type="button" style={{width:88,height:25}} onClick={onClose}>Abbrechen</button>
+    </div>
+  </DialogFrame>;
   return <LegacyDialog kind={kind} form="THINTDLG" keepHandVisible onClose={onClose} scale={scale} hide={['BackG','Arm','ArmM','CallBox']} onAction={name=>{if(name==='Button1')game.answer(hint.command,hint.command==='cmdSuit'?{accept:true}:hint.data);onClose();}}>
     <div className="hint-picture" style={{backgroundImage:`url(${formImage(data,kind,'THINTDLG','BackG')})`}}>
-      {hint.command==='cmdCard'?<div style={{position:'absolute',left:66,top:39,width:104,height:42,overflow:'hidden'}}><DialogCards width={104} height={118} setId={game.sound.set} rows={[[hint.data.fCard]]}/></div>:<div style={{position:'absolute',left:66,top:21,width:96,height:60,backgroundImage:`url(${formImage(data,kind,'THINTDLG','CallBox')})`,display:'grid',placeItems:'center'}}>{description}</div>}
+      <div style={{position:'absolute',left:66,top:21,width:96,height:60,backgroundImage:`url(${formImage(data,kind,'THINTDLG','CallBox')})`,display:'grid',placeItems:'center'}}>{description}</div>
       <HintArm data={data} kind={kind}/>
     </div>
   </LegacyDialog>;

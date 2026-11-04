@@ -7382,6 +7382,125 @@
       "sourceSha256": "8bf7c2134f88ac80ef422c9ba7d3b1851ff0c58ad47bc30eb0875dd843d110c1",
       "outputSha256": "a8a6eb778d44adda4e25dea6c70afc51ee53e30581b94b70f49d2063b6dd79fc",
       "reviewStatus": "pending manual review"
+    },
+    {
+      "source": "panel/ImgBack.png",
+      "output": "panel/ImgBack.png",
+      "sourceSize": [
+        430,
+        432
+      ],
+      "outputSize": [
+        860,
+        864
+      ],
+      "scaleFromSource": 2,
+      "method": "RealESRGAN_x4plus neural enhancement, Lanczos downsample to 2x",
+      "sourceSha256": "0b747f48ced3e44e3f96b2cbc85fe0a0925de99a04a39d9daf7db1faab1e7332",
+      "outputSha256": "d21fad5a5d72871dca2c3a735c1844771c8adf29ff40494dfc6745d6165f439c",
+      "reviewStatus": "pending manual review"
+    },
+    {
+      "source": "panel/ImgDiffer.png",
+      "output": "panel/ImgDiffer.png",
+      "sourceSize": [
+        153,
+        98
+      ],
+      "outputSize": [
+        306,
+        196
+      ],
+      "scaleFromSource": 2,
+      "method": "RealESRGAN_x4plus neural enhancement, Lanczos downsample to 2x",
+      "sourceSha256": "96046313d68c9d13811102ea3110e6e0b9e4c65b28886690722c05b57a6c7989",
+      "outputSha256": "87e5afd1ef65d23d9b8c85f305e6a6781227253847787878488338bb7ada6db7",
+      "reviewStatus": "pending manual review"
+    },
+    {
+      "source": "panel/ImgDifferOver.png",
+      "output": "panel/ImgDifferOver.png",
+      "sourceSize": [
+        153,
+        98
+      ],
+      "outputSize": [
+        306,
+        196
+      ],
+      "scaleFromSource": 2,
+      "method": "RealESRGAN_x4plus neural enhancement, Lanczos downsample to 2x",
+      "sourceSha256": "866dc2b59cd9fc1f3d9783ff1b06fab0894dba1093be3fcf55332dc8757df3d6",
+      "outputSha256": "100c1e8d53d46568dcd18c0a989e5a621e1fabf5091909b354a3f894869fc3fb",
+      "reviewStatus": "pending manual review"
+    },
+    {
+      "source": "panel/ImgDifferPressed.png",
+      "output": "panel/ImgDifferPressed.png",
+      "sourceSize": [
+        153,
+        98
+      ],
+      "outputSize": [
+        306,
+        196
+      ],
+      "scaleFromSource": 2,
+      "method": "RealESRGAN_x4plus neural enhancement, Lanczos downsample to 2x",
+      "sourceSha256": "edf9b10baabf483e299b3b8b666916648c8cdc0fef6bd04f1b3da1320680cc5b",
+      "outputSha256": "b0624deda67692237511aeef430b195434e644fc3c62cc75a6e420d9e3d0eac9",
+      "reviewStatus": "pending manual review"
+    },
+    {
+      "source": "panel/ImgSchieber.png",
+      "output": "panel/ImgSchieber.png",
+      "sourceSize": [
+        153,
+        98
+      ],
+      "outputSize": [
+        306,
+        196
+      ],
+      "scaleFromSource": 2,
+      "method": "RealESRGAN_x4plus neural enhancement, Lanczos downsample to 2x",
+      "sourceSha256": "2d3e24799691496810febdeed0001379c1d4a0f9dcf7513066a50175ac878466",
+      "outputSha256": "1f627016647b55379599adf4e7dfb647f768fa235d697d01a4f1e65b5cb2e804",
+      "reviewStatus": "pending manual review"
+    },
+    {
+      "source": "panel/ImgSchieberOver.png",
+      "output": "panel/ImgSchieberOver.png",
+      "sourceSize": [
+        153,
+        98
+      ],
+      "outputSize": [
+        306,
+        196
+      ],
+      "scaleFromSource": 2,
+      "method": "RealESRGAN_x4plus neural enhancement, Lanczos downsample to 2x",
+      "sourceSha256": "3c6650004e755c6e11db8370774f605053f9ca104330836f54ddc43a343dfc9d",
+      "outputSha256": "3196ff957fa81e24594c41ddbc77f3ae53a1d514691523450a28f8e926030fc3",
+      "reviewStatus": "pending manual review"
+    },
+    {
+      "source": "panel/ImgSchieberPressed.png",
+      "output": "panel/ImgSchieberPressed.png",
+      "sourceSize": [
+        153,
+        98
+      ],
+      "outputSize": [
+        306,
+        196
+      ],
+      "scaleFromSource": 2,
+      "method": "RealESRGAN_x4plus neural enhancement, Lanczos downsample to 2x",
+      "sourceSha256": "2ec88ca4c968d6114966d9663e426d5b3e5428667fb472016d20dc52d827922b",
+      "outputSha256": "a22fa5742fb2150b8956584797d8a3f6a7fd9392267512a7d31f941ce3377ea6",
+      "reviewStatus": "pending manual review"
     }
   ]
 }

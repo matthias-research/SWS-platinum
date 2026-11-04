@@ -1,0 +1,166 @@
+{
+  "assetScale": 1,
+  "assets": [
+    {
+      "file": "ImgBack.png",
+      "width": 430,
+      "height": 432,
+      "source": {
+        "file": "original/PanelPl.exe",
+        "fileSha256": "3aee937c6d9518fc0243506a61f4301f7bc18df7a0bb9e06b558710d2f2e6127",
+        "project": "Panel",
+        "offset": 435777,
+        "resource": {
+          "type": 10,
+          "name": "TBMPFORM",
+          "language": 0,
+          "payloadSha256": "e333a19dfb0c98eb984609b31a0bbf61f96f3ce354e14d0b7b1320bfe061c36e"
+        },
+        "form": "TBMPFORM",
+        "component": "bmpForm.ImgBack",
+        "class": "TImage",
+        "property": "Picture.Data",
+        "propertyOffset": 435765
+      },
+      "sha256": "04bb664dd340f35cbc2a4c3035233dcdef22c2559f5d1012bce4397843f15eb4"
+    },
+    {
+      "file": "ImgSchieber.png",
+      "width": 153,
+      "height": 98,
+      "source": {
+        "file": "original/PanelPl.exe",
+        "fileSha256": "3aee937c6d9518fc0243506a61f4301f7bc18df7a0bb9e06b558710d2f2e6127",
+        "project": "Panel",
+        "offset": 388801,
+        "resource": {
+          "type": 10,
+          "name": "TBMPFORM",
+          "language": 0,
+          "payloadSha256": "e333a19dfb0c98eb984609b31a0bbf61f96f3ce354e14d0b7b1320bfe061c36e"
+        },
+        "form": "TBMPFORM",
+        "component": "bmpForm.ImgSchieber",
+        "class": "TImage",
+        "property": "Picture.Data",
+        "propertyOffset": 388789
+      },
+      "sha256": "786255e755f120b7090786e2de764a6452e0d6dd6e6d5672aa0f1328d61b381d"
+    },
+    {
+      "file": "ImgSchieberOver.png",
+      "width": 153,
+      "height": 98,
+      "source": {
+        "file": "original/PanelPl.exe",
+        "fileSha256": "3aee937c6d9518fc0243506a61f4301f7bc18df7a0bb9e06b558710d2f2e6127",
+        "project": "Panel",
+        "offset": 355884,
+        "resource": {
+          "type": 10,
+          "name": "TBMPFORM",
+          "language": 0,
+          "payloadSha256": "e333a19dfb0c98eb984609b31a0bbf61f96f3ce354e14d0b7b1320bfe061c36e"
+        },
+        "form": "TBMPFORM",
+        "component": "bmpForm.ImgSchieberOver",
+        "class": "TImage",
+        "property": "Picture.Data",
+        "propertyOffset": 355872
+      },
+      "sha256": "ab41bfc04c8a740c9381dcf3a440a9ce308609b1fbe3e96a3235cf4e08dddc20"
+    },
+    {
+      "file": "ImgSchieberPressed.png",
+      "width": 153,
+      "height": 98,
+      "source": {
+        "file": "original/PanelPl.exe",
+        "fileSha256": "3aee937c6d9518fc0243506a61f4301f7bc18df7a0bb9e06b558710d2f2e6127",
+        "project": "Panel",
+        "offset": 814130,
+        "resource": {
+          "type": 10,
+          "name": "TBMPFORM",
+          "language": 0,
+          "payloadSha256": "e333a19dfb0c98eb984609b31a0bbf61f96f3ce354e14d0b7b1320bfe061c36e"
+        },
+        "form": "TBMPFORM",
+        "component": "bmpForm.ImgSchieberPressed",
+        "class": "TImage",
+        "property": "Picture.Data",
+        "propertyOffset": 814118
+      },
+      "sha256": "232d77a20c96e9161d5ccc522b270f624a909b0f585af2900c98bd51bffd4205"
+    },
+    {
+      "file": "ImgDiffer.png",
+      "width": 153,
+      "height": 98,
+      "source": {
+        "file": "original/PanelPl.exe",
+        "fileSha256": "3aee937c6d9518fc0243506a61f4301f7bc18df7a0bb9e06b558710d2f2e6127",
+        "project": "Panel",
+        "offset": 405256,
+        "resource": {
+          "type": 10,
+          "name": "TBMPFORM",
+          "language": 0,
+          "payloadSha256": "e333a19dfb0c98eb984609b31a0bbf61f96f3ce354e14d0b7b1320bfe061c36e"
+        },
+        "form": "TBMPFORM",
+        "component": "bmpForm.ImgDiffer",
+        "class": "TImage",
+        "property": "Picture.Data",
+        "propertyOffset": 405244
+      },
+      "sha256": "191f29ba643448b9e637e0d8226c21c2b83074a0de215a2b40cebb35d2429488"
+    },
+    {
+      "file": "ImgDifferOver.png",
+      "width": 153,
+      "height": 98,
+      "source": {
+        "file": "original/PanelPl.exe",
+        "fileSha256": "3aee937c6d9518fc0243506a61f4301f7bc18df7a0bb9e06b558710d2f2e6127",
+        "project": "Panel",
+        "offset": 372343,
+        "resource": {
+          "type": 10,
+          "name": "TBMPFORM",
+          "language": 0,
+          "payloadSha256": "e333a19dfb0c98eb984609b31a0bbf61f96f3ce354e14d0b7b1320bfe061c36e"
+        },
+        "form": "TBMPFORM",
+        "component": "bmpForm.ImgDifferOver",
+        "class": "TImage",
+        "property": "Picture.Data",
+        "propertyOffset": 372331
+      },
+      "sha256": "88961c619d82ec28358eaf788bda27ce3d2123819550f373ff087ddf87a67e77"
+    },
+    {
+      "file": "ImgDifferPressed.png",
+      "width": 153,
+      "height": 98,
+      "source": {
+        "file": "original/PanelPl.exe",
+        "fileSha256": "3aee937c6d9518fc0243506a61f4301f7bc18df7a0bb9e06b558710d2f2e6127",
+        "project": "Panel",
+        "offset": 339422,
+        "resource": {
+          "type": 10,
+          "name": "TBMPFORM",
+          "language": 0,
+          "payloadSha256": "e333a19dfb0c98eb984609b31a0bbf61f96f3ce354e14d0b7b1320bfe061c36e"
+        },
+        "form": "TBMPFORM",
+        "component": "bmpForm.ImgDifferPressed",
+        "class": "TImage",
+        "property": "Picture.Data",
+        "propertyOffset": 339410
+      },
+      "sha256": "142ca3744e6551a68d3d1159fd878051b00466a4cbd3f440840afce3815bcad9"
+    }
+  ]
+}

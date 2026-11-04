@@ -18,8 +18,25 @@ button:disabled { color: #8a8a8a; cursor: default; }
 .menu-note { font-size: 12px; margin: 8px 12px; color: #626262; }
 hr { border: 0; border-top: 1px solid #ccc; margin: 4px; }
 .scene-frame { position: relative; border: 2px inset #fff; background: #ddd; }
+.table-joker {position:absolute;z-index:4;border:0;padding:0;background:transparent;cursor:pointer;}
+.table-joker:disabled {cursor:default;}
+.table-joker:not(:disabled) {border-radius:12px;outline:2px solid #ffe078;outline-offset:3px;box-shadow:0 0 12px 4px #ffcf5470;}
+.table-joker:not(:disabled)::after {content:'Tipp';position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);padding:2px 8px;border:1px solid #805c18;border-radius:8px;background:#fff0b5;color:#352508;font:bold 12px Arial,sans-serif;box-shadow:0 1px 3px #0006;pointer-events:none;}
+.table-joker:not(:disabled):hover {outline-color:#fff4bd;box-shadow:0 0 16px 6px #ffcf5499;}
+.table-joker:focus-visible {outline:2px solid #ffeb70;outline-offset:2px;}
 .trick-clear-target {position:absolute;inset:0;width:100%;height:100%;border:0;padding:0;background:transparent;z-index:5;cursor:pointer;}
 canvas { display: block; }
+.table-players {position:absolute;left:0;top:0;width:768px;height:528px;transform-origin:top left;pointer-events:none;overflow:hidden;}
+.table-portrait {position:absolute;width:56px;height:72px;}
+.collected-trick {position:absolute;overflow:hidden;border:1px solid black;border-radius:2.5px;background:white;}
+.collected-trick img {position:absolute;left:0;top:0;max-width:none;}
+.welcome-panel {display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 0;}
+.welcome-art {position:absolute;left:0;top:0;width:430px;height:432px;transform-origin:top left;}
+.welcome-background {position:absolute;inset:0;}
+.welcome-art button {position:absolute;width:153px;height:98px;margin:0;padding:0;border:0;background:transparent;}
+.welcome-art button img {display:block;}
+.welcome-art button:focus-visible {outline:3px solid #ffe867;outline-offset:-5px;}
+.welcome-resume {padding:6px 14px;}
 .loading { position: absolute; inset: 40% 0 auto; text-align: center; }
 .error { max-width: var(--scene-width); color: #922; padding: 8px; }
 dialog { max-width: min(440px, 90vw); border: 1px solid #888; padding: 24px; background: #f4f4f4; box-shadow: 0 10px 60px #0005; }
@@ -79,7 +96,7 @@ dialog.legacy-new-jass { padding:0; border:0; max-width:none; max-height:none; o
 .legacy-cancel { left:120px; width:100px; }
 .legacy-random { left:256px; width:89px; }
 .legacy-rules { left:352px; width:89px; }
-.legacy-bottom span { position:absolute; left:3px; top:0; font:bold 20px Arial; color:green; }
+.legacy-bottom span { position:absolute; left:3px; top:50%; transform:translateY(-50%); height:20px; font:bold 20px/20px Arial,sans-serif; color:green; }
 .legacy-cancel span { color:#b00000; }
 .legacy-new-jass :focus-visible { outline:1px dotted black; outline-offset:-4px; }
 .legacy-picker { position:absolute; inset:35px 22px auto; padding:12px; background:#eee; border:2px outset white; box-shadow:0 4px 20px #0007; }

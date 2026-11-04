@@ -21,20 +21,40 @@ export function drawTrumpCorners(ctx,sheet,trump) {
   for(const x of [269,501-size])for(const y of [52,284-size])
     ctx.drawImage(sheet.image,(trump-1)*size*s,sourceY*s,size*s,size*s,x,y,size,size);
 }
-export function drawGame(canvas, view, sheets, setId = 1) {
-  if (!view || !sheets.V || !sheets.H) return;
-  const ctx = canvas.getContext('2d'), { width: w, height: h } = sheets.V.cards[0].rect;
-  drawTrumpCorners(ctx,sheets.V,view.trump);
+export function trickPositions(sheet){
+  const {width:w,height:h}=sheet.cards[0].rect;
   const mx = 385, my = 168, carpet = { x: 269, y: 52, right: 501, bottom: 284 };
-  const positions = [null, { x: mx - Math.floor(w / 2), y: Math.max(carpet.y, my - h + 2), width: w, height: h },
+  return [null, { x: mx - Math.floor(w / 2), y: Math.max(carpet.y, my - h + 2), width: w, height: h },
     { x: Math.max(carpet.x, mx - h + 2), y: my - Math.floor(w / 2), width: h, height: w },
     { x: mx - Math.floor(w / 2), y: Math.min(my - 2, carpet.bottom - h), width: w, height: h },
     { x: Math.min(mx - 2, carpet.right - h), y: my - Math.floor(w / 2), width: h, height: w }];
-  if (view.trick) {
+}
+export function drawCardAnimation(ctx,animation,sheets,progress){
+  if(!sheets.V||!sheets.H)return;
+  const positions=trickPositions(sheets.V),t=1-Math.pow(1-progress,2);
+  const mix=(a,b)=>Object.fromEntries(['x','y','width','height'].map(k=>[k,a[k]+(b[k]-a[k])*t]));
+  if(animation.type==='play'){
+    const {player,card,before}=animation,to=positions[player];
+    const from=player===before.human?gameHand(before,sheets.V).find(c=>c.id===card):
+      {...to,...[null,{x:337,y:-to.height},{x:200-to.width,y:188},{x:405,y:301},{x:574,y:76}][player]};
+    if(from)drawCard(ctx,player%2?sheets.V:sheets.H,card,mix(from,to));
+  }else{
+    const p=animation.winner,n=Math.max(0,(animation.after.pickedTricks[p]||1)-1);
+    const to=[null,{x:370+15*n,y:-11,width:30,height:46},{x:206,y:153-15*n,width:46,height:30},{x:370-15*n,y:301,width:30,height:46},{x:518,y:153+15*n,width:46,height:30}][p];
+    let player=animation.before.trick.fLeading;
+    for(let i=0;i<animation.before.count;i++,player=player===animation.before.count?1:player+1)
+      drawCard(ctx,player%2?sheets.V:sheets.H,animation.before.trick.fPlayed[player],mix(positions[player],to));
+  }
+}
+export function drawGame(canvas, view, sheets, setId = 1, animation=null) {
+  if (!view || !sheets.V || !sheets.H) return;
+  const ctx = canvas.getContext('2d'), {height:h}=sheets.V.cards[0].rect,positions=trickPositions(sheets.V);
+  drawTrumpCorners(ctx,sheets.V,view.trump);
+  if (view.trick&&!['deal','done'].includes(view.phase)) {
     let p = view.trick.fLeading || 1;
     for (let i = 0; i < view.count; i++, p = p === view.count ? 1 : p + 1) {
       const card = view.trick.fPlayed[p];
-      if (card) drawCard(ctx, p % 2 ? sheets.V : sheets.H, card, positions[p]);
+      if (card&&animation?.type!=='collect'&&!(animation?.type==='play'&&animation.player===p)) drawCard(ctx, p % 2 ? sheets.V : sheets.H, card, positions[p]);
     }
   }
   const legal = view.request?.player === view.human && view.request.command === 'cmdPlay' ? view.request.data.fLegal : null;
