@@ -1,3 +1,4 @@
+import {enableLowlevel} from './lowlevel';
 import { test, expect } from '@playwright/test';
 
 for (const kind of ['Schieber', 'Differenzler']) test(`${kind}: play a complete match in the browser`, async ({ page }) => {
@@ -6,7 +7,7 @@ for (const kind of ['Schieber', 'Differenzler']) test(`${kind}: play a complete 
     window.cardAnimations=[];
     new MutationObserver(records=>{for(const r of records)if(r.attributeName==='data-animation')window.cardAnimations.push(r.target.dataset.animation);}).observe(document,{subtree:true,attributes:true,attributeFilter:['data-animation']});
   });
-  await page.goto('/');
+  await page.goto('/');await enableLowlevel(page);
   await page.getByRole('button', { name: `Neuer ${kind}…`, exact: true }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByRole('button',{name:'Regeln…',exact:true}).click();
@@ -39,14 +40,15 @@ for (const kind of ['Schieber', 'Differenzler']) test(`${kind}: play a complete 
   await expect(page.getByRole('alert')).toHaveCount(0);
   expect(errors).toEqual([]);
   expect(await page.evaluate(()=>window.cardAnimations)).toEqual(expect.arrayContaining(['play','collect','none']));
-  await page.reload();
+  await page.reload();await enableLowlevel(page);
   await page.getByRole('button',{name:'Spiel fortsetzen',exact:true}).click();
   await expect(page.getByRole('status')).toContainText('Jass beendet');
 });
 
 test('human cards, hint, undo and three-player Trashy stay usable', async ({page})=>{
-  await page.addInitScript(()=>localStorage.setItem('sws-preferences',JSON.stringify({differFamily:'trashy'})));
-  await page.goto('/');
+  test.setTimeout(60000); // Includes a full round at the default 25 animation steps.
+  await page.addInitScript(()=>localStorage.setItem('sws-setup-differ',JSON.stringify({characters:[0,2,2,0,3],strengths:[0,2,2,0,2],avatar:5208})));
+  await page.goto('/');await enableLowlevel(page);
   await page.getByRole('button',{name:'Neuer Differenzler…',exact:true}).click();
   const dialog=page.getByRole('dialog');
   await dialog.getByRole('button',{name:'Regeln…',exact:true}).click();
@@ -80,7 +82,7 @@ test('legacy archive opens, steps through original cards, and shows its score',a
   const {readFile}=await import('node:fs/promises');
   const fixture=JSON.parse(await readFile('tests-node/fixtures/legacy-rounds.json','utf8'))[0];
   const text=`### Title: Bauer\n### Rules:\npointPlay 2500 1250 12 looserBegins\nsuitsOn allFourOn crossingOn suitsFirst 50 100\n2 2 1 1 3 3\n${fixture.excerpt}\n`;
-  await page.goto('/');
+  await page.goto('/');await enableLowlevel(page);
   await page.locator('input[type=file]').setInputFiles({name:'reference.jar',mimeType:'text/plain',buffer:Buffer.from(text,'latin1')});
   await expect(page.getByRole('region',{name:'Archiv-Wiedergabe'})).toBeVisible();
   await page.getByRole('button',{name:'Weiter',exact:true}).click();
@@ -102,7 +104,7 @@ test('legacy archive opens, steps through original cards, and shows its score',a
 
 test('original MP3 effects load on demand and decode',async({page})=>{
   const audioRequests=[];page.on('request',r=>{if(r.url().includes('/assets/audio/'))audioRequests.push(r.url());});
-  await page.goto('/');await page.locator('.welcome-background').evaluate(img=>img.decode());
+  await page.goto('/');await enableLowlevel(page);await page.locator('.welcome-background').evaluate(img=>img.decode());
   expect(audioRequests).toEqual([]);
   const duration=await page.evaluate(async()=>{
     const audio=new Audio('/assets/audio/ANDERE/1100.mp3');
@@ -112,9 +114,11 @@ test('original MP3 effects load on demand and decode',async({page})=>{
 });
 
 test('French card sets use their original suit labels for trump selection', async ({page}) => {
-  await page.goto('/');
-  await page.getByRole('button',{name:'Ansicht',exact:true}).click();
-  await page.getByRole('button',{name:'Französisch 1',exact:true}).click();
+  await page.goto('/');await enableLowlevel(page);
+  await page.getByRole('button',{name:'Einstellungen',exact:true}).click();
+  await page.getByRole('button',{name:'Darstellungen…',exact:true}).click();
+  await page.getByRole('combobox',{name:'viewCardsBox',exact:true}).selectOption('Französisch');
+  await page.getByRole('dialog').getByRole('button',{name:'OK',exact:true}).click();
   await page.getByRole('button',{name:'Neuer Schieber…',exact:true}).click();
   await page.getByRole('dialog').getByRole('button',{name:'Spielen',exact:true}).click();
   for (const name of ['Karo','Herz','Kreuz','Pik']) await expect(page.getByRole('button',{name,exact:true})).toBeVisible();

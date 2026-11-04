@@ -19,7 +19,7 @@ test('original rules, profile, credits and auxiliary dialogs load with live cont
   await rules.screenshot({path:'artifacts/browser/dialog-rules-schieber.png'});
   await rules.getByRole('button',{name:'OK',exact:true}).click();
   await page.getByRole('dialog',{name:'Neuer Jass'}).getByRole('button',{name:'Cancel',exact:true}).click();
-  for(const [group,name,title] of [['Hilfe','Über Stöck Wyys Stich…','Über Stöck Wyys Stich'],['Hilfe','Entwicklungsteam…','Entwicklungsteam'],['Hilfe','Herausgeber…','Herausgeber'],['Jass','Kartenverteilungen…','Kartenverteilungen'],['Jass','Bestenliste…','Bestenliste'],['Jass','Statistik…','Jass Statistik']]){
+  for(const [group,name,title] of [['Hilfe','Über Stöck Wyys Stich…','Über Stöck Wyys Stich'],['Hilfe','Entwicklungsteam…','Entwicklungsteam'],['Hilfe','Graphik design…','Graphik design'],['Jass','Kartenverteilungen…','Kartenverteilungen'],['Jass','Bestenliste…','Bestenliste'],['Jass','Statistik…','Jass Statistik']]){
     await menu(page,group,name);dialog=page.getByRole('dialog',{name:title,exact:true});await expect(dialog).toBeVisible();await dialog.screenshot({path:`artifacts/browser/dialog-${title.replace(/[^a-z]/gi,'')}.png`});await page.keyboard.press('Escape');
   }
   expect(errors).toEqual([]);
@@ -27,9 +27,9 @@ test('original rules, profile, credits and auxiliary dialogs load with live cont
 test('original puzzle and credits use their recovered bitmaps',async({page})=>{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/');
   await menu(page,'Hilfe','Puzzle…');let dialog=page.getByRole('dialog',{name:'Puzzle',exact:true});
-  await expect(dialog.getByRole('button',{name:/Puzzleteil/})).toHaveCount(9);
+  await expect(dialog.locator('.sliding-puzzle button')).toHaveCount(9);
   await dialog.getByRole('combobox',{name:'Puzzleteile'}).selectOption('4 x 4');
-  await expect(dialog.getByRole('button',{name:/Puzzleteil/})).toHaveCount(16);
+  await expect(dialog.locator('.sliding-puzzle button')).toHaveCount(16);
   await dialog.getByRole('button',{name:'Fertig',exact:true}).click();await expect(dialog.getByRole('group',{name:'Puzzle gelöst'})).toBeVisible();
   await dialog.screenshot({path:'artifacts/browser/dialog-puzzle.png'});await page.keyboard.press('Escape');
   await menu(page,'Hilfe','Über Stöck Wyys Stich…');dialog=page.getByRole('dialog');

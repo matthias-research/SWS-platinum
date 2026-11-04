@@ -53,7 +53,7 @@ export function LegacyDialog({kind='schieber',form,title,onClose,onAction,values
   const root=definition.components[0],rp=root.properties;
   const controls=definition.components.slice(1),byPath=new Map(definition.components.map(c=>[c.path,c]));
   const tabs=controls.filter(c=>c.className==='TTabPage');
-  const rect=c=>{let x=c.properties.Left||0,y=c.properties.Top||0,path=c.path;while((path=path.slice(0,path.lastIndexOf('.')))&&path!==root.path){const p=byPath.get(path)?.properties;x+=p?.Left||0;y+=p?.Top||0;}return{left:x,top:y,width:c.properties.Width,height:c.properties.Height};};
+  const rect=c=>{let x=c.properties.Left||0,y=c.properties.Top||0,path=c.path;while((path=path.slice(0,path.lastIndexOf('.')))&&path!==root.path){const parent=byPath.get(path),p={...parent?.properties,...overrides[parent?.name]};x+=p.Left||0;y+=p.Top||0;}return{left:x,top:y,width:c.properties.Width,height:c.properties.Height};};
   const action=c=>{if(onAction)onAction(c.name,values,c);else onClose();};
   const notebook=controls.find(c=>c.className==='TTabbedNotebook');
   return <DialogFrame title={title||clean(rp.Caption)||'Stöck Wyys Stich'} width={width||rp.ClientWidth||rp.Width||640} height={height||rp.ClientHeight||rp.Height||480} onClose={onClose} scale={scale} keepHandVisible={keepHandVisible}>

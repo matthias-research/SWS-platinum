@@ -5,7 +5,7 @@ test('card animation setting is enabled, persists, and zero skips transitions',a
   await page.getByRole('button',{name:'Einstellungen',exact:true}).click();
   await page.getByRole('button',{name:'Darstellungen…',exact:true}).click();
   const slider=page.getByRole('slider',{name:'Kartenanimation',exact:true});
-  await expect(slider).toBeEnabled();await expect(slider).toHaveValue('25');
+  await expect(slider).toBeEnabled();await expect(slider).toHaveValue('15');
   await slider.fill('0');
   await page.getByRole('dialog').getByRole('button',{name:'OK',exact:true}).click();
   await page.reload();

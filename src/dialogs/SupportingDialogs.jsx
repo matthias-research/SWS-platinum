@@ -42,11 +42,11 @@ export function ResultsDialog({game,onClose,scale}){
     <div className="original-result-table results"><table><caption>Rundenresultate</caption><thead><tr><th>Runde</th>{kind==='schieber'?<><th>Nord & Süd</th><th>West & Ost</th></>:v.names.slice(1,v.count+1).map((n,i)=><th key={i}>{n}<br/>Ansage / Punkte / Differenz</th>)}</tr></thead><tbody>{v.history.map((r,i)=><tr key={i}><td>{i+1}</td>{kind==='schieber'?<><td>{r.pts[1]}</td><td>{r.pts[2]}</td></>:Array.from({length:v.count},(_,j)=><td key={j}>{r.call[j+1]} / {r.made[j+1]} / {D.DeltaOf(r.call[j+1],r.made[j+1],r.bonus[j+1])}</td>)}</tr>)}</tbody></table></div>
   </LegacyDialog>;
 }
-function SchieberRoundDialog({view:v,onClose,scale}){
-  const {data}=useDialogCatalog(),[stage,setStage]=useState('round');
+function SchieberRoundDialog({view:v,onClose,scale,notice}){
+  const {data}=useDialogCatalog(),[stage,setStage]=useState(notice?.type||'round');
   if(!data)return null;
   const round=v.history.at(-1),win=stage==='win',winner=v.winner,team=round.pts[1]>=round.pts[2]?1:2;
-  const next=()=>{if(!win&&v.phase==='done'&&winner)setStage('win');else onClose();};
+  const next=()=>{if(!notice&&!win&&v.phase==='done'&&winner)setStage('win');else onClose();};
   const portraits=win?(winner===1?[[1,357,58],[3,451,58]]:[[2,357,58],[4,451,58]]):[[2,304,152],[4,388,153],[1,304,258],[3,392,258]];
   const factor=Math.max(1,v.rules.fTrumpFactor[round.trump]);
   return <LegacyDialog kind="schieber" form="TINFODLG" title={win?'Sieg':'Ende der Runde'} onClose={next} onAction={next} scale={scale} render={c=>c.name==='PaintBox'?null:undefined}>
@@ -56,6 +56,23 @@ function SchieberRoundDialog({view:v,onClose,scale}){
       {!win&&<div style={{height:45,display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:13.333}}>{factor}×(<span style={{fontSize:21.333}}>{(round.pts[t]-round.suitPts[t])/factor}</span>+{round.suitPts[t]/factor})={round.pts[t]}</div>}
       <div style={{height:win?80.5:45,display:'flex',alignItems:'center',justifyContent:'center',color:'yellow',fontSize:21.333}}>{v.scores[t]}</div>
     </div>)}
+  </LegacyDialog>;
+}
+export function InformationDialog({notice,onClose,scale}){
+  const {data}=useDialogCatalog();if(!data)return null;
+  const v=notice.view,type=notice.type;
+  if(type==='differ')return <DifferRoundDialog view={v} onClose={onClose} scale={scale}/>;
+  if(type==='round'||type==='win')return <SchieberRoundDialog view={v} notice={notice} onClose={onClose} scale={scale}/>;
+  const bp=type==='bp',round=v.history.at(-1),team=notice.team,players=team===1?[1,3]:[2,4];
+  const positions=bp?[[93,161],[167,156]]:[[279,335],[360,335]];
+  const scores=bp&&!['deal','done'].includes(v.phase)?v.liveScores||v.scores:v.scores;
+  return <LegacyDialog kind="schieber" form="TINFODLG" title={bp?'Bergpreis':type==='match'?'Match':'Contermatch'} onClose={onClose} onAction={onClose} scale={scale} render={c=>c.name==='PaintBox'?null:undefined}>
+    <img className="original-background" src={looseImage(data,`${type}2.bmp`)} alt=""/>
+    {type!=='conter'&&players.map((p,i)=><img key={p} src={graphicsUrl(`setup/${p===v.human?(v.avatar||5208):7011+1000*(v.characters?.[p]||0)}.png`)} alt={v.names[p]} style={{position:'absolute',left:positions[i][0],top:positions[i][1],width:56,height:72}}/>)}
+    {bp?<div style={{position:'absolute',left:319,top:153,width:88,height:122,color:'yellow',font:'21px Arial',textAlign:'center'}}>{[2,1].map(t=><div key={t} style={{height:61,display:'grid',placeItems:'center'}}>{scores[t]}</div>)}</div>:
+      <div style={{position:'absolute',left:type==='match'?310:206,top:type==='match'?231:64,width:type==='match'?129:252,height:type==='match'?78:199,display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',font:'29px Arial',color:'white'}}>
+        <div>{round.pts[team]-round.suitPts[team]}{round.suitPts[team]>0?`+${round.suitPts[team]}`:''}</div><div style={{color:'yellow',fontSize:21,marginTop:10}}>{scores[2]}:{scores[1]}</div>
+      </div>}
   </LegacyDialog>;
 }
 function DifferRoundDialog({view:v,onClose,scale}){

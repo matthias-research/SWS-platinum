@@ -8,26 +8,37 @@ test('settings menu opens three separate dialogs without tabs',async({page})=>{
     const dialog=page.getByRole('dialog',{name:title,exact:true});
     await expect(dialog).toBeVisible();await expect(dialog.getByRole('tablist')).toHaveCount(0);
     expect((await dialog.boundingBox()).width).toBeLessThan(450);
-    if(title==='Allgemein')await expect(dialog.getByRole('combobox',{name:'Differenzler Computer-Spieler'})).toBeVisible();
+    if(title==='Allgemein')await expect(dialog.getByRole('combobox',{name:'Differenzler Computer-Spieler'})).toHaveCount(0);
     if(title==='Regeln')await expect(dialog.getByRole('radio',{name:'Auf Punkte spielen'})).toBeVisible();
     if(title==='Darstellungen')await expect(dialog.getByRole('slider',{name:'Sprechblasen Dauer'})).toBeVisible();
     await dialog.getByRole('button',{name:'Abbrechen',exact:true}).click();
   }
 });
 
-test('Differenzler uses the AI choice saved in settings, without a setup dropdown',async({page})=>{
+test('Differenzler binds AI to portraits, ignores the old global setting and remembers the lineup',async({page})=>{
+  await page.addInitScript(()=>localStorage.setItem('sws-preferences',JSON.stringify({differFamily:'grumpy'})));
   await page.goto('/');
   await page.getByRole('button',{name:'Einstellungen',exact:true}).click();
   await page.getByRole('button',{name:'Allgemein…',exact:true}).click();
   const settings=page.getByRole('dialog',{name:'Allgemein',exact:true});
-  await settings.getByRole('combobox',{name:'Differenzler Computer-Spieler'}).selectOption('hacker');
+  await expect(settings.getByRole('combobox',{name:'Differenzler Computer-Spieler'})).toHaveCount(0);
+  await expect(settings.getByText('Computer-Spieler',{exact:true})).toHaveCount(0);
   await settings.getByRole('button',{name:'OK',exact:true}).click();
   await page.reload();
   await page.getByRole('button',{name:'Neuer Differenzler…',exact:true}).click();
   const setup=page.getByRole('dialog',{name:'Neuer Jass',exact:true});
   await expect(setup.getByRole('combobox')).toHaveCount(0);
+  const initial=await setup.locator('.legacy-portrait').evaluateAll(buttons=>buttons.map(b=>b.getAttribute('aria-label').match(/Figur (\d)/)[1]));
+  expect(new Set(initial).size).toBe(3);
+  for(const [seat,figure] of [['Nord',1],['West',3],['Ost',4]]){
+    await setup.getByRole('button',{name:new RegExp(`^${seat}:`)}).click();
+    await setup.getByRole('button',{name:`Figur ${figure}`,exact:true}).click();
+  }
   await setup.getByRole('button',{name:'Spielen',exact:true}).click();
-  await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('sws-game'))?.options.family)).toBe('hacker');
+  await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('sws-game'))?.options.families)).toEqual(['hacker','hacker','trashy','grumpy','grumpy']);
+  await page.reload();
+  await page.getByRole('button',{name:'Neuer Differenzler…',exact:true}).click();
+  for(const [seat,figure] of [['Nord',1],['West',3],['Ost',4]])await expect(setup.getByRole('button',{name:new RegExp(`^${seat}: Figur ${figure},`)})).toBeVisible();
 });
 
 test('original Schieber setup selects portraits, strengths and human profile before starting', async ({page}) => {
@@ -53,7 +64,7 @@ test('original Schieber setup selects portraits, strengths and human profile bef
   expect(saved.options.characters[1]).toBe(1);
   expect(saved.options.avatar).toBe(5203);
   expect(saved.options.names[3]).toBe('Matthi');
-  expect(saved.options.names).toEqual(['','Beat','Stéphanie','Matthi','Walter']);
+  expect(saved.options.names).toEqual(saved.options.characters.map((c,p)=>p===0?'':p===3?'Matthi':['Birgit','Beat','Stéphanie','Walter'][c]));
 });
 
 test('setup fits a narrow screen and cancel leaves the current game untouched',async({page})=>{

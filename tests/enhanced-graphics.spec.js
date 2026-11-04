@@ -4,7 +4,7 @@ test('graphics switch covers portraits, dialogs and every card sheet without cha
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('/');
   for(const mode of ['enhanced','original','enhanced']){
-    await page.getByRole('button',{name:'Ansicht',exact:true}).click();
+    await page.getByRole('button',{name:'Browser',exact:true}).click();
     await page.getByRole('button',{name:mode==='enhanced'?/Verbesserte Grafik$/:/Originalgrafik$/}).click();
     await expect(page.locator('html')).toHaveAttribute('data-graphics',mode);
     await page.getByRole('button',{name:'Neuer Schieber…',exact:true}).click();

@@ -2,7 +2,7 @@ import React,{useId,useState} from 'react';
 import {graphicsUrl,useGraphics} from './graphics';
 
 const choices=[{kind:'schieber',label:'Neuer Schieber…',image:'ImgSchieber',left:105,top:252},{kind:'differ',label:'Neuer Differenzler…',image:'ImgDiffer',left:272,top:297}];
-export function WelcomePanel({onNew,onResume,scale}){
+export function WelcomePanel({onNew,onResume,scale,lowLevel=false}){
   useGraphics();const id=useId().replace(/:/g,''),[hover,setHover]=useState(null),[pressed,setPressed]=useState(null);
   const canResume=Boolean(localStorage.getItem('sws-game'));
   return <section className="welcome-panel" aria-label="Jass auswählen">
@@ -15,6 +15,6 @@ export function WelcomePanel({onNew,onResume,scale}){
         </button>)}
       </div>
     </div>
-    {canResume&&<button className="welcome-resume" onClick={onResume}>Spiel fortsetzen</button>}
+    {lowLevel&&canResume&&<button className="welcome-resume" onClick={onResume}>Spiel fortsetzen</button>}
   </section>;
 }

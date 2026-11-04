@@ -45,12 +45,12 @@ export function HintDialog({game,onClose,scale}) {
   const {data}=useDialogCatalog();if(!data||!game.hint)return null;
   const hint=game.hint,kind=game.view.kind;
   const description=hint.command==='cmdCard'?cardName(hint.data.fCard,game.sound.set):hint.command==='cmdCall'?`${hint.data.fCall} Punkte`:hint.command==='cmdTrump'?trumpLabels(game.sound.set)[hint.data.fTrump]:hint.command==='cmdShift'?'Schieben':'Weisen';
-  if(['cmdCard','cmdTrump','cmdShift'].includes(hint.command))return <DialogFrame title="Ratschlag" keepHandVisible width={182} height={hint.command==='cmdCard'?170:126} onClose={onClose}>
+  if(['cmdCall','cmdCard','cmdTrump','cmdShift'].includes(hint.command))return <DialogFrame title="Ratschlag" keepHandVisible width={182} height={hint.command==='cmdCard'?170:126} onClose={onClose}>
     <div style={{height:hint.command==='cmdCard'?134:90,display:'grid',placeItems:'center',fontSize:20}}>
-      {hint.command==='cmdCard'?<DialogCards width={75} height={118} setId={game.sound.set} rows={[[hint.data.fCard]]}/>:hint.command==='cmdShift'?'Schieben':<img src={graphicsUrl(`dialogs/symbols/${game.sound.set}-${hint.data.fTrump}.png`)} alt={description} width={52} height={52}/>}
+      {hint.command==='cmdCall'?<span aria-label="Vorgeschlagene Ansage" style={{fontSize:32}}>{hint.data.fCall}</span>:hint.command==='cmdCard'?<DialogCards width={75} height={118} setId={game.sound.set} rows={[[hint.data.fCard]]}/>:hint.command==='cmdShift'?'Schieben':<img src={graphicsUrl(`dialogs/symbols/${game.sound.set}-${hint.data.fTrump}.png`)} alt={description} width={52} height={52}/>}
     </div>
     <div style={{display:'flex',justifyContent:'center',gap:8}}>
-      <button type="button" style={{width:68,height:25}} disabled={game.busy} onClick={()=>{game.answer(hint.command,hint.data);onClose();}}>OK</button>
+      <button type="button" style={{width:68,height:25}} disabled={game.busy} onClick={()=>{game.answer(hint.command,hint.data);onClose();}}>{hint.command==='cmdCall'?'Spielen':'OK'}</button>
       <button type="button" style={{width:88,height:25}} onClick={onClose}>Abbrechen</button>
     </div>
   </DialogFrame>;

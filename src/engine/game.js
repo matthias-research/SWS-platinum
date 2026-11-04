@@ -38,7 +38,8 @@ export class Game {
     this.feed=[];this.feedSequence=0;
     this.lastTrick = null; this.pause = false; this.pending = null;
     this.ai.notify('cmdNew', { fRules: this.rules, fPlayer: this.state.fLeading,
-      fTypes: [0, 1, 1, 1, 1].map((v, p) => p === this.human ? 0 : v), fNames: this.names,
+      fTypes: [0, 1, 1, 1, 1].map((v, p) => p===0||p===this.human?0:
+        this.kind==='differ'&&options.families?(options.characters?.[p]!==undefined?options.characters[p]+2:{hacker:2,trashy:4,grumpy:5}[options.families[p]]):v), fNames: this.names,
       fLevel: playerLevels });
   }
   get round() { return this.state.fRounds[this.state.fRound]; }
@@ -200,7 +201,7 @@ export class Game {
     const r = active ? this.round : this.history.at(-1)?.round;
     const pickedTricks=Array(5).fill(0);
     if(r){
-      const cleared=Math.max(0,r.fTrick-(active&&this.pause?1:0));
+      const cleared=Math.max(0,r.fTrick-(this.pause?1:0));
       for(let i=0;i<cleared;i++){
         const trick=r.fTricks[i],winner=r.fTricks[i+1]?.fLeading;
         if(winner&&trick.fPlayed.slice(1,this.count+1).every(Boolean))pickedTricks[winner]++;
@@ -211,7 +212,7 @@ export class Game {
     let collected=null,bonuses=null;
     if(this.kind==='differ'){
       collected=Array(5).fill(0);bonuses=Array(5).fill(0);
-      if(active){
+      if(active||this.pause){
         // Table.RemoveTrick credits points when the trick is cleared, not while
         // its cards are still waiting on the carpet. Do not call DeltaOfRound:
         // that scoring routine mutates bonuses and is only for round settlement.
@@ -229,7 +230,7 @@ export class Game {
       trick: this.pause ? this.lastTrick : active ? this.base.GetCurrentTrick(this.state) : this.lastTrick,
       lastTrick: this.lastTrick, pause: this.pause, calls: visibleCalls,collected,bonuses,pickedTricks,
       scores: this.kind === 'schieber' ? this.state.fPoints : this.state.fTotal,
-      winner: this.state.fWinner ?? 0, ranks: this.state.fFinal,
+      winner: this.state.fWinner ?? 0, bPrice:this.state.fBPrice??0, liveScores:this.state.fTmpPts?[...this.state.fTmpPts]:null, ranks: this.state.fFinal,
       feed:structuredClone(this.feed),characters:this.options.characters,avatar:this.options.avatar,
       portraitLevels:(this.options.levels||Array(5).fill(this.options.level??66)).map(level=>level<33?0:level<66?1:2),
       history: this.history.map(h => ({...h.result,trump:h.round.fTrump,trumpedBy:h.round.fTrumpedBy,

@@ -1,4 +1,4 @@
-:root { font-family: Arial, sans-serif; color: #171717; background: #efefef; font-synthesis: none; }
+:root { font-family: Arial, sans-serif; color: #171717; background: rgb(5% 5% 5%); font-synthesis: none; }
 html { scrollbar-gutter: stable both-edges; }
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 280px; }
@@ -6,7 +6,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible { outline: 2px solid #22589a; outline-offset: -2px; }
 button:disabled { color: #8a8a8a; cursor: default; }
 .application { width: calc(var(--scene-width) + 12px); min-width: min(100%, 280px); margin: 4px auto; padding: 0 4px; }
-.menu-bar { height: 32px; display: flex; align-items: center; gap: 2px; position: relative; z-index: 2; }
+.menu-bar { height: 32px; display: flex; align-items: center; gap: 2px; position: relative; z-index: 2; background: #efefef; }
 .menu { position: relative; }
 .menu-title { border: 1px solid transparent; background: transparent; padding: 5px 9px; font-size: 14px; }
 .menu-title:hover, .menu-title.active { background: #dceafb; border-color: #a5b8cc; }
@@ -17,7 +17,7 @@ button:disabled { color: #8a8a8a; cursor: default; }
 .check { display: inline-block; width: 22px; }
 .menu-note { font-size: 12px; margin: 8px 12px; color: #626262; }
 hr { border: 0; border-top: 1px solid #ccc; margin: 4px; }
-.scene-frame { position: relative; border: 2px inset #fff; background: #ddd; }
+.scene-frame { position: relative; isolation:isolate; border: 2px inset #fff; background: #ddd; }
 .table-joker {position:absolute;z-index:4;border:0;padding:0;background:transparent;cursor:pointer;}
 .table-joker:disabled {cursor:default;}
 .table-joker:not(:disabled) {border-radius:12px;outline:2px solid #ffe078;outline-offset:3px;box-shadow:0 0 12px 4px #ffcf5470;}
@@ -143,6 +143,8 @@ dialog.decision-dialog { box-shadow:3px 3px 8px #0004; }
 .prediction-slider:focus-visible {opacity:.35;}
 .hint-picture {position:absolute;left:0;top:0;width:182px;height:90px;pointer-events:none;}
 .original-control {z-index:1;}
+.sliding-puzzle {position:absolute;left:13px;top:13px;z-index:2;overflow:hidden;background:black;}
+.sliding-puzzle button:focus-visible {outline:2px solid #ffe078;outline-offset:-3px;}
 .original-background {position:absolute;left:0;top:0;z-index:0;pointer-events:none;}
 .original-result-table {position:absolute;left:55px;top:75px;width:530px;max-height:340px;overflow:auto;background:#fffffff2;padding:8px;font:13px Arial;z-index:2;}
 .asset-browser {display:flex;gap:8px;padding:10px;height:100%;}

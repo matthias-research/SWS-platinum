@@ -46,7 +46,7 @@ async function checkHandVisible(page){
   expect(await dialog.evaluate(el=>getComputedStyle(el,'::backdrop').backgroundColor)).toBe('rgba(0, 0, 0, 0)');
 }
 for(const kind of ['Schieber','Differenzler'])test(`${kind} decision leaves the whole hand visible with large cards and on mobile`,async({page})=>{
-  await page.goto('/');await page.getByRole('button',{name:'Ansicht',exact:true}).click();await page.getByRole('button',{name:'Karten gross',exact:true}).click();
+  await page.setViewportSize({width:1280,height:900});await page.goto('/');
   await page.getByRole('button',{name:`Neuer ${kind}…`,exact:true}).click();await page.getByRole('dialog').getByRole('button',{name:'Spielen',exact:true}).click();
   await checkHandVisible(page);
   await page.screenshot({path:`artifacts/browser/${kind.toLowerCase()}-decision-visible-hand.png`});

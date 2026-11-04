@@ -1,5 +1,6 @@
 import {graphicsUrl} from './graphics';
 import React,{useEffect,useRef,useState} from 'react';
+import {BASE_TABLE,tableOffset} from './tableGeometry';
 import {layout} from './table';
 import {trumpLabels} from './gameDrawing';
 import {DialogCards} from './dialogs/DecisionDialogs';
@@ -28,7 +29,7 @@ function EventContent({event,view,setId}){
   </>;
 }
 const positions={1:{left:310,top:38},2:{left:203,top:144},3:{left:310,top:280},4:{left:410,top:144}};
-export function GameFeed({view,scale,setId,cardHeight=118,messages=[],duration=5}){
+export function GameFeed({view,scale,setId,cardHeight=118,messages=[],duration=5,size=BASE_TABLE}){
   const entries=view.feed||[],last=entries.at(-1)?.id||0;
   const seen=useRef(last),seenMessage=useRef(messages.length),timers=useRef(new Map()),scroller=useRef(null),atBottom=useRef(true);
   const [bubbles,setBubbles]=useState({});
@@ -42,13 +43,13 @@ export function GameFeed({view,scale,setId,cardHeight=118,messages=[],duration=5
   },[last,messages,duration]);
   useEffect(()=>()=>{for(const timer of timers.current.values())clearTimeout(timer);},[]);
   useEffect(()=>{if(atBottom.current&&scroller.current)scroller.current.scrollTop=scroller.current.scrollHeight;},[last,messages,setId,cardHeight]);
-  const {log}=layout(768,528,cardHeight);
+  const {log}=layout(size.width,size.height,cardHeight),offset=tableOffset(size);
   const feed=[...entries.map(e=>({...e,order:e.id})),...messages.map((e,i)=>({...e,order:e.after+(i+1)/1000}))].sort((a,b)=>a.order-b.order);
-  return <div className="game-presentation" style={{width:768,height:528,transform:`scale(${scale})`}}>
+  return <div className="game-presentation" style={{width:size.width,height:size.height,transform:`scale(${scale})`}}>
     <div ref={scroller} className="illustrated-feed" role="log" aria-label="Spielverlauf" aria-live="off" style={{left:log.x+15,top:log.y+44,width:log.width-31,height:log.height-59}} onScroll={e=>{const el=e.currentTarget;atBottom.current=el.scrollHeight-el.scrollTop-el.clientHeight<8;}}>
       {feed.map(e=><div key={`${e.kind}-${e.id}`} className={`feed-entry feed-${e.kind}`}><EventContent event={e} view={view} setId={setId}/></div>)}
     </div>
-    <div aria-live="polite" aria-label="Spieler-Sprechblasen">{Object.entries(bubbles).map(([player,event])=><div key={player} role="group" className="player-bubble" style={positions[player]} aria-label={eventText(event,view,setId)}>
+    <div aria-live="polite" aria-label="Spieler-Sprechblasen">{Object.entries(bubbles).map(([player,event])=><div key={player} role="group" className="player-bubble" style={{left:positions[player].left+offset.x,top:positions[player].top+offset.y}} aria-label={eventText(event,view,setId)}>
       <button type="button" className="bubble-dismiss" aria-label={`Sprechblase von ${view.names[player]} schliessen`} onClick={()=>dismiss(player)}><EventContent event={event} view={view} setId={setId}/></button>
     </div>)}</div>
   </div>;

@@ -13,7 +13,7 @@ export function useGame() {
   const [view, setView] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const lastView=useRef(null),animationTimer=useRef(null);
   const [animation,setAnimation]=useState(null);
-  const [automatic, setAutomatic] = useState(false), [speed, setSpeed] = useState(650);
+  const [automatic, setAutomatic] = useState(false), [speed, setSpeed] = useState(500);
   const [series,setSeries]=useState(1);
   const [paused, setPaused] = useState(false), [hint, setHint] = useState(null);
   const [sound, setSound] = useState(soundPreferences);
@@ -27,7 +27,7 @@ export function useGame() {
         setBusy(false);
         if(data.archive){const url=URL.createObjectURL(new Blob([JSON.stringify(data.archive)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='jass.sws-archive.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}
         if (data.error) { setError(data.error); setAutomatic(false); return; }
-        let steps=25;try{steps=JSON.parse(localStorage.getItem('sws-preferences')||'{}').viewSlideS??25;}catch{}
+        let steps=15;try{steps=JSON.parse(localStorage.getItem('sws-preferences')||'{}').viewSlideS??15;}catch{}
         const transition=cardTransition(lastView.current,data.view,steps);
         clearTimeout(animationTimer.current);setAnimation(transition);
         if(transition)animationTimer.current=setTimeout(()=>setAnimation(null),transition.duration);
@@ -57,12 +57,12 @@ export function useGame() {
   useEffect(() => {
     if (!view || busy || animation || error || paused) return;
     let message;
-    if (view.phase === 'done') {
+    if (view.phase === 'done' && !view.pause) {
       if(automatic&&series>1){const timer=setTimeout(()=>{setSeries(n=>n-1);send({type:'new',options:{...latest.current.options,id:crypto.randomUUID(),seed:crypto.getRandomValues(new Uint32Array(1))[0]%2147483646+1}},true);},speed);return()=>clearTimeout(timer);}
       return;
     }
-    if (view.phase === 'deal' && automatic) message = { type: 'action', action: { type: 'deal' } };
-    else if (view.pause && automatic) message = { type: 'action', action: { type: 'continue' } };
+    if (view.pause && automatic) message = { type: 'action', action: { type: 'continue' } };
+    else if (view.phase === 'deal' && automatic) message = { type: 'action', action: { type: 'deal' } };
     else if (view.request && (automatic || view.request.player !== view.human)) message = { type: 'computer' };
     if (message) { const timer = setTimeout(() => send(message), speed); return () => clearTimeout(timer); }
   }, [view, busy, animation, automatic, speed, error, paused,series]);

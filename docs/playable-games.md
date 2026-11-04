@@ -6,6 +6,13 @@ is the partner. Differenzler supports three or four players and Grumpy Junior,
 Hacker or Trashy opponents. Difficulty, rule variants and match length are
 configurable before starting.
 
+Differenzler opponents use the original character-to-AI mapping: Birgit and
+Beat use Hacker, Stéphanie uses Trashy, and Walter uses Grumpy Junior. The
+initial lineup is randomized without duplicate characters; starting a game
+remembers its portraits and strengths separately for each game type. There
+is no global computer-player selector. Older saved games retain their stored
+AI configuration so they can still be resumed and undone consistently.
+
 ## Playing and saving
 
 Choose trump or shift, declare Weis, enter a prediction, and click a legal card.
@@ -100,3 +107,20 @@ old profile/high-score import, live continuation of native saves, original VCL
 dialog presentation, and exhaustive move-by-move executable parity (including
 Trashy's floating-point behavior). Network play and the sliding puzzle remain
 outside the current game scope. No site has been published.
+
+
+## Browser resolution modes
+
+The Browser menu offers **Adaptive resolution** (default) and **Fixed resolution**.
+Adaptive keeps the 768 × 528 logical table and scales the entire scene proportionally.
+Fixed uses one CSS pixel per original coordinate and recalculates the layout from
+its available width and height, following Delphi's one-player Table geometry.
+The centered background/carpet, portraits, trick piles, trump symbols, points
+plates, feed, joker, hand targets and card animations share those coordinates.
+Adaptive always uses the large card sheet. Fixed chooses it above 700 × 530 pixels.
+Enhanced artwork remains an independent preference; its 2× source images do not
+change the logical size of the graphics. The mode is saved in sws-display.
+Fixed mode has a 640 × 480 minimum playing area; smaller windows scroll rather
+than shrink the graphics. Beyond the centered 1024 × 768 background image,
+the canvas uses the app's dark background. The welcome panel uses its native
+430 × 432 size in fixed mode and scales to the window in adaptive mode.

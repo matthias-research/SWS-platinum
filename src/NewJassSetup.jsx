@@ -8,19 +8,29 @@ const strengths = ['Schwach','Mittel','Stark'];
 const characterNames = ['Birgit','Beat','Stéphanie','Walter'];
 const levels = [0,50,99];
 const defaults = { characters:[0,0,2,0,3], strengths:[0,2,2,0,2], avatar:5208 };
-function savedSelection() {
+function randomCharacters(){
+  const remaining=new Set([0,1,2,3]),characters=[0,0,0,0,0];
+  // DlgNew.SetupConfigs: choose a character, then advance to the next unused one.
+  for(const p of [1,2,4]){
+    let character=Math.floor(Math.random()*4);
+    while(!remaining.has(character))character=(character+1)%4;
+    characters[p]=character;remaining.delete(character);
+  }
+  return characters;
+}
+function savedSelection(kind) {
   try {
-    const value = JSON.parse(localStorage.getItem('sws-setup'));
+    const value = JSON.parse(localStorage.getItem(`sws-setup-${kind}`)||localStorage.getItem('sws-setup'));
     if (value && ['characters','strengths'].every(k=>Array.isArray(value[k])&&value[k].length===5&&value[k].every(n=>Number.isInteger(n)&&n>=0&&n<=(k==='characters'?3:2))) && value.avatar>=5200 && value.avatar<=5219) return value;
   } catch {}
-  return defaults;
+  return {...defaults,characters:randomCharacters()};
 }
 
 export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules }) {
   const {data:catalog}=useDialogCatalog();
   const differ=kind==='differ',offset=differ?-8:0;
   const dialog = useRef(null);
-  const [selection,setSelection] = useState(savedSelection);
+  const [selection,setSelection] = useState(()=>savedSelection(kind));
   const [rules,setRules] = useState(()=>{const fallback=differ?DifferRules():DefaultRules();try{return {...fallback,...JSON.parse(localStorage.getItem(`sws-rules-${kind}`)||'{}')};}catch{return fallback;}});
   const [editingRules,setEditingRules] = useState(false);
   const [picker,setPicker] = useState(null);
@@ -32,10 +42,10 @@ export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules })
   const change = (key,p,value) => setSelection(s=>({...s,[key]:s[key].map((n,i)=>i===p?value:n)}));
   const start = e => {
     e.preventDefault();
-    let family='grumpy';
-    try {const saved=JSON.parse(localStorage.getItem('sws-preferences')||'{}').differFamily;if(['grumpy','hacker','trashy'].includes(saved))family=saved;}catch{}
-    try {localStorage.setItem('sws-player',name);localStorage.setItem('sws-setup',JSON.stringify(selection));localStorage.setItem(`sws-rules-${kind}`,JSON.stringify(rules));}catch{}
-    onStart({kind,family,rules,human:3,leading:3,names:selection.characters.map((character,p)=>p===0?'':p===3?name:characterNames[character]),level:99,
+    try {localStorage.setItem('sws-player',name);localStorage.setItem(`sws-setup-${kind}`,JSON.stringify(selection));localStorage.setItem(`sws-rules-${kind}`,JSON.stringify(rules));}catch{}
+    // InitJassers registers Hacker 1, Hacker 2, Trashy1, Grumpy Junior in portrait order.
+    const families=selection.characters.map((character,p)=>p===3?'grumpy':['hacker','hacker','trashy','grumpy'][character]);
+    onStart({kind,...(differ?{families}:{}),rules,human:3,leading:3,names:selection.characters.map((character,p)=>p===0?'':p===3?name:characterNames[character]),level:99,
       levels:selection.strengths.map(n=>levels[n]),characters:selection.characters,avatar:selection.avatar,
       id:crypto.randomUUID(),seed:crypto.getRandomValues(new Uint32Array(1))[0]%2147483646+1});
   };
@@ -62,8 +72,7 @@ export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules })
           <button className="legacy-ok legacy-bottom" type="submit" aria-label="Spielen"><span>✓</span>OK</button>
           <button className="legacy-cancel legacy-bottom" type="button" aria-label="Cancel" onClick={onClose}><span aria-hidden="true">✖</span>Cancel</button>
           <button className="legacy-random legacy-bottom" type="button" onClick={()=>{
-            const characters=[0,1,2,3];for(let i=3;i>0;i--){const j=crypto.getRandomValues(new Uint32Array(1))[0]%(i+1);[characters[i],characters[j]]=[characters[j],characters[i]];}
-            setSelection(s=>({...s,characters:[0,characters[0],characters[1],0,characters[2]]}));
+            setSelection(s=>({...s,characters:randomCharacters()}));
           }}>Zufällig</button>
           <button className="legacy-rules legacy-bottom" type="button" onClick={()=>setEditingRules(true)}>Regeln…</button>
         </div>

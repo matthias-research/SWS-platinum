@@ -17,7 +17,9 @@ for(const kind of ['Schieber','Differenzler'])test(`${kind}: welcome panel start
   await page.getByRole('button',{name:'Datei',exact:true}).click();
   await page.getByRole('button',{name:'Spiel schliessen',exact:true}).click();
   await expect(panel).toBeVisible();await expect(page.locator('.scene-frame')).toHaveCount(0);
-  await panel.getByRole('button',{name:'Spiel fortsetzen',exact:true}).click();
+  await expect(panel.getByRole('button',{name:'Spiel fortsetzen',exact:true})).toHaveCount(0);
+  await page.getByRole('button',{name:'Datei',exact:true}).click();
+  await page.getByRole('button',{name:'Letztes Spiel fortsetzen',exact:true}).click();
   await expect(panel).toHaveCount(0);await expect(page.locator('.scene-frame')).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -28,10 +30,11 @@ test('welcome panel uses both graphics modes and fits a phone',async({page})=>{
   await expect(panel.locator('.welcome-background')).toHaveAttribute('src',/enhanced\/panel\/ImgBack.png$/);
   await panel.locator('.welcome-background').evaluate(img=>img.decode());
   await page.screenshot({path:'artifacts/browser/welcome-panel-enhanced.png'});
-  await page.getByRole('button',{name:'Ansicht',exact:true}).click();
+  await page.getByRole('button',{name:'Browser',exact:true}).click();
   await page.getByRole('button',{name:/Originalgrafik$/}).click();
   await expect(panel.locator('.welcome-background')).toHaveAttribute('src','/assets/panel/ImgBack.png');
   await page.setViewportSize({width:390,height:844});
+  await expect.poll(async()=>{const r=await panel.locator('.welcome-art').boundingBox();return r.x+r.width;}).toBeLessThanOrEqual(390);
   const rect=await panel.locator('.welcome-art').boundingBox();
   expect(rect.x).toBeGreaterThanOrEqual(0);expect(rect.x+rect.width).toBeLessThanOrEqual(390);
   await page.screenshot({path:'artifacts/browser/welcome-panel-mobile.png'});

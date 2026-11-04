@@ -58,7 +58,7 @@ export function GameSetupForm({ kind, onStart, onClose, setId = 1, initialRules,
   </dialog>;
 }
 
-export function GameControls({ game, onNew, onDialog, displayScale }) {
+export function GameControls({ game, onNew, onDialog, displayScale, lowLevel=false }) {
   const trumpNames = trumpLabels(game.sound.set);
   const v = game.view, req = v?.request;
   const [call, setCall] = useState(50), [history, setHistory] = useState(false);
@@ -73,13 +73,13 @@ export function GameControls({ game, onNew, onDialog, displayScale }) {
     : v.phase === 'deal' ? 'Runde beendet.' : v.pause ? `${v.names[v.trick.winner]} gewinnt den Stich.`
     : req ? `${v.names[req.player]} ${req.command === 'cmdPlay' ? 'spielt.' : req.command === 'cmdCall' ? 'sagt an.' : req.command === 'cmdSuit' ? 'weist.' : req.command === 'cmdStockings' ? 'meldet Stöck.' : 'wählt Trumpf.'}` : '';
   return <section className="game-controls" aria-label="Spielsteuerung">
-    <div className="game-status" role="status">{status}{game.busy && ' …'}</div>
-    <div className="game-actions">
+    {lowLevel&&<div className="game-status" role="status">{status}{game.busy && ' …'}</div>}
+    {lowLevel&&<div className="game-actions">
       {!v && <><button onClick={() => onNew('schieber')}>Neuer Schieber…</button><button onClick={() => onNew('differ')}>Neuer Differenzler…</button><button onClick={game.resume}>Spiel fortsetzen</button></>}
       {v?.phase === 'done' && <button onClick={() => onNew(v.kind)}>Neuer Jass</button>}
       {v && !game.automatic && <>
-        {v.phase === 'deal' && <button disabled={game.busy} onClick={() => game.action({ type: 'deal' })}>Nächste Runde</button>}
-        {v.phase !== 'done' && v.phase !== 'deal' && v.pause && <button disabled={game.busy} onClick={() => game.action({ type: 'continue' })}>Stich abräumen</button>}
+        {v.phase === 'deal' && !v.pause && <button disabled={game.busy} onClick={() => game.action({ type: 'deal' })}>Nächste Runde</button>}
+        {v.pause && <button disabled={game.busy} onClick={() => game.action({ type: 'continue' })}>Stich abräumen</button>}
         {mine && !showDecision && ['cmdTrump', 'cmdShift'].includes(req.command) && <>
           {trumpNames.slice(1).map((name, i) => <button key={name} disabled={game.busy || !v.rules.fTrumpFactor[i + 1]} onClick={() => game.answer('cmdTrump', { fTrump: i + 1 })}>{name}</button>)}
           {req.command === 'cmdTrump' && <button disabled={game.busy} onClick={() => game.answer('cmdShift')}>Schieben</button>}
@@ -99,7 +99,7 @@ export function GameControls({ game, onNew, onDialog, displayScale }) {
         <button disabled={game.busy} onClick={game.undo}>Zurücknehmen</button>
         <button disabled={game.busy || ['deal','done'].includes(v.phase)} onClick={()=>onDialog?.('forfeit')}>Runde aufgeben</button>
         <button aria-pressed={game.automatic} disabled={v.phase === 'done'} onClick={() => game.setAutomatic(!game.automatic)}>{game.automatic ? 'Selbst spielen' : 'Computer weiterspielen lassen'}</button>
-        <label>Tempo <select aria-label="Tempo" value={game.speed} onChange={e => game.setSpeed(Number(e.target.value))}><option value={1200}>Ruhig</option><option value={650}>Normal</option><option value={50}>Schnell</option></select></label>
+        <label>Tempo <select aria-label="Tempo" value={game.speed} onChange={e => game.setSpeed(Number(e.target.value))}><option value={1200}>Ruhig</option><option value={500}>Normal</option><option value={50}>Schnell</option></select></label>
         <button onClick={() => onDialog ? onDialog('results') : setHistory(!history)} aria-expanded={history}>Resultate</button>
         <label><input type="checkbox" checked={game.sound.enabled} onChange={e => game.setSound({ ...game.sound, enabled: e.target.checked })} /> Ton</label>
         {game.sound.enabled && <label>Lautstärke <input type="range" min={0} max={1} step={0.1} value={game.sound.volume} onChange={e => game.setSound({...game.sound,volume:Number(e.target.value)})} /></label>}
@@ -107,11 +107,11 @@ export function GameControls({ game, onNew, onDialog, displayScale }) {
           {[3,4,5,6].map(voice => <option key={voice} value={voice}>Stimme {voice}</option>)}
         </select></label>}
       </>}
-    </div>
+    </div>}
     {showDecision&&<GameDecisionDialog key={decisionKey} game={game} onClose={()=>setDismissed(decisionKey)} scale={displayScale}/>}
     {showHint&&<HintDialog game={game} onClose={()=>setDismissedHint(game.hint)} scale={displayScale}/>}
     {game.error && <p role="alert" className="error">{game.error}</p>}
-    {game.hint && <p role="status">Tipp: {game.hint.command === 'cmdCard' ? cardName(game.hint.data.fCard, game.sound.set) : game.hint.command === 'cmdTrump' ? trumpNames[game.hint.data.fTrump] : game.hint.command === 'cmdShift' ? 'Schieben' : game.hint.command === 'cmdCall' ? `${game.hint.data.fCall} Punkte ansagen` : game.hint.command === 'cmdSuit' ? 'Weisen' : ['Keine Stöck', 'Stöck +20', 'Stöck −20'][game.hint.data.fStockings ?? 0]}</p>}
+    {lowLevel&&game.hint && <p role="status">Tipp: {game.hint.command === 'cmdCard' ? cardName(game.hint.data.fCard, game.sound.set) : game.hint.command === 'cmdTrump' ? trumpNames[game.hint.data.fTrump] : game.hint.command === 'cmdShift' ? 'Schieben' : game.hint.command === 'cmdCall' ? `${game.hint.data.fCall} Punkte ansagen` : game.hint.command === 'cmdSuit' ? 'Weisen' : ['Keine Stöck', 'Stöck +20', 'Stöck −20'][game.hint.data.fStockings ?? 0]}</p>}
     {history && v && <div className="results"><table><caption>Rundenresultate</caption><thead><tr><th>Runde</th>{v.kind === 'schieber' ? <><th>Nord & Süd</th><th>West & Ost</th></> : v.names.slice(1, v.count + 1).map(n => <th key={n}>{n}<br />Ansage / Punkte / Differenz</th>)}</tr></thead><tbody>
       {v.history.map((r, i) => <tr key={i}><td>{i + 1}</td>{v.kind === 'schieber' ? <><td>{r.pts[1]}</td><td>{r.pts[2]}</td></> : Array.from({ length: v.count }, (_, j) => j + 1).map(p => <td key={p}>{r.call[p]} / {r.made[p]} / {D.DeltaOf(r.call[p], r.made[p], r.bonus[p])}</td>)}</tr>)}
     </tbody></table></div>}
@@ -135,8 +135,8 @@ export function MatchHistory({ onClose }) {
   </dialog>;
 }
 
-export function GameCardTargets({ game, sheet, scale, setId }) {
-  const v = game.view, cards = gameHand(v, sheet), req = v?.request;
+export function GameCardTargets({ game, sheet, scale, setId, size }) {
+  const v = game.view, cards = gameHand(v, sheet,size), req = v?.request;
   return <div className="card-targets" role="group" aria-label="Ihre Karten">
     {cards.map((card, i) => <button key={card.id} className="card-target" aria-label={cardName(card.id, setId)} data-card-id={card.id}
       disabled={game.busy || game.automatic || game.paused || req?.player !== v.human || req.command !== 'cmdPlay' || !req.data.fLegal.includes(card.id)}

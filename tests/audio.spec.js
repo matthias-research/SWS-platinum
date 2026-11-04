@@ -1,3 +1,4 @@
+import {enableLowlevel} from './lowlevel';
 import { test, expect } from '@playwright/test';
 
 test('spoken hints play in order, mute cancels them, and voice preferences persist', async ({page}) => {
@@ -9,7 +10,7 @@ test('spoken hints play in order, mute cancels them, and voice preferences persi
       pause() { this.paused = true; }
     };
   });
-  await page.goto('/');
+  await page.goto('/');await enableLowlevel(page);
   await page.getByRole('button',{name:'Neuer Differenzler…',exact:true}).click();
   await page.getByRole('dialog').getByRole('button',{name:'Spielen',exact:true}).click();
   await expect(page.getByRole('dialog',{name:/sagt an/})).toBeVisible();
@@ -24,7 +25,7 @@ test('spoken hints play in order, mute cancels them, and voice preferences persi
   await page.keyboard.press('Escape');
   await page.getByRole('checkbox',{name:'Ton',exact:true}).uncheck();
   expect(await page.evaluate(()=>window.recordings.every(a=>a.paused))).toBe(true);
-  await page.reload();
+  await page.reload();await enableLowlevel(page);
   await page.getByRole('button',{name:'Spiel fortsetzen',exact:true}).click();
   await expect(page.getByRole('dialog',{name:/sagt an/})).toBeVisible();
   await page.keyboard.press('Escape');

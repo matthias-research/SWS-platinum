@@ -10,6 +10,23 @@ const differ = await readFile('public/assets/ai/RGDIFF.DAT');
 const tables = { call: await readFile('public/assets/ai/Hcall.dat'), play: await readFile('public/assets/ai/HPLAY.DAT'), trashy: await readFile('public/assets/ai/TRASHY.DAT') };
 const factory = kind => kind === 'schieber' ? new SchieberAI(schieber) : new DifferAI(differ);
 
+for(const count of [3,4])test(`character-based Differenzler: mixed AI plays and restores with ${count} players`,()=>{
+  const families=['hacker','hacker','trashy','grumpy','grumpy'];
+  const ai=new DifferAI(differ,families,tables);
+  assert.match(ai.players[1].$class.$classname,/Hacker/);
+  assert.match(ai.players[2].$class.$classname,/fdc/);
+  assert.match(ai.players[4].$class.$classname,/Grumpy/);
+  const game=new Game({kind:'differ',families,seed:37,levels:[0,0,50,99,99],rules:{fNuPlayers:count,fRoundLimit:2}},ai);
+  game.act({type:'deal'});
+  while(game.phase!=='done'){
+    if(game.phase==='deal')game.act({type:'deal'});
+    else if(game.pause)game.act({type:'continue'});
+    else game.computer();
+  }
+  const restored=Game.restore(game.save(),new DifferAI(differ,families,tables));
+  assert.deepEqual(restored.view(),game.view());
+});
+
 for(const kind of ['schieber','differ'])test(`${kind}: collected trick piles count cleared tricks and reset on deal`,()=>{
   const game=new Game({kind,seed:37,rules:{fPointPlay:false,fRoundLimit:2}},factory(kind));
   game.act({type:'deal'});while(!game.pause)game.computer();
@@ -19,6 +36,9 @@ for(const kind of ['schieber','differ'])test(`${kind}: collected trick piles cou
   assert.deepEqual(Game.restore(game.save(),factory(kind)).view().pickedTricks,game.view().pickedTricks);
   assert.deepEqual(Game.restore(before,factory(kind)).view().pickedTricks,[0,0,0,0,0]);
   while(game.phase!=='deal'){if(game.pause)game.act({type:'continue'});else game.computer();}
+  assert.equal(game.view().pickedTricks.reduce((a,b)=>a+b),8);
+  assert.equal(game.view().pause,true);
+  game.act({type:'continue'});
   assert.equal(game.view().pickedTricks.reduce((a,b)=>a+b),9);
   game.act({type:'deal'});assert.deepEqual(game.view().pickedTricks,[0,0,0,0,0]);
 });
@@ -33,6 +53,7 @@ for(const count of [3,4])test(`Differenzler ${count}: plates count cleared trick
   assert.deepEqual(Game.restore(before,factory('differ')).view().collected,[0,0,0,0,0]);
   assert.deepEqual(Game.restore(game.save(),factory('differ')).view().collected,game.view().collected);
   while(game.phase!=='deal'){if(game.pause)game.act({type:'continue'});else game.computer();}
+  game.act({type:'continue'});
   assert.equal(game.view().collected.slice(1).reduce((a,b)=>a+b,0),157);
   game.act({type:'deal'});assert.deepEqual(game.view().collected,[0,0,0,0,0]);
 });

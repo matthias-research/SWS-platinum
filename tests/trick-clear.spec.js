@@ -1,3 +1,4 @@
+import {enableLowlevel} from './lowlevel';
 import {test,expect} from '@playwright/test';
 import {readFile} from 'node:fs/promises';
 import {Game} from '../src/engine/game.js';
@@ -17,7 +18,7 @@ async function lastCardPosition(kind='schieber'){
 for(const kind of ['schieber','differ'])test(`${kind}: table stays fixed across the last card and clears a trick from any table position`,async({page})=>{
   const {saved,card}=await lastCardPosition(kind);
   await page.addInitScript(()=>localStorage.setItem('sws-preferences',JSON.stringify({viewBubbleS:0})));
-  await page.goto('/');await page.locator('input[type=file]').setInputFiles({name:'test.sws.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(saved))});
+  await page.goto('/');await enableLowlevel(page);await page.locator('input[type=file]').setInputFiles({name:'test.sws.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(saved))});
   const target=page.locator(`.card-target[data-card-id="${card}"]`);await expect(target).toBeEnabled();
   const frame=page.locator('.scene-frame'),before=await frame.boundingBox();
   await target.click();await expect(page.getByRole('button',{name:'Stich abräumen',exact:true})).toBeEnabled();
@@ -28,7 +29,7 @@ for(const kind of ['schieber','differ'])test(`${kind}: table stays fixed across 
   const after=await frame.boundingBox();expect(after.x).toBeCloseTo(before.x,1);expect(after.width).toBeCloseTo(before.width,1);
 });
 test('table alignment is independent of control wrapping and scrollbar visibility',async({page})=>{
-  const {saved,card}=await lastCardPosition();await page.goto('/');
+  const {saved,card}=await lastCardPosition();await page.goto('/');await enableLowlevel(page);
   for(const [width,height] of [[1186,867],[1920,1080],[900,700],[390,844]]){
     await page.setViewportSize({width,height});await page.locator('input[type=file]').setInputFiles({name:'test.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(saved))});
     const target=page.locator(`.card-target[data-card-id="${card}"]`);await expect(target).toBeEnabled();

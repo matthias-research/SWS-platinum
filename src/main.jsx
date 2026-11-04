@@ -1,7 +1,9 @@
 import {WelcomePanel} from './WelcomePanel';
 import {TablePlayers} from './TablePlayers';
+import {roundInformation} from './informationWindows';
+import {InformationDialog} from './dialogs/SupportingDialogs';
 import {useGraphics,setGraphics} from './graphics';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { DISPLAY, fitScale } from './config';
 import { drawTable, loadAssets, jokerRect, drawTableJoker } from './table';
@@ -43,35 +45,59 @@ function App() {
   const showWelcome=!reviewEnabled&&!displayView;
   const activeKind=game.view?.kind||'schieber';
   const lastRoundNotice=useRef('');
+  const lastPrizeNotice=useRef({id:null,team:0});
+  const [information,setInformation]=useState([]);
   useEffect(()=>{
     const v=game.view;
-    if(!v){lastRoundNotice.current='';return;}
-    if(game.animation||!v.history.length||!['deal','done'].includes(v.phase))return;
-    const key=`${game.saved()?.options.id}:${v.history.length}`;
-    if(lastRoundNotice.current===key)return;
-    lastRoundNotice.current=key;
-    if(!game.automatic||(v.phase==='done'&&game.series<=1))openDialog('results');
-  },[game.view,game.automatic,game.series,game.animation]);
+    if(!v){lastRoundNotice.current='';lastPrizeNotice.current={id:null,team:0};setInformation([]);return;}
+    if(game.animation)return;
+    const id=game.saved()?.options.id,notices=[];
+    if(lastPrizeNotice.current.id!==id)lastPrizeNotice.current={id,team:v.bPrice};
+    if(v.kind==='schieber'&&v.bPrice!==lastPrizeNotice.current.team){
+      if(v.bPrice&&preferences.viewInfoWin!==false&&!game.automatic)notices.push({type:'bp',team:v.bPrice});
+      lastPrizeNotice.current={id,team:v.bPrice};
+    }
+    if(!v.pause&&v.history.length&&['deal','done'].includes(v.phase)){
+      const key=`${id}:${v.history.length}`;
+      if(lastRoundNotice.current!==key){
+        lastRoundNotice.current=key;
+        if(!game.automatic||(v.phase==='done'&&game.series<=1))notices.push(...roundInformation(v,preferences));
+      }
+    }
+    if(notices.length)setInformation(old=>old.concat(notices.map(n=>({...n,view:v}))));
+  },[game.view,game.automatic,game.series,game.animation,preferences]);
+  useEffect(()=>{if(information.length&&!activeDialog)openDialog('information');},[information,activeDialog]);
+  const nextInformation=()=>{setInformation(items=>items.slice(1));if(information.length<=1)closeDialog();};
   const cardNames=['Deutsch','Französisch','Französisch (4 Farben)','Französisch 3D','Französisch 3D (4 Farben)'];
-  const [cardSet, setCardSet] = useState(() => Math.max(1,Math.min(5,displayPreference('cardSet',1)))), [cardSize, setCardSize] = useState(() => displayPreference('cardSize',1)===2?2:1);
+  const [cardSet, setCardSet] = useState(() => Math.max(1,Math.min(5,displayPreference('cardSet',1))));
   const [sheets, setSheets] = useState({});
   useEffect(() => { game.setSound({ ...game.sound, set: cardSet }); }, [cardSet]);
   const openFile = useRef(null);
   const [assets, setAssets] = useState(null);
   const [error, setError] = useState('');
   const artwork=useGraphics(),setArtwork=setGraphics;
-  const [requestedScale, setRequestedScale] = useState(() => Math.max(1,Math.min(3,displayPreference('scale',DISPLAY.scale))));
-  const [fit, setFit] = useState(() => displayPreference('fit',DISPLAY.fitToWindow));
+  const [fit, setFit] = useState(() => displayPreference('resolution',null) ? displayPreference('resolution')==='adaptive' : displayPreference('fit',DISPLAY.fitToWindow));
+  const requestedScale=fit?Infinity:1;
   const [viewport, setViewport] = useState({ width: document.documentElement.getBoundingClientRect().width, height: innerHeight, dpr: devicePixelRatio });
   const [menu, setMenu] = useState(null);
+  // Keep the auxiliary controls available for development; normal startup hides them.
+  const [lowLevel,setLowLevel]=useState(false);
   const canvas = useRef(null);
   const jokerCanvas=useRef(null),[jokerPressed,setJokerPressed]=useState(false);
   const jokerAssets=game.view?.kind==='differ'?assets?.differ:assets;
-  const joker=game.view&&jokerAssets?jokerRect(jokerAssets,game.view.kind,sheets.V?.cards[0].rect.height):null;
+
   const canHint=Boolean(game.view?.request?.player===game.view?.human&&game.view?.request&&!game.busy&&!game.paused&&!game.automatic);
   const navigation = useRef(null);
-  const scale = fitScale(viewport.width - 16, viewport.height - (reviewEnabled ? 180 : 145), requestedScale, fit);
-  useEffect(() => { try {localStorage.setItem('sws-display',JSON.stringify({cardSet,cardSize,artwork,scale:requestedScale,fit}));}catch{} },[cardSet,cardSize,artwork,requestedScale,fit]);
+  // Normal play needs only the menu, frame, margins and control padding.
+  const reservedHeight = reviewEnabled ? 180 : lowLevel || replay.view ? 145 : 60;
+  const tableSize=useMemo(()=>!fit&&!reviewEnabled
+    ? {width:Math.max(640,Math.floor(viewport.width-16)),height:Math.max(480,Math.floor(viewport.height-reservedHeight))}
+    : {width:DISPLAY.width,height:DISPLAY.height},[fit,reviewEnabled,viewport.width,viewport.height,reservedHeight]);
+  const joker=game.view&&jokerAssets?jokerRect(jokerAssets,game.view.kind,sheets.V?.cards[0].rect.height,tableSize):null;
+  const scale = fitScale(viewport.width - 16, viewport.height - reservedHeight, requestedScale, fit);
+  // Adaptive scales the large cards; fixed mode follows Delphi's size threshold.
+  const cardSize=fit||(tableSize.width>700&&tableSize.height>530)?2:1;
+  useEffect(() => { try {localStorage.setItem('sws-display',JSON.stringify({cardSet,artwork,scale:1,fit,resolution:fit?'adaptive':'fixed'}));}catch{} },[cardSet,cardSize,artwork,requestedScale,fit]);
 
   useEffect(() => {
     let active = true;
@@ -92,11 +118,11 @@ function App() {
 
   useEffect(() => {
     if (assets && canvas.current) {
-      drawTable(canvas.current, (replay.view || game.view)?.kind === 'differ' ? assets.differ : assets, artwork, scale, viewport.dpr, reviewEnabled ? review.sheet?.cards[0].rect.height : sheets.V?.cards[0].rect.height);
+      drawTable(canvas.current, (replay.view || game.view)?.kind === 'differ' ? assets.differ : assets, artwork, scale, viewport.dpr, reviewEnabled ? review.sheet?.cards[0].rect.height : sheets.V?.cards[0].rect.height,tableSize);
       if (reviewEnabled && review.sheet) drawHand(canvas.current, review.sheet, review.cards, review.selected);
       const animation=!reviewEnabled&&!replay.view?game.animation:null;
-      if (!reviewEnabled && (replay.view || game.view)) drawGame(canvas.current, replay.view || game.view, sheets, cardSet,animation);
-      if(!reviewEnabled&&!replay.view&&game.view&&jokerCanvas.current)drawTableJoker(canvas.current,jokerCanvas.current,jokerAssets,game.view.kind,sheets.V?.cards[0].rect.height,jokerPressed&&canHint);
+      if (!reviewEnabled && (replay.view || game.view)) drawGame(canvas.current, replay.view || game.view, sheets, cardSet,animation,tableSize);
+      if(!reviewEnabled&&!replay.view&&game.view&&jokerCanvas.current)drawTableJoker(canvas.current,jokerCanvas.current,jokerAssets,game.view.kind,sheets.V?.cards[0].rect.height,jokerPressed&&canHint,tableSize);
       if(animation){
         const target=canvas.current,ctx=target.getContext('2d'),background=document.createElement('canvas');
         background.width=target.width;background.height=target.height;background.getContext('2d').drawImage(target,0,0);
@@ -104,13 +130,13 @@ function App() {
         const tick=now=>{
           ctx.save();ctx.resetTransform();ctx.drawImage(background,0,0);ctx.restore();
           const progress=Math.min(1,(now-start)/animation.duration);
-          drawCardAnimation(ctx,animation,sheets,progress);
+          drawCardAnimation(ctx,animation,sheets,progress,tableSize);
           if(progress<1)frame=requestAnimationFrame(tick);
         };
         tick(start);return()=>cancelAnimationFrame(frame);
       }
     }
-  }, [assets, artwork, scale, viewport.dpr, review.sheet, review.cards, review.selected, game.view, sheets, cardSet, replay.games, replay.selected, replay.round, replay.step, preferences,jokerPressed,canHint,game.animation]);
+  }, [assets, artwork, scale, tableSize, viewport.dpr, review.sheet, review.cards, review.selected, game.view, sheets, cardSet, replay.games, replay.selected, replay.round, replay.step, preferences,jokerPressed,canHint,game.animation]);
 
   useEffect(() => {
     const outside = e => { if (!navigation.current?.contains(e.target)) setMenu(null); };
@@ -125,51 +151,49 @@ function App() {
 
   const act = action => { action(); setMenu(null); };
   const item = (label, action, selected, disabled=false) => <button type="button" className="menu-item" disabled={disabled} onClick={() => act(action)}
-    aria-pressed={selected} key={label}><span className="check">{selected ? '✓' : ''}</span>{label}</button>;
+    aria-pressed={selected} key={label}><span className="check" aria-hidden="true">{selected ? '✓' : ''}</span>{label}</button>;
   const menus = {
     Datei: <>{displayView&&item('Spiel schliessen',closeGame)}{item('Spiel öffnen…', () => openFile.current.click())}{item('Spiel speichern…', game.download)}{item('Letztes Spiel fortsetzen', () => {replay.close();game.resume();})}{game.view&&item('Archivieren…',()=>openDialog('archive'))}{item('Spielerdaten…',()=>openDialog('profile'))}{item('Beenden…',()=>openDialog('exit'))}</>,
     Jass: <>{item('Neuer Schieber…', () => setNewGame('schieber'))}{item('Neuer Differenzler…', () => setNewGame('differ'))}{item('Kartenverteilungen…',()=>openDialog('seed'))}{game.view&&<>{item('Computer Schnellspiel…',()=>openDialog('auto'))}{item('Gespräche…',()=>openDialog('say'))}{item('Spielstand…',()=>openDialog('results'))}{game.view.phase==='done'&&item('Revanche…',()=>openDialog('rematch'))}</>}{item('Gespielte Jass…', () => setMatchHistory(true))}{item('Bestenliste…',()=>openDialog('highscores'))}{activeKind==='differ'&&item('Ranglistenname…',()=>openDialog('highname'))}{item('Statistik…',()=>openDialog('statistics'))}</>,
-    Ansicht: <>
+    Einstellungen: <>{item('Allgemein…',()=>openDialog('preferences-general'))}{item('Regeln…',()=>openDialog('preferences-rules'),undefined,Boolean(game.view&&game.view.phase!=='done'))}{item('Darstellungen…',()=>openDialog('preferences-display'))}</>,
+    Browser: <>
+      {item('Lowlevel menu',()=>setLowLevel(value=>!value),lowLevel)}
+      <hr />
       {item('Verbesserte Grafik', () => setArtwork('enhanced'), artwork === 'enhanced')}
       {item('Originalgrafik', () => setArtwork('original'), artwork === 'original')}
       <hr />
-      {item('Karten mittel', () => setCardSize(1), cardSize === 1)}
-      {item('Karten gross', () => setCardSize(2), cardSize === 2)}
-      {['Deutsch', 'Französisch 1', 'Französisch 2 · vierfarbig', 'Französisch 3', 'Französisch 4 · vierfarbig'].map((name, i) => item(name, () => setCardSet(i + 1), cardSet === i + 1))}
-      <hr />
-      {item('An Fenster anpassen', () => setFit(!fit), fit)}
-      {[1, 2, 3].map(value => item(`${value}× Vergrösserung`, () => setRequestedScale(value), requestedScale === value))}
+      {item('Adaptive resolution', () => setFit(true), fit)}
+      {item('Fixed resolution',()=>setFit(false),!fit)}
     </>,
-    Einstellungen: <>{item('Allgemein…',()=>openDialog('preferences-general'))}{item('Regeln…',()=>openDialog('preferences-rules'),undefined,Boolean(game.view&&game.view.phase!=='done'))}{item('Darstellungen…',()=>openDialog('preferences-display'))}</>,
-    Hilfe: <>{item('Über Stöck Wyys Stich…', () => openDialog('about'))}{item('Entwicklungsteam…',()=>openDialog('team'))}{item('Herausgeber…',()=>openDialog('publisher'))}{item('Titelbild…',()=>openDialog('intro'))}{item('Originalbilder…',()=>openDialog('art'))}{item('Puzzle…',()=>openDialog('puzzle'))}</>,
+    Hilfe: <>{item('Über Stöck Wyys Stich…', () => openDialog('about'))}{item('Entwicklungsteam…',()=>openDialog('team'))}{item('Graphik design…',()=>openDialog('publisher'))}{item('Herausgeber…',()=>window.open('https://www.optobyte.ch','_blank','noopener,noreferrer'))}{item('Puzzle…',()=>openDialog('puzzle'))}</>,
   };
 
-  return <main className="application" style={{ '--scene-width': `${DISPLAY.width * scale}px` }}>
-    <nav className="menu-bar" aria-label="Hauptmenü" ref={navigation}>
+  return <main className="application" style={{ '--scene-width': `${tableSize.width * scale}px` }}>
+    {!showWelcome&&<nav className="menu-bar" aria-label="Hauptmenü" ref={navigation}>
       {Object.entries(menus).map(([name, content]) => <div className="menu" key={name}>
         <button type="button" className={`menu-title ${menu === name ? 'active' : ''}`} aria-expanded={menu === name}
           aria-controls={`menu-${name}`} onClick={() => setMenu(menu === name ? null : name)}>{name}</button>
         {menu === name && <div id={`menu-${name}`} className="menu-popup" aria-label={name}>{content}</div>}
       </div>)}
-    </nav>
+    </nav>}
     {reviewEnabled && <CardReviewControls review={review} />}
-    {showWelcome?<WelcomePanel onNew={setNewGame} onResume={game.resume} scale={Math.min(requestedScale,(viewport.width-24)/430,(viewport.height-110)/432)}/>:<div className="scene-frame" style={{ width: DISPLAY.width * scale + 4, height: DISPLAY.height * scale + 4 }}>
-      <canvas ref={canvas} data-animation={game.animation?.type||'none'} data-ready={Boolean(assets && (!reviewEnabled || review.sheet))} data-artwork={artwork} data-scale={scale}
-        style={{ width: DISPLAY.width * scale, height: DISPLAY.height * scale }}
+    {showWelcome?<WelcomePanel lowLevel={lowLevel} onNew={setNewGame} onResume={game.resume} scale={fit?Math.min((viewport.width-24)/430,(viewport.height-(lowLevel?70:24))/432):1}/>:<div className="scene-frame" style={{ width: tableSize.width * scale + 4, height: tableSize.height * scale + 4 }}>
+      <canvas ref={canvas} data-animation={game.animation?.type||'none'} data-ready={Boolean(assets && (!reviewEnabled || review.sheet))} data-artwork={artwork} data-scale={scale} data-resolution={fit?'adaptive':'fixed'} data-card-size={cardSize}
+        style={{ width: tableSize.width * scale, height: tableSize.height * scale }}
         role="img" aria-label={reviewEnabled ? "Schieber-Spieltisch mit Karten-Vorschau" : displayView ? `${displayView.kind === 'differ' ? 'Differenzler' : 'Schieber'}-Spieltisch, Runde ${displayView.roundNumber}` : "Schieber-Spieltisch: grüner Filz auf blauem Glastisch, links ein leerer Schreibblock, rechts die Spieltafel für West und Ost sowie Nord und Süd."}>
         Schieber-Spieltisch mit Schreibblock und Spieltafel.
       </canvas>
       {reviewEnabled && assets && <CardTargets review={review} scale={scale} canvas={canvas} />}
-      {!reviewEnabled && !replay.view && game.view && <GameCardTargets game={game} sheet={sheets.V} scale={scale} setId={cardSet} />}
-      {!reviewEnabled&&!replay.view&&game.view&&<TablePlayers view={game.animation?.type==='collect'?game.animation.before:game.view} scale={scale}/>}
-      {!reviewEnabled&&!replay.view&&game.view&&<DifferPoints view={game.view} scale={scale}/>}
-      {!reviewEnabled&&!replay.view&&game.view&&<GameFeed key={game.saved()?.options.id||'game'} view={game.view} scale={scale} setId={cardSet} cardHeight={sheets.V?.cards[0].rect.height} messages={messages} duration={preferences.viewBubbleS??5}/>}
+      {!reviewEnabled && !replay.view && game.view && <GameCardTargets game={game} sheet={sheets.V} scale={scale} size={tableSize} setId={cardSet} />}
+      {!reviewEnabled&&!replay.view&&game.view&&<TablePlayers view={game.animation?.type==='collect'?game.animation.before:game.view} scale={scale} size={tableSize}/>}
+      {!reviewEnabled&&!replay.view&&game.view&&<DifferPoints view={game.view} scale={scale} size={tableSize}/>}
+      {!reviewEnabled&&!replay.view&&game.view&&<GameFeed key={game.saved()?.options.id||'game'} view={game.view} scale={scale} size={tableSize} setId={cardSet} cardHeight={sheets.V?.cards[0].rect.height} messages={messages} duration={preferences.viewBubbleS??5}/>}
       {!reviewEnabled&&!replay.view&&joker&&<button type="button" className="table-joker" aria-label="Joker: Ratschlag" title="Ratschlag" disabled={!canHint} style={{left:joker.x*scale,top:joker.y*scale,width:joker.width*scale,height:joker.height*scale}} onPointerDown={()=>setJokerPressed(true)} onPointerUp={()=>setJokerPressed(false)} onPointerLeave={()=>setJokerPressed(false)} onPointerCancel={()=>setJokerPressed(false)} onClick={()=>{setJokerPressed(false);game.getHint();}}><canvas ref={jokerCanvas} aria-hidden="true" style={{width:'100%',height:'100%'}}/></button>}
-      {!reviewEnabled&&!replay.view&&game.view?.pause&&!['deal','done'].includes(game.view.phase)&&!game.busy&&!game.paused&&!game.automatic&&<button type="button" className="trick-clear-target" aria-label="Stich auf dem Tisch abräumen" onClick={()=>game.action({type:'continue'})}/>}
-      {!reviewEnabled&&!replay.view&&game.view?.phase==='deal'&&!game.busy&&!game.paused&&!game.automatic&&<button type="button" className="trick-clear-target" aria-label="Nächste Runde durch Klick auf den Tisch" onClick={()=>game.action({type:'deal'})}/>}
+      {!reviewEnabled&&!replay.view&&game.view?.pause&&!game.busy&&!game.paused&&!game.automatic&&<button type="button" className="trick-clear-target" aria-label="Stich auf dem Tisch abräumen" onClick={()=>game.action({type:'continue'})}/>}
+      {!reviewEnabled&&!replay.view&&game.view?.phase==='deal'&&!game.view.pause&&!game.busy&&!game.paused&&!game.automatic&&<button type="button" className="trick-clear-target" aria-label="Nächste Runde durch Klick auf den Tisch" onClick={()=>game.action({type:'deal'})}/>}
       {!assets && !error && <p className="loading" role="status">Tisch wird geladen…</p>}
     </div>}
-    {!reviewEnabled && !showWelcome && (replay.view ? <LegacyReplay replay={replay} setId={cardSet} /> : <GameControls key={game.view?(game.saved()?.options.id||game.view.kind):'idle'} game={game} onNew={setNewGame} onDialog={openDialog} displayScale={requestedScale}/>)}
+    {!reviewEnabled && !showWelcome && (replay.view ? <LegacyReplay lowLevel={lowLevel} replay={replay} setId={cardSet} /> : <GameControls lowLevel={lowLevel} key={game.view?(game.saved()?.options.id||game.view.kind):'idle'} game={game} onNew={setNewGame} onDialog={openDialog} displayScale={requestedScale}/>)}
 
     {newGame && <GameSetup key={newGame} kind={newGame} setId={cardSet} settings={settings} onSettings={applySettings} displayScale={requestedScale} onClose={() => setNewGame(null)} onStart={options => { replay.close();game.start({...options,...(dealSeed!==null?{seed:dealSeed}:{})});setMessages([]); setNewGame(null); }} />}
     {matchHistory && <MatchHistory onClose={() => setMatchHistory(false)} />}
@@ -189,13 +213,14 @@ function App() {
     {activeDialog==='seed'&&<SeedDialog kind={activeKind} seed={dealSeed} onClose={closeDialog} onApply={seed=>{setDealSeed(seed);closeDialog();}} scale={requestedScale}/>}
     {['about','exit'].includes(activeDialog)&&<AboutDialog kind={activeKind} exit={activeDialog==='exit'} onSave={game.download} onEnd={closeGame} onClose={closeDialog} scale={requestedScale}/>}
     {activeDialog==='results'&&<ResultsDialog game={game} onClose={closeDialog} scale={requestedScale}/>}
+    {activeDialog==='information'&&information[0]&&<InformationDialog key={`${information[0].type}/${information[0].view.roundNumber}`} notice={information[0]} onClose={nextInformation} scale={requestedScale}/>}
     {activeDialog==='highscores'&&<HighScoresDialog kind={activeKind} onClose={closeDialog} scale={requestedScale}/>}
     {activeDialog==='statistics'&&<StatisticsDialog kind={activeKind} game={game} onClose={closeDialog} scale={requestedScale}/>}
     {activeDialog==='say'&&<ConversationDialog kind={activeKind} onSay={text=>setMessages(m=>m.concat({id:crypto.randomUUID(),kind:'say',player:game.view.human,text,after:game.view.feed.at(-1)?.id||0}))} onClose={closeDialog} scale={requestedScale}/>}
     {activeDialog==='archive'&&<ArchiveDialog kind={activeKind} game={game} onClose={closeDialog} scale={requestedScale}/>}
     {activeDialog==='auto'&&<AutoPlayDialog kind={activeKind} onApply={(count,speed)=>{closeDialog();game.setSpeed(speed);game.setPaused(false);game.playSeries(count);if(speed<=50)setActiveDialog('fast');}} onClose={closeDialog} scale={requestedScale}/>}
     {['forfeit','rematch'].includes(activeDialog)&&<ConfirmDialog kind={activeKind} action={activeDialog} onConfirm={()=>{closeDialog();if(activeDialog==='forfeit')game.action({type:'forfeit'});else game.start({...game.saved().options,id:crypto.randomUUID(),seed:crypto.getRandomValues(new Uint32Array(1))[0]%2147483646+1});}} onClose={closeDialog} scale={requestedScale}/>}
-    {['team','publisher','intro'].includes(activeDialog)&&<LegacyDialog kind={activeKind} form={{team:'TTEAMDLG',publisher:'THPDLG',intro:'TINTRODLG'}[activeDialog]} title={{team:'Entwicklungsteam',publisher:'Herausgeber',intro:'Stöck Wyys Stich'}[activeDialog]} onClose={closeDialog} scale={requestedScale}/>}
+    {['team','publisher','intro'].includes(activeDialog)&&<LegacyDialog kind={activeKind} form={{team:'TTEAMDLG',publisher:'THPDLG',intro:'TINTRODLG'}[activeDialog]} title={{team:'Entwicklungsteam',publisher:'Graphik design',intro:'Stöck Wyys Stich'}[activeDialog]} onClose={closeDialog} scale={requestedScale}/>}
     {activeDialog==='puzzle'&&<PuzzleDialog onClose={closeDialog} scale={requestedScale}/>}
     {activeDialog==='highname'&&<HighNameDialog onClose={closeDialog} scale={requestedScale}/>}
     {activeDialog==='fast'&&game.view&&<FastPlayDialog game={game} onClose={()=>{setActiveDialog(null);game.setAutomatic(false);}} scale={requestedScale}/>}

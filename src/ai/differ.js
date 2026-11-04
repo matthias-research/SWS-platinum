@@ -6,16 +6,24 @@ export class DifferAI {
     const { pas } = createPascalRuntime();
     this.pas = pas;
     this.family = family;
+    this.families=Array.isArray(family)?family:Array(5).fill(family);
     if (bytes.length !== 366824) throw new Error('Invalid RGDIFF.DAT length');
     pas.RGLearn.PortData = Array.from(bytes);
-    if (family === 'hacker') {
+    const prototypes={};
+    if (this.families.includes('hacker')) {
       loadHackerTables(pas, tables.call, tables.play);
       pas.HackrJss.InitHackerJasser();
-    } else if (family === 'trashy') {
+      prototypes.hacker=pas.DiffPlay.PortHandler;
+    }
+    if (this.families.includes('trashy')) {
       loadTrashyTables(pas, tables.trashy);
       pas.fdcJass.InitfdcJasser();
-    } else pas.rgJasser.InitGrumpyJasser();
-    this.players = Array.from({ length: 5 }, (_, p) => p ? pas.DiffPlay.PortHandler.NewInstance(p) : null);
+      prototypes.trashy=pas.DiffPlay.PortHandler;
+    }
+    if(this.families.includes('grumpy')){
+      pas.rgJasser.InitGrumpyJasser();prototypes.grumpy=pas.DiffPlay.PortHandler;
+    }
+    this.players = Array.from({ length: 5 }, (_, p) => p ? prototypes[this.families[p]].NewInstance(p) : null);
     this.count = 4;
   }
   command(name, data = {}) {
@@ -40,7 +48,7 @@ export class DifferAI {
   }
   request(player, name, data = {}) {
     // Jassers.pas TProtoJasser.HandleRequest declines optional Stöck.
-    if (name === 'cmdStockings' && this.family !== 'trashy') return { command: name, data: { fPlayer: player, fStockings: 0 } };
+    if (name === 'cmdStockings' && this.families[player] !== 'trashy') return { command: name, data: { fPlayer: player, fStockings: 0 } };
     const answer = this.pas.DiffCmds.TCommand.$new();
     this.players[player].HandleRequest(this.command(name, data), answer);
     const command = ['cmdCall', 'cmdCard', 'cmdStockings'].find(n => this.pas.DiffCmds[n] === answer.fCmdID);

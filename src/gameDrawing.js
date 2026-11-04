@@ -1,3 +1,4 @@
+import {BASE_TABLE,carpetRect,pileRect} from './tableGeometry';
 import { drawCard } from './cards';
 import { layout } from './table';
 export const trumpNames = ['', 'Schellen', 'Schilten', 'Rosen', 'Eicheln', 'Obenabe', 'Undenufe'];
@@ -6,51 +7,53 @@ export function cardName(id, set = 1) {
   const ranks = ['Sechs', 'Sieben', 'Acht', 'Neun', 'Zehn', set === 1 ? 'Under' : 'Bube', set === 1 ? 'Ober' : 'Dame', 'König', 'Ass'];
   return `${trumpLabels(set)[Math.floor((id - 1) / 9) + 1]} ${ranks[(id - 1) % 9]}`;
 }
-export function gameHand(view, sheet) {
+export function gameHand(view, sheet, size=BASE_TABLE) {
   if (!view || !sheet) return [];
   const { width, height } = sheet.cards[0].rect;
   const slots = view.count === 3 ? 12 : 9;
   let descending=false;try{descending=JSON.parse(localStorage.getItem('sws-preferences')||'{}').viewDescending===true;}catch{}
   const hand=descending?[...view.hand].filter(Boolean).reverse():view.hand;
-  return hand.map((id, i) => ({ id, x: 5 + Math.floor(i * (758 - width) / (slots - 1)), y: 523 - height, width, height })).filter(c => c.id);
+  return hand.map((id, i) => ({ id, x: 5 + Math.floor(i * (size.width - 10 - width) / (slots - 1)), y: size.height - 5 - height, width, height })).filter(c => c.id);
 }
-export function drawTrumpCorners(ctx,sheet,trump) {
+export function drawTrumpCorners(ctx,sheet,trump,dimensions=BASE_TABLE) {
   if(!sheet||trump<1||trump>6)return;
   // JassBmps.ShowTrump / Table.CarpetRect: 22px symbols below the four card rows.
   const size=22,s=sheet.assetScale,sourceY=4*(sheet.cards[0].rect.height-1);
-  for(const x of [269,501-size])for(const y of [52,284-size])
+  const c=carpetRect(dimensions);
+  for(const x of [c.x,c.right-size])for(const y of [c.y,c.bottom-size])
     ctx.drawImage(sheet.image,(trump-1)*size*s,sourceY*s,size*s,size*s,x,y,size,size);
 }
-export function trickPositions(sheet){
+export function trickPositions(sheet,size=BASE_TABLE){
   const {width:w,height:h}=sheet.cards[0].rect;
-  const mx = 385, my = 168, carpet = { x: 269, y: 52, right: 501, bottom: 284 };
+  const carpet=carpetRect(size),mx=carpet.x+116,my=carpet.y+116;
   return [null, { x: mx - Math.floor(w / 2), y: Math.max(carpet.y, my - h + 2), width: w, height: h },
     { x: Math.max(carpet.x, mx - h + 2), y: my - Math.floor(w / 2), width: h, height: w },
     { x: mx - Math.floor(w / 2), y: Math.min(my - 2, carpet.bottom - h), width: w, height: h },
     { x: Math.min(mx - 2, carpet.right - h), y: my - Math.floor(w / 2), width: h, height: w }];
 }
-export function drawCardAnimation(ctx,animation,sheets,progress){
+export function drawCardAnimation(ctx,animation,sheets,progress,size=BASE_TABLE){
   if(!sheets.V||!sheets.H)return;
-  const positions=trickPositions(sheets.V),t=1-Math.pow(1-progress,2);
+  const positions=trickPositions(sheets.V,size),t=1-Math.pow(1-progress,2);
   const mix=(a,b)=>Object.fromEntries(['x','y','width','height'].map(k=>[k,a[k]+(b[k]-a[k])*t]));
   if(animation.type==='play'){
     const {player,card,before}=animation,to=positions[player];
-    const from=player===before.human?gameHand(before,sheets.V).find(c=>c.id===card):
-      {...to,...[null,{x:337,y:-to.height},{x:200-to.width,y:188},{x:405,y:301},{x:574,y:76}][player]};
+    const c=carpetRect(size),boards=layout(size.width,size.height,sheets.V.cards[0].rect.height);
+    const from=player===before.human?gameHand(before,sheets.V,size).find(c=>c.id===card):
+      {...to,...[null,{x:c.x+116-to.width/2,y:-to.height},{x:boards.log.x+boards.log.width-to.width,y:c.y+116-to.height/2},{x:c.x+116-to.width/2,y:size.height},{x:boards.score.x+18,y:c.y+116-to.height/2}][player]};
     if(from)drawCard(ctx,player%2?sheets.V:sheets.H,card,mix(from,to));
   }else{
     const p=animation.winner,n=Math.max(0,(animation.after.pickedTricks[p]||1)-1);
-    const to=[null,{x:370+15*n,y:-11,width:30,height:46},{x:206,y:153-15*n,width:46,height:30},{x:370-15*n,y:301,width:30,height:46},{x:518,y:153+15*n,width:46,height:30}][p];
+    const r=pileRect(p,n,size),to={x:r.left,y:r.top,width:r.width,height:r.height};
     let player=animation.before.trick.fLeading;
     for(let i=0;i<animation.before.count;i++,player=player===animation.before.count?1:player+1)
       drawCard(ctx,player%2?sheets.V:sheets.H,animation.before.trick.fPlayed[player],mix(positions[player],to));
   }
 }
-export function drawGame(canvas, view, sheets, setId = 1, animation=null) {
+export function drawGame(canvas, view, sheets, setId = 1, animation=null, size=BASE_TABLE) {
   if (!view || !sheets.V || !sheets.H) return;
-  const ctx = canvas.getContext('2d'), {height:h}=sheets.V.cards[0].rect,positions=trickPositions(sheets.V);
-  drawTrumpCorners(ctx,sheets.V,view.trump);
-  if (view.trick&&!['deal','done'].includes(view.phase)) {
+  const ctx = canvas.getContext('2d'), {height:h}=sheets.V.cards[0].rect,positions=trickPositions(sheets.V,size);
+  drawTrumpCorners(ctx,sheets.V,view.trump,size);
+  if (view.trick&&(view.pause||!['deal','done'].includes(view.phase))) {
     let p = view.trick.fLeading || 1;
     for (let i = 0; i < view.count; i++, p = p === view.count ? 1 : p + 1) {
       const card = view.trick.fPlayed[p];
@@ -58,11 +61,11 @@ export function drawGame(canvas, view, sheets, setId = 1, animation=null) {
     }
   }
   const legal = view.request?.player === view.human && view.request.command === 'cmdPlay' ? view.request.data.fLegal : null;
-  for (const card of gameHand(view, sheets.V)) {
+  for (const card of gameHand(view, sheets.V,size)) {
     drawCard(ctx, sheets.V, card.id, card);
     if (legal && !legal.includes(card.id)) { ctx.fillStyle = '#0005'; ctx.fillRect(card.x + 2, card.y + 2, card.width - 4, card.height - 4); }
   }
-  const { log, score } = layout(768, 528, h);
+  const { log, score } = layout(size.width, size.height, h);
   ctx.save(); ctx.font = '11px Arial'; ctx.textBaseline = 'top'; ctx.fillStyle = '#111';
   if(!view.feed){
   const x = log.x + 18; let y = log.y + 54;

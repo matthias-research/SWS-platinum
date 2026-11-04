@@ -1,3 +1,4 @@
+import {BASE_TABLE} from './tableGeometry';
 import { ASSETS, DISPLAY } from './config';
 import { drawMaskedSprite } from './raster';
 import {graphicsUrl} from './graphics';
@@ -68,14 +69,14 @@ function sprite(ctx, assets, id, x, y, maskId) {
 }
 
 // Original TTable.GloonRect: the joker sits over the bottom edge of its board.
-export function jokerRect(assets,kind,cardHeight=118){
-  const {log,score}=layout(DISPLAY.width,DISPLAY.height,cardHeight),r=assets.manifest.rects;
+export function jokerRect(assets,kind,cardHeight=118,size=BASE_TABLE){
+  const {log,score}=layout(size.width,size.height,cardHeight),r=assets.manifest.rects;
   const board=kind==='differ'?log:score,base=kind==='differ'?39:59;
   return {x:board.x+board.width-r[base+6].width-(kind==='differ'?18:0)-r[90].width,
     y:board.y+board.height-r[base+10].height-53,width:r[90].width,height:r[90].height};
 }
-export function drawTableJoker(canvas,overlay,assets,kind,cardHeight,pressed){
-  const r=jokerRect(assets,kind,cardHeight),ctx=canvas.getContext('2d'),t=ctx.getTransform();
+export function drawTableJoker(canvas,overlay,assets,kind,cardHeight,pressed,size=BASE_TABLE){
+  const r=jokerRect(assets,kind,cardHeight,size),ctx=canvas.getContext('2d'),t=ctx.getTransform();
   sprite(ctx,assets,pressed?89:90,r.x,r.y,pressed?91:92);
   // Keep the sprite above the HTML feed, with the original table beneath its mask.
   overlay.width=Math.round(r.width*t.a);overlay.height=Math.round(r.height*t.d);
@@ -103,16 +104,19 @@ function border(ctx, assets, b, base) {
   return { x: b.x + w(14), y: b.y + h(2), width: b.width - w(14) - w(6), height: b.height - h(2) - h(10) };
 }
 
-export function drawTable(canvas, assets, mode, scale, pixelRatio, cardHeight = 118) {
-  canvas.width = Math.round(DISPLAY.width * scale * pixelRatio);
-  canvas.height = Math.round(DISPLAY.height * scale * pixelRatio);
+export function drawTable(canvas, assets, mode, scale, pixelRatio, cardHeight = 118, size = BASE_TABLE) {
+  canvas.width = Math.round(size.width * scale * pixelRatio);
+  canvas.height = Math.round(size.height * scale * pixelRatio);
   const ctx = canvas.getContext('2d');
-  ctx.setTransform(canvas.width / DISPLAY.width, 0, 0, canvas.height / DISPLAY.height, 0, 0);
+  ctx.setTransform(canvas.width / size.width, 0, 0, canvas.height / size.height, 0, 0);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
-  const { background, log, score } = layout(DISPLAY.width, DISPLAY.height, cardHeight);
-  const a = ASSETS[mode];
-  ctx.drawImage(assets[mode], 0, 0, 1024 * a.scale, 768 * a.scale, background.x, background.y, 1024, 768);
+  // The original centered bitmap has finite bounds; keep larger windows dark.
+  ctx.fillStyle = '#0d0d0d';
+  ctx.fillRect(0, 0, size.width, size.height);
+  const { background, log, score } = layout(size.width, size.height, cardHeight);
+  const a=ASSETS[mode];
+  ctx.drawImage(assets[mode],0,0,1024*a.scale,768*a.scale,background.x,background.y,1024,768);
 
   const paper = border(ctx, assets, log, 39);
   ctx.fillStyle = '#fff'; ctx.fillRect(paper.x, paper.y, paper.width, paper.height);

@@ -66,8 +66,10 @@ test('card hit targets track 1x/2x/3x, high DPI, horizontal overlap and mobile f
     const table = page.getByRole('img');
     await expect(table).toHaveAttribute('data-ready', 'true');
     for (const scale of [1, 2, 3]) {
-      await page.getByRole('button', { name: 'Ansicht', exact: true }).click();
-      await page.getByRole('button', { name: `${scale}× Vergrösserung` }).click();
+      await page.getByRole('button', { name: 'Browser', exact: true }).click();
+      await page.getByRole('button', { name: 'Adaptive resolution',exact:true }).click();
+      // Leave room for the stable scrollbar gutters; height sets the exact scale.
+      await page.setViewportSize({width:768*scale+64,height:528*scale+180});
       await expect(table).toHaveAttribute('data-scale', String(scale));
       await expect(table).toHaveAttribute('width', String(768 * scale * dpr));
       for (const id of [1, 5, 9]) {
