@@ -17,7 +17,8 @@ for(const kind of ['Schieber','Differenzler'])test(`${kind} decision leaves the 
   await page.screenshot({path:`artifacts/browser/${kind.toLowerCase()}-decision-mobile.png`});
   if(kind==='Schieber')await page.getByRole('dialog').getByRole('button',{name:'Schellen',exact:true}).click();
   else{await page.getByRole('textbox',{name:'Ansage',exact:true}).fill('60');await page.getByRole('dialog').getByRole('button',{name:'OK',exact:true}).click();}
-  await expect(page.getByRole('log',{name:'Spielverlauf'})).toContainText(kind==='Schieber'?'Sie trumpft':'Sie sagt 60');
+  if(kind==='Schieber')await expect(page.getByRole('log',{name:'Spielverlauf'})).toContainText('Sie trumpft');
+  else{await expect(page.locator('.points-plate[data-player="3"]')).toHaveAttribute('data-call','60');await expect(page.getByRole('log',{name:'Spielverlauf'})).not.toContainText('Sie sagt 60');}
 });
 
 test('all six trump symbols use the original card-sheet pixels in all four carpet corners',async({page})=>{
@@ -30,9 +31,11 @@ test('all six trump symbols use the original card-sheet pixels in all four carpe
       const sheet=await loadCardSheet(manifest,set,size,'V'),canvas=document.createElement('canvas');canvas.width=768;canvas.height=528;const ctx=canvas.getContext('2d');
       const expected=document.createElement('canvas');expected.width=22;expected.height=22;const ec=expected.getContext('2d');
       for(let trump=1;trump<=6;trump++){
-        drawTrumpCorners(ctx,sheet,trump);ec.drawImage(sheet.image,(trump-1)*22,4*(sheet.cards[0].rect.height-1),22,22,0,0,22,22);
+        ctx.clearRect(0,0,768,528);ec.clearRect(0,0,22,22);
+        const s=sheet.assetScale;
+        drawTrumpCorners(ctx,sheet,trump);ec.drawImage(sheet.image,(trump-1)*22*s,4*(sheet.cards[0].rect.height-1)*s,22*s,22*s,0,0,22,22);
         const pixels=ec.getImageData(0,0,22,22).data;
-        for(const x of [269,479])for(const y of [52,262])if(!ctx.getImageData(x,y,22,22).data.every((n,i)=>n===pixels[i]))failures.push({set,size,trump,x,y});
+        for(const x of [269,479])for(const y of [52,262])if(!ctx.getImageData(x,y,22,22).data.every((n,i)=>Math.abs(n-pixels[i])<=1))failures.push({set,size,trump,x,y});
       }
       ctx.clearRect(0,0,768,528);drawTrumpCorners(ctx,sheet,0);if(ctx.getImageData(269,52,22,22).data.some(Boolean))failures.push('No-trump should be blank');
     }

@@ -14,7 +14,7 @@ function pixelsFor(image) {
 // Delphi's SRCAND / SRCPAINT are channel-wise operations, not alpha masks.
 // Composite against the current destination at backing-store resolution. Draw
 // the result normally so the caller's clip remains effective (putImageData ignores it).
-export function drawMaskedSprite(ctx, image, rect, mask, x, y, assetScale = 1) {
+export function drawMaskedSprite(ctx, image, rect, mask, x, y, assetScale = image.assetScale||1) {
   const t = ctx.getTransform();
   if (t.b || t.c || t.a <= 0 || t.d <= 0) throw new Error('Masked sprites require positive axis-aligned scaling');
   const left = Math.max(0, Math.floor(x * t.a + t.e));
@@ -29,6 +29,7 @@ export function drawMaskedSprite(ctx, image, rect, mask, x, y, assetScale = 1) {
   // Sample texel centres explicitly: browser drawImage can sample neighbouring
   // atlas pixels at fractional destinations, even with smoothing disabled.
   const atlas = pixelsFor(image);
+  const maskAtlas=pixelsFor(image.maskSource||image),maskScale=image.maskSource?1:assetScale;
   const result = ctx.getImageData(left, top, width, height);
   for (let row = 0; row < height; row++) for (let column = 0; column < width; column++) {
     const u = ((left + column + 0.5 - t.e) / t.a - x) / rect.width;
@@ -36,10 +37,11 @@ export function drawMaskedSprite(ctx, image, rect, mask, x, y, assetScale = 1) {
     if (u < 0 || u >= 1 || v < 0 || v >= 1) continue;
     const sample = r => 4 * (Math.floor((r.y + v * r.height) * assetScale) * atlas.width
       + Math.floor((r.x + u * r.width) * assetScale));
-    const foreground = sample(rect), maskPixel = sample(mask);
+    const foreground = sample(rect), maskPixel = 4*(Math.floor((mask.y+v*mask.height)*maskScale)*maskAtlas.width+Math.floor((mask.x+u*mask.width)*maskScale));
     const i = 4 * (row * width + column);
     for (let channel = 0; channel < 3; channel++) {
-      result.data[i + channel] = (result.data[i + channel] & atlas.data[maskPixel + channel]) | atlas.data[foreground + channel];
+      const maskValue=maskAtlas.data[maskPixel+channel];
+      result.data[i + channel] = (result.data[i + channel] & maskValue) | (atlas.data[foreground + channel] & (image.maskSource?255-maskValue:255));
     }
     result.data[i + 3] = 255;
   }

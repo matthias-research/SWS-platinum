@@ -1,9 +1,9 @@
+import {graphicsUrl} from './graphics';
 import React, { useEffect, useRef, useState } from 'react';
 import { DISPLAY } from './config';
 import { DefaultRules } from './engine/SWSBase';
 import { DefaultRules as DifferRules } from './engine/DiffBase';
 import {useDialogCatalog,formImage} from './dialogs/LegacyDialog';
-const base = `${import.meta.env.BASE_URL}assets/setup/`;
 const seats = [{p:1,name:'Nord',x:208,y:69},{p:2,name:'West',x:93,y:174},{p:4,name:'Ost',x:321,y:174}];
 const strengths = ['Schwach','Mittel','Stark'];
 const characterNames = ['Birgit','Beat','Stéphanie','Walter'];
@@ -44,10 +44,10 @@ export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules, d
     <dialog ref={dialog} className="legacy-new-jass" aria-label="Neuer Jass" onCancel={e=>{if(picker!==null){e.preventDefault();setPicker(null);}else onClose();}} style={{width:464*scale,height:height*scale,'--setup-button-top':`${386+offset}px`}}>
       <form onSubmit={start} className="legacy-setup-content" style={{height,transform:`scale(${scale})`}}>
         <header className="legacy-caption">{differ?'Neuer Differenzler':'Neuer Jass'}<button type="button" aria-label="Schliessen" onClick={onClose}>×</button></header>
-        <div className="legacy-setup-board" style={{height:height-22,backgroundImage:`url(${differ?formImage(catalog,'differ','TDLGNEWJASS',rules.fNuPlayers===3?'Back3Image':'BackImage'):base+'schieber.png'})`,backgroundPosition:`0 ${offset}px`}}>
+        <div className="legacy-setup-board" style={{height:height-22,backgroundImage:`url(${differ?formImage(catalog,'differ','TDLGNEWJASS',rules.fNuPlayers===3?'Back3Image':'BackImage'):graphicsUrl('setup/schieber.png')})`,backgroundPosition:`0 ${offset}px`}}>
           {seats.filter(s=>!differ||s.p<=rules.fNuPlayers).map(({p,name:seat,x,y})=><div key={p} className="legacy-player" style={{left:x,top:y+offset}}>
             <button type="button" className="legacy-portrait" aria-label={`${seat}: Figur ${selection.characters[p]+1}, ${strengths[selection.strengths[p]]}. Spieler wählen`} onClick={()=>setPicker(p)}>
-              <img src={`${base}${7006+1000*selection.characters[p]+selection.strengths[p]}.png`} alt="" title={characterNames[selection.characters[p]]} draggable="false" />
+              <img src={graphicsUrl(`setup/${7006+1000*selection.characters[p]+selection.strengths[p]}.png`)} alt="" title={characterNames[selection.characters[p]]} draggable="false" />
             </button>
             <div className="legacy-scroll">
               <button type="button" aria-label={`${seat} stärker`} disabled={selection.strengths[p]===2} onClick={()=>change('strengths',p,selection.strengths[p]+1)}>◀</button>
@@ -56,8 +56,8 @@ export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules, d
             </div>
           </div>)}
           <div className="legacy-player legacy-human" style={{left:208,top:210+offset}}>
-            <img className="legacy-human-frame" src={`${base}5006.png`} alt="Mensch" />
-            <button type="button" className="legacy-avatar" aria-label="Ihr Spielerbild wählen" onClick={()=>setPicker(3)}><img src={`${base}${selection.avatar}.png`} alt="" /></button>
+            <img className="legacy-human-frame" src={graphicsUrl(`setup/5006.png`)} alt="Mensch" />
+            <button type="button" className="legacy-avatar" aria-label="Ihr Spielerbild wählen" onClick={()=>setPicker(3)}><img src={graphicsUrl(`setup/${selection.avatar}.png`)} alt="" /></button>
             <input className="legacy-player-name" aria-label="Ihr Name" value={name} required maxLength={30} onChange={e=>setName(e.target.value)} />
           </div>
           <button className="legacy-ok legacy-bottom" type="submit" aria-label="Spielen"><span>✓</span>OK</button>
@@ -72,7 +72,7 @@ export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules, d
           <p>{picker===3?'Ihr Spielerbild':'Computer-Spieler'}</p>
           <div>{Array.from({length:picker===3?20:4},(_,i)=>{
             const id=picker===3?5200+i:7008+i*1000;
-            return <button type="button" key={id} aria-label={picker===3?`Spielerbild ${i+1}`:`Figur ${i+1}`} onClick={()=>{if(picker===3)setSelection(s=>({...s,avatar:id}));else change('characters',picker,i);setPicker(null);}}><img src={`${base}${id}.png`} alt="" /></button>;
+            return <button type="button" key={id} aria-label={picker===3?`Spielerbild ${i+1}`:`Figur ${i+1}`} onClick={()=>{if(picker===3)setSelection(s=>({...s,avatar:id}));else change('characters',picker,i);setPicker(null);}}><img src={graphicsUrl(`setup/${id}.png`)} alt="" /></button>;
           })}</div>
           <button type="button" onClick={()=>setPicker(null)}>Zurück</button>
         </div>}

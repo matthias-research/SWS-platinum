@@ -1,8 +1,10 @@
+import {useGraphics} from './graphics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { handLayout, hitCard, loadCardManifest, loadCardSheet } from './cards';
 import { toLogicalPoint } from './config';
 
 export function useCardReview(enabled) {
+  const graphics=useGraphics();
   const [manifest, setManifest] = useState(null);
   const [sheet, setSheet] = useState(null);
   const [setId, setSetId] = useState(1);
@@ -24,7 +26,7 @@ export function useCardReview(enabled) {
     loadCardSheet(manifest, setId, size, orientation).then(value => { if (active) setSheet(value); })
       .catch(e => { if (active) setError(e.message); });
     return () => { active = false; };
-  }, [manifest, setId, size, orientation]);
+  }, [manifest, setId, size, orientation, graphics]);
   const cards = useMemo(() => sheet ? handLayout(sheet, first) : [], [sheet, first]);
   return { sheet, cards, selected, setSelected, setId, setSetId, size, setSize, orientation,
     setOrientation, first, setFirst, error };

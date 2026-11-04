@@ -1,16 +1,16 @@
+import {graphicsUrl} from '../graphics';
 import React,{useState} from 'react';
 import {LegacyDialog,DialogFrame,useDialogCatalog,formImage,looseImage,imageUrl} from './LegacyDialog';
 import * as D from '../engine/DiffBase';
 import {CreditsCanvas} from './BitmapCanvas';
 import differPieces from '../../public/assets/differ-pieces.json';
-const setupBase=`${import.meta.env.BASE_URL}assets/setup/`;
 const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}};
 export function downloadJSON(value,name){const url=URL.createObjectURL(new Blob([JSON.stringify(value)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 export function ProfileDialog({kind,onClose,scale}){
   const saved=read('sws-profile',{}),selection=read('sws-setup',{});
   const [values,setValues]=useState({NickEdit:localStorage.getItem('sws-player')||'Sie',NameEdit:saved.fullName||'',MaleRadio:saved.gender!=='female',FemaleRadio:saved.gender==='female',IconScroll:(selection.avatar||5208)-5200});
   const [error,setError]=useState('');
-  return <LegacyDialog kind={kind} form="TPROFILEDLG" onClose={onClose} scale={scale} values={values} overrides={{NickEdit:{'aria-label':'Übername',MaxLength:30},NameEdit:{'aria-label':'Voller Name',MaxLength:80},IconScroll:{Max:19,'aria-label':'Spielerbild'}}} onChange={(n,v)=>setValues(s=>({...s,[n]:v,...(n==='MaleRadio'?{FemaleRadio:false}:n==='FemaleRadio'?{MaleRadio:false}:{})}))} onAction={n=>{if(n==='BitBtn1'){if(!values.NickEdit.trim()){setError('Bitte einen Übernamen eingeben.');return;}localStorage.setItem('sws-player',values.NickEdit.trim());localStorage.setItem('sws-profile',JSON.stringify({fullName:values.NameEdit,gender:values.FemaleRadio?'female':'male'}));localStorage.setItem('sws-setup',JSON.stringify({...selection,characters:selection.characters||[0,0,2,0,3],strengths:selection.strengths||[0,2,2,0,2],avatar:5200+values.IconScroll}));}onClose();}} render={c=>c.name==='IconBox'?<img width="41" height="47" src={`${setupBase}${5100+values.IconScroll}.png`} alt="Gewähltes Spielerbild"/>:undefined}>{error&&<p role="alert" className="original-error">{error}</p>}</LegacyDialog>;
+  return <LegacyDialog kind={kind} form="TPROFILEDLG" onClose={onClose} scale={scale} values={values} overrides={{NickEdit:{'aria-label':'Übername',MaxLength:30},NameEdit:{'aria-label':'Voller Name',MaxLength:80},IconScroll:{Max:19,'aria-label':'Spielerbild'}}} onChange={(n,v)=>setValues(s=>({...s,[n]:v,...(n==='MaleRadio'?{FemaleRadio:false}:n==='FemaleRadio'?{MaleRadio:false}:{})}))} onAction={n=>{if(n==='BitBtn1'){if(!values.NickEdit.trim()){setError('Bitte einen Übernamen eingeben.');return;}localStorage.setItem('sws-player',values.NickEdit.trim());localStorage.setItem('sws-profile',JSON.stringify({fullName:values.NameEdit,gender:values.FemaleRadio?'female':'male'}));localStorage.setItem('sws-setup',JSON.stringify({...selection,characters:selection.characters||[0,0,2,0,3],strengths:selection.strengths||[0,2,2,0,2],avatar:5200+values.IconScroll}));}onClose();}} render={c=>c.name==='IconBox'?<img width="41" height="47" src={graphicsUrl(`setup/${5100+values.IconScroll}.png`)} alt="Gewähltes Spielerbild"/>:undefined}>{error&&<p role="alert" className="original-error">{error}</p>}</LegacyDialog>;
 }
 export function SeedDialog({kind,seed,onClose,onApply,scale}){
   const [value,setValue]=useState(String(seed||1)),[error,setError]=useState('');
@@ -51,7 +51,7 @@ function SchieberRoundDialog({view:v,onClose,scale}){
   const factor=Math.max(1,v.rules.fTrumpFactor[round.trump]);
   return <LegacyDialog kind="schieber" form="TINFODLG" title={win?'Sieg':'Ende der Runde'} onClose={next} onAction={next} scale={scale} render={c=>c.name==='PaintBox'?null:undefined}>
     <img className="original-background" src={looseImage(data,win?'win2.bmp':'round2.bmp')} alt=""/>
-    {portraits.map(([p,left,top])=>{const happy=(p===1||p===3?1:2)===(win?winner:team),icon=p===v.human?(v.avatar||5208):7009+1000*(v.characters?.[p]||0)+(happy?2:0);return <img key={p} src={`${setupBase}${icon}.png`} alt={v.names[p]} title={v.names[p]} style={{position:'absolute',left,top,width:56,height:72}}/>;})}
+    {portraits.map(([p,left,top])=>{const happy=(p===1||p===3?1:2)===(win?winner:team),icon=p===v.human?(v.avatar||5208):7009+1000*(v.characters?.[p]||0)+(happy?2:0);return <img key={p} src={graphicsUrl(`setup/${icon}.png`)} alt={v.names[p]} title={v.names[p]} style={{position:'absolute',left,top,width:56,height:72}}/>;})}
     {[2,1].map((t,i)=><div key={t} role="group" aria-label={`${v.names[t===1?1:2]} & ${v.names[t===1?3:4]}`} style={{position:'absolute',left:win?367:99,top:win?180+i*80.5:135+i*90,width:win?134:155,height:win?80.5:90,fontFamily:'Arial',textAlign:'center'}}>
       {!win&&<div style={{height:45,display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:13.333}}>{factor}×(<span style={{fontSize:21.333}}>{(round.pts[t]-round.suitPts[t])/factor}</span>+{round.suitPts[t]/factor})={round.pts[t]}</div>}
       <div style={{height:win?80.5:45,display:'flex',alignItems:'center',justifyContent:'center',color:'yellow',fontSize:21.333}}>{v.scores[t]}</div>
@@ -63,14 +63,14 @@ function DifferRoundDialog({view:v,onClose,scale}){
   const round=v.history.at(-1),players=Array.from({length:v.count},(_,i)=>i+1);
   const total=p=>v.history.reduce((sum,r)=>sum+D.DeltaOf(r.call[p],r.made[p],r.bonus[p]),0);
   players.sort((a,b)=>total(a)-total(b));
-  const digit=(id,left,top)=>{const r=differPieces.rects[id];return <span style={{position:'absolute',left,top,width:r.width,height:r.height,backgroundImage:`url(${import.meta.env.BASE_URL}assets/differ-pieces.bmp)`,backgroundPosition:`-${r.x}px -${r.y}px`}}/>;};
+  const digit=(id,left,top)=>{const r=differPieces.rects[id];return <span style={{position:'absolute',left,top,width:r.width,height:r.height,backgroundImage:`url(${graphicsUrl('differ-pieces.bmp')})`,backgroundSize:'510px 603px',backgroundPosition:`-${r.x}px -${r.y}px`}}/>;};
   return <LegacyDialog kind="differ" form="TROUNDDLG" title={v.phase==='done'?'Jass beendet':'Spielstand'} onClose={onClose} scale={scale}>
     <img className="original-background" src={formImage(data,'differ','TROUNDDLG','BackImg')} alt=""/>
     {round&&<div role="table" aria-label="Rundenresultat" style={{position:'absolute',left:279,top:138,width:295,height:230,color:'white',font:'11px Arial'}}>
       {players.map((p,i)=>{const h=Math.floor(230/v.count),y=i*h+Math.floor(h/2),level=i===0?2:i===1?1:0,icon=p===v.human?5100+(v.avatar||5208)-5200:7100+1000*(v.characters?.[p]||0)+level;
         return <div role="row" key={p} aria-label={`${i+1}. ${v.names[p]}`}>
           {digit(94+i,5,y-7)}{digit(103,5+differPieces.rects[94+i].width,y-7)}
-          <img src={`${setupBase}${icon}.png`} alt={v.names[p]} style={{position:'absolute',left:25,top:y-23,width:41,height:47}}/>
+          <img src={graphicsUrl(`setup/${icon}.png`)} alt={v.names[p]} style={{position:'absolute',left:25,top:y-23,width:41,height:47}}/>
           <span role="cell" style={{position:'absolute',left:71,top:y-6,width:70,overflow:'hidden',whiteSpace:'nowrap'}}>{v.names[p]}</span>
           <span role="cell" style={{position:'absolute',left:146,top:y-6}}>{round.call[p]}:{round.made[p]}{round.bonus[p]>0?`-${round.bonus[p]}`:''}</span>
           <span role="cell" style={{position:'absolute',left:196,top:y-6}}>= {D.DeltaOf(round.call[p],round.made[p],round.bonus[p])}</span>
@@ -114,12 +114,12 @@ export function StatisticsDialog({kind,game,onClose,scale}){
   }
   const calls=kind==='differ'?all.map(r=>r.call[player]):[],errors=kind==='differ'?all.map(r=>r.made[player]-r.call[player]):[];
   const graphs={ptsBox:diffs.slice(-30),DiffHistBox:diffs.slice(-30),diffDistBox:histogram(errors,-157,157),callDistBox:histogram(calls,0,157),callDiffBox:Array.from({length:16},(_,i)=>Number(avg(diffs.filter((_,j)=>Math.floor(calls[j]/10)===i))))};
-  return <LegacyDialog kind={kind} form="TSTATISTICSDLG" onClose={onClose} scale={scale} values={values} overrides={{comboBox:{Style:'csDropDownList','Items.Strings':names.slice(1).map((_,i)=>String(i+1)),'aria-label':'Spieler'}}} onChange={(n,v)=>setPlayer(Number(v))} render={(c,p)=>c.name.startsWith('trumpBox')?<img width="26" height="26" src={`${import.meta.env.BASE_URL}assets/dialogs/symbols/${game.sound.set}-${p.Tag}.png`} alt="Trumpf"/>:c.className==='TPaintBox'?<Plot values={graphs[c.name]||[]} label={c.name}/>:undefined}/>;
+  return <LegacyDialog kind={kind} form="TSTATISTICSDLG" onClose={onClose} scale={scale} values={values} overrides={{comboBox:{Style:'csDropDownList','Items.Strings':names.slice(1).map((_,i)=>String(i+1)),'aria-label':'Spieler'}}} onChange={(n,v)=>setPlayer(Number(v))} render={(c,p)=>c.name.startsWith('trumpBox')?<img width="26" height="26" src={graphicsUrl(`dialogs/symbols/${game.sound.set}-${p.Tag}.png`)} alt="Trumpf"/>:c.className==='TPaintBox'?<Plot values={graphs[c.name]||[]} label={c.name}/>:undefined}/>;
 }
 export function ConversationDialog({kind,onClose,onSay,scale}){
   const [values,setValues]=useState({edit:'',Radio3:true,ScrollBar:3});
   const mood=Number(Object.keys(values).find(k=>/^Radio/.test(k)&&values[k])?.slice(-1)||3);
-  return <LegacyDialog kind={kind} form="TSAYDLG" onClose={onClose} scale={scale} values={values} overrides={{edit:{'aria-label':'Nachricht',MaxLength:160},ScrollBar:{Max:4}}} onChange={(n,v)=>setValues(s=>({...s,...(/^Radio/.test(n)?{Radio1:false,Radio2:false,Radio3:false,Radio4:false,Radio5:false}:{}),[n]:v}))} onAction={n=>{if(n==='sayButton'&&values.edit.trim()){onSay(values.edit.trim());setValues(s=>({...s,edit:''}));}else if(n!=='sayButton')onClose();}} render={c=>/iconbox/i.test(c.name)?<img src={`${setupBase}${5105+(kind==='schieber'?mood-1:values.ScrollBar)}.png`} alt="Stimmung"/>:undefined}/>;
+  return <LegacyDialog kind={kind} form="TSAYDLG" onClose={onClose} scale={scale} values={values} overrides={{edit:{'aria-label':'Nachricht',MaxLength:160},ScrollBar:{Max:4}}} onChange={(n,v)=>setValues(s=>({...s,...(/^Radio/.test(n)?{Radio1:false,Radio2:false,Radio3:false,Radio4:false,Radio5:false}:{}),[n]:v}))} onAction={n=>{if(n==='sayButton'&&values.edit.trim()){onSay(values.edit.trim());setValues(s=>({...s,edit:''}));}else if(n!=='sayButton')onClose();}} render={c=>/iconbox/i.test(c.name)?<img src={graphicsUrl(`setup/${5105+(kind==='schieber'?mood-1:values.ScrollBar)}.png`)} width="41" height="47" alt="Stimmung"/>:undefined}/>;
 }
 export function ConfirmDialog({kind,action,onClose,onConfirm,scale}){
   const form=action==='rematch'?'TREVDLG':kind==='schieber'?'TDIRTYDLG':'TREVDLG';

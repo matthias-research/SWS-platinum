@@ -1,25 +1,33 @@
 import { ASSETS, DISPLAY } from './config';
 import { drawMaskedSprite } from './raster';
+import {graphicsUrl} from './graphics';
 
 export function loadImage(url) {
   return new Promise((resolve, reject) => {
     const image = new Image();
-    image.onload = () => resolve(image);
+    image.onload = async () => {
+      image.assetScale=url.includes('/assets/enhanced/')&&!url.includes('enhanced-2x')?2:1;
+      if(image.assetScale===2){
+        try {image.maskSource=await loadImage(url.replace('/assets/enhanced/','/assets/'));}catch(error){reject(error);return;}
+      }
+      resolve(image);
+    };
     image.onerror = () => reject(new Error(`Bild konnte nicht geladen werden: ${url}`));
     image.src = url;
   });
 }
 
-export async function loadAssets() {
+export async function loadAssets(mode='original') {
   const [original, enhanced, pieces, manifest] = await Promise.all([
-    loadImage(ASSETS.original.url), loadImage(ASSETS.enhanced.url), loadImage(ASSETS.pieces.url),
+    loadImage(ASSETS.original.url), loadImage(ASSETS.enhanced.url), loadImage(graphicsUrl('schieber-pieces.bmp',mode)),
     fetch(ASSETS.manifest).then(r => { if (!r.ok) throw new Error('Grafikverzeichnis fehlt'); return r.json(); }),
   ]);
   const [differOriginal, differEnhanced, diffPieces, diffManifest] = await Promise.all([
     loadImage(ASSETS.differOriginal.url), loadImage(ASSETS.differEnhanced.url),
-    loadImage(`${import.meta.env.BASE_URL}assets/differ-pieces.bmp`),
+    loadImage(graphicsUrl('differ-pieces.bmp',mode)),
     fetch(`${import.meta.env.BASE_URL}assets/differ-pieces.json`).then(r=>r.json()),
   ]);
+  manifest.assetScale=pieces.assetScale;diffManifest.assetScale=diffPieces.assetScale;
   return { original, enhanced, pieces, manifest, sprites: new Map(), differ: {
     original:differOriginal, enhanced:differEnhanced, pieces:diffPieces, manifest:diffManifest, sprites:new Map(),
   } };
@@ -107,9 +115,12 @@ export function drawTable(canvas, assets, mode, scale, pixelRatio, cardHeight = 
   // Isolate the tile before repeating: sampling the atlas directly at fractional
   // display scales bleeds neighbouring light pixels into visible grid seams.
   const tile = document.createElement('canvas');
-  tile.width = 32; tile.height = 32;
-  sprite(tile.getContext('2d'), assets, 121, 0, 0);
-  ctx.fillStyle = ctx.createPattern(tile, 'repeat');
+  const tileScale=assets.manifest.assetScale;
+  tile.width = 32*tileScale; tile.height = 32*tileScale;
+  const tileContext=tile.getContext('2d');tileContext.scale(tileScale,tileScale);
+  sprite(tileContext, assets, 121, 0, 0);
+  const pattern=ctx.createPattern(tile, 'repeat');pattern.setTransform(new DOMMatrix().scale(1/tileScale));
+  ctx.fillStyle = pattern;
   ctx.fillRect(board.x, board.y, board.width, board.height);
   ctx.fillStyle = '#fff'; ctx.font = '11px Arial'; ctx.textBaseline = 'top';
   ctx.fillText('West & Ost', board.x + 10, board.y + 8);

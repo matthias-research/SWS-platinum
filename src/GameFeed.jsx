@@ -1,9 +1,9 @@
+import {graphicsUrl} from './graphics';
 import React,{useEffect,useRef,useState} from 'react';
 import {layout} from './table';
 import {trumpLabels} from './gameDrawing';
 import {DialogCards} from './dialogs/DecisionDialogs';
 
-const base=import.meta.env.BASE_URL;
 export function eventText(event,view,setId){
   const name=view.names[event.player]||'';
   switch(event.kind){
@@ -23,7 +23,7 @@ function EventContent({event,view,setId}){
   const cards=event.kind==='stockings'?[[9*(event.trump-1)+7,9*(event.trump-1)+8]]:event.cards?.filter(row=>row.length);
   const icon=event.player===view.human?5100+((view.avatar||5208)-5200):7101+1000*(view.characters?.[event.player]||0);
   return <>
-    <div className="feed-line">{event.kind==='say'&&<img className="feed-portrait" src={`${base}assets/setup/${icon}.png`} alt=""/>}<span>{event.kind==='trump'?`${view.names[event.player]} trumpft`:eventText(event,view,setId)}</span>{event.kind==='trump'&&<img className="feed-trump" src={`${base}assets/dialogs/symbols/${setId}-${event.trump}.png`} alt={trumpLabels(setId)[event.trump]}/>}</div>
+    <div className="feed-line">{event.kind==='say'&&<img className="feed-portrait" src={graphicsUrl(`setup/${icon}.png`)} alt=""/>}<span>{event.kind==='trump'?`${view.names[event.player]} trumpft`:eventText(event,view,setId)}</span>{event.kind==='trump'&&<img className="feed-trump" src={graphicsUrl(`dialogs/symbols/${setId}-${event.trump}.png`)} alt={trumpLabels(setId)[event.trump]}/>}</div>
     {cards?.length>0&&<div className="feed-cards"><DialogCards setId={setId} width={148} height={cards.length*59} rows={cards}/></div>}
   </>;
 }

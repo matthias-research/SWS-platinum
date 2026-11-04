@@ -1,10 +1,11 @@
+import {graphicsUrl,useGraphics} from '../graphics';
 import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
 import { DISPLAY } from '../config';
 export const dialogBase=`${import.meta.env.BASE_URL}assets/dialogs/`;
 let catalogPromise;
 export function loadDialogCatalog(){return catalogPromise??=fetch(`${dialogBase}manifest.json`).then(r=>{if(!r.ok)throw new Error('Dialoggrafiken fehlen');return r.json();});}
-export function useDialogCatalog(){const [data,setData]=useState(null);const[error,setError]=useState('');useEffect(()=>{let active=true;loadDialogCatalog().then(d=>{if(active)setData(d);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[]);return{data,error};}
-export function imageUrl(data,id){return id&&data.images[id]?dialogBase+data.images[id].file:undefined;}
+export function useDialogCatalog(){useGraphics();const [data,setData]=useState(null);const[error,setError]=useState('');useEffect(()=>{let active=true;loadDialogCatalog().then(d=>{if(active)setData(d);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[]);return{data,error};}
+export function imageUrl(data,id){return id&&data.images[id]?graphicsUrl(`dialogs/${data.images[id].file}`):undefined;}
 export function formImage(data,kind,form,name){const c=data?.forms[kind]?.[form]?.components.find(c=>c.name===name);return c&&imageUrl(data,Object.values(c.images)[0]);}
 export function looseImage(data,name){return imageUrl(data,data?.loose[name.toLowerCase()]);}
 const captions={bkOK:'OK',bkCancel:'Abbrechen',bkYes:'Ja',bkNo:'Nein',bkClose:'Schliessen'};
@@ -66,12 +67,12 @@ export function LegacyDialog({kind='schieber',form,title,onClose,onAction,values
       if(custom!==undefined)return <div key={c.path} className="original-control" style={style}>{custom}</div>;
       const common={id,'aria-label':label,disabled:p.Enabled===false||readOnly};
       let node;
-      if(cls==='TImage'){const src=imageUrl(data,Object.values(c.images)[0]);node=src?<img src={src} alt="" draggable="false" style={{width:'100%',height:'100%',objectFit:p.Stretch?'fill':'none',objectPosition:'left top'}}/>:null;}
+      if(cls==='TImage'){const src=imageUrl(data,Object.values(c.images)[0]);node=src?<img src={src} alt="" draggable="false" style={{width:'100%',height:'100%',objectFit:'fill',objectPosition:'left top',...(!p.Stretch?{width:data.images[Object.values(c.images)[0]].width,height:data.images[Object.values(c.images)[0]].height}:{} )}}/>:null;}
       else if(cls==='TLabel')node=<span>{values[c.name]??caption}</span>;
       else if(['TBevel','TGroupBox','TPanel'].includes(cls))node=<div className={`original-box ${cls}`}><span>{cls==='TGroupBox'?caption:''}</span></div>;
       else if(['TButton','TBitBtn','TSpeedButton'].includes(cls)){
-        const glyph=c.images['Glyph.Data']||data.glyphs?.[{bkOK:'BBOK',bkCancel:'BBCANCEL',bkYes:'BBYES',bkNo:'BBNO',bkClose:'BBCLOSE'}[p.Kind]],img=data.glyphFiles?.[glyph]?dialogBase+data.glyphFiles[glyph]:imageUrl(data,glyph);
-        node=<button {...common} type="button" onClick={()=>action(c)}>{img&&<span className="original-glyph" style={{backgroundImage:`url(${img})`,width:data.images[glyph].width/(p.NumGlyphs||(!c.images['Glyph.Data']?2:1)),height:data.images[glyph].height}}/>}{caption}</button>;
+        const glyph=c.images['Glyph.Data']||data.glyphs?.[{bkOK:'BBOK',bkCancel:'BBCANCEL',bkYes:'BBYES',bkNo:'BBNO',bkClose:'BBCLOSE'}[p.Kind]],img=data.glyphFiles?.[glyph]?graphicsUrl(`dialogs/${data.glyphFiles[glyph]}`):imageUrl(data,glyph);
+        node=<button {...common} type="button" onClick={()=>action(c)}>{img&&<span className="original-glyph" style={{backgroundImage:`url(${img})`,backgroundSize:`${data.images[glyph].width}px ${data.images[glyph].height}px`,width:data.images[glyph].width/(p.NumGlyphs||(!c.images['Glyph.Data']?2:1)),height:data.images[glyph].height}}/>}{caption}</button>;
       }
       else if(['TCheckBox','TRadioButton'].includes(cls))node=<label><input {...common} type={cls==='TCheckBox'?'checkbox':'radio'} checked={Boolean(values[c.name]??p.Checked)} onChange={e=>onChange(c.name,e.target.checked,c)}/>{caption}</label>;
       else if(['TEdit','TSpinEdit','TMaskEdit'].includes(cls))node=<input {...common} type={cls==='TSpinEdit'?'number':'text'} min={p.MinValue} max={p.MaxValue||undefined} maxLength={p.MaxLength||80} value={values[c.name]??p.Text??p.Value??''} onChange={e=>onChange(c.name,cls==='TSpinEdit'?Number(e.target.value):e.target.value,c)}/>;

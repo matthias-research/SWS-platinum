@@ -150,3 +150,6 @@ dialog.decision-dialog { box-shadow:3px 3px 8px #0004; }
 .points-plate-name {position:absolute;left:30px;top:2px;right:1px;white-space:nowrap;font-size:10.667px;line-height:13px;}
 .points-plate-value {position:absolute;left:0;right:0;bottom:5px;text-align:center;font-size:16px;line-height:18px;white-space:nowrap;}
 .points-plate-value small {font-size:10.667px;vertical-align:2px;}
+
+html[data-graphics="enhanced"] .original-background {zoom:0.5;}
+.original-control.TImage {overflow:hidden;}

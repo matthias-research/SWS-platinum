@@ -1,3 +1,4 @@
+import {useGraphics,bitmapContext} from '../graphics';
 import React,{useEffect,useRef,useState} from 'react';
 import {DialogFrame,LegacyDialog,useDialogCatalog,looseImage,formImage} from './LegacyDialog';
 import {loadCardManifest,loadCardSheet,drawCard} from '../cards';
@@ -6,8 +7,8 @@ import * as S from '../engine/SWSBase';
 import {PredictionCanvas,HintArm} from './BitmapCanvas';
 import {TrumpCanvas} from './TrumpCanvas';
 export function DialogCards({rows,setId=1,width=254,height=118}) {
-  const ref=useRef(null);
-  useEffect(()=>{let active=true;loadCardManifest().then(m=>loadCardSheet(m,setId,1,'V')).then(sheet=>{if(!active)return;const ctx=ref.current.getContext('2d');ctx.clearRect(0,0,width,height);rows.forEach((cards,row)=>cards.forEach((id,i)=>drawCard(ctx,sheet,id,{x:i*Math.min(37,(width-75)/Math.max(1,cards.length-1)),y:row*59,width:75,height:118})));});return()=>{active=false;};},[JSON.stringify(rows),setId,width,height]);
+  const ref=useRef(null),graphics=useGraphics();
+  useEffect(()=>{let active=true;loadCardManifest().then(m=>loadCardSheet(m,setId,1,'V')).then(sheet=>{if(!active)return;const ctx=bitmapContext(ref.current,width,height);ctx.clearRect(0,0,width,height);rows.forEach((cards,row)=>cards.forEach((id,i)=>drawCard(ctx,sheet,id,{x:i*Math.min(37,(width-75)/Math.max(1,cards.length-1)),y:row*59,width:75,height:118})));});return()=>{active=false;};},[JSON.stringify(rows),setId,width,height,graphics]);
   return <canvas ref={ref} width={width} height={height} aria-label={rows.flat().map(c=>cardName(c,setId)).join(', ')} role="img"/>;
 }
 const trumpRects=[[156,57,48,51],[25,56,51,59],[166,117,45,42],[19,116,44,49],[159,161,44,49],[39,161,40,51],[91,17,57,64]];

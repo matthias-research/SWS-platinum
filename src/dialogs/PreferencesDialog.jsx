@@ -1,3 +1,4 @@
+import {graphicsUrl} from '../graphics';
 import React,{useState} from 'react';
 import {LegacyDialog} from './LegacyDialog';
 import {trumpLabels} from '../gameDrawing';
@@ -29,7 +30,7 @@ export function PreferencesDialog({kind,rules,onClose,onApply,settings={},onSett
   return <LegacyDialog kind={kind} form="TPREFDLG" title={initialTab===1?'Spielregeln':'Einstellungen'} onClose={onClose} scale={scale} values={values} initialTab={initialTab} overrides={overrides} onChange={change} onAction={name=>name==='OKBtn'?apply():onClose()} render={(c,p,data)=>{
     if(c.name==='genSavePrefs')return <label style={{display:'flex',alignItems:'center',gap:8,width:370,fontWeight:'normal'}}>Differenzler Computer-Spieler <select aria-label="Differenzler Computer-Spieler" title="Für neue Differenzler-Spiele" value={prefs.differFamily||'grumpy'} onChange={e=>change('differFamily',e.target.value)}><option value="grumpy">Grumpy Junior</option><option value="hacker">Hacker</option><option value="trashy">Trashy</option></select></label>;
     if(/^Fact\d$/.test(c.name))return <select aria-label={`${trumpLabels(settings.cardSet||1)[Number(c.name.slice(-1))]} Faktor`} disabled={locked} value={values[c.name]} onChange={e=>change(c.name,e.target.value)}>{Array.from({length:11},(_,i)=><option value={i} key={i}>{i===0?'Nicht gespielt':`${i}×`}</option>)}</select>;
-    if(/^TrumpBox\d$/.test(c.name))return <img width="26" height="26" alt={trumpLabels(settings.cardSet||1)[p.Tag]} src={`${import.meta.env.BASE_URL}assets/dialogs/symbols/${settings.cardSet||1}-${p.Tag}.png`}/>;
+    if(/^TrumpBox\d$/.test(c.name))return <img width="26" height="26" alt={trumpLabels(settings.cardSet||1)[p.Tag]} src={graphicsUrl(`dialogs/symbols/${settings.cardSet||1}-${p.Tag}.png`)}/>;
     if(c.name==='viewPaint')return <DialogCards width={p.Width} height={p.Height} setId={Math.max(1,['Deutsch','Französisch','Französisch (4 Farben)','Französisch 3D','Französisch 3D (4 Farben)'].indexOf(prefs.viewCardsBox)+1)} rows={[prefs.viewDescending?[9,8,7,6,5,4,3,2,1]:[1,2,3,4,5,6,7,8,9]]}/>;
     if(c.name==='viewBubbleS')return <input aria-label="Sprechblasen Dauer" type="range" min="0" max="20" value={prefs.viewBubbleS??5} onChange={e=>change(c.name,Number(e.target.value))}/>;
     if(c.name==='viewBubbleL')return <span>{prefs.viewBubbleS===0?'Aus':`${prefs.viewBubbleS??5} s`}</span>;

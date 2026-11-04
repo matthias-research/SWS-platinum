@@ -8,12 +8,12 @@ export const DISPLAY = Object.freeze({
 
 const asset = name => `${import.meta.env.BASE_URL}assets/${name}`;
 export const ASSETS = Object.freeze({
-  enhanced: { url: asset('table-enhanced-2x.png'), scale: 2 },
+  enhanced: { url: asset('enhanced/table-original.bmp'), scale: 2 },
   original: { url: asset('table-original.bmp'), scale: 1 },
   pieces: { url: asset('schieber-pieces.bmp'), scale: 1 },
   manifest: asset('schieber-pieces.json'),
   differOriginal: { url: asset('differ-table-original.bmp'), scale: 1 },
-  differEnhanced: { url: asset('differ-table-enhanced-2x.png'), scale: 2 },
+  differEnhanced: { url: asset('enhanced/differ-table-original.bmp'), scale: 2 },
 });
 
 export function fitScale(availableWidth, availableHeight, requestedScale, fit) {

@@ -1,3 +1,4 @@
+import {graphicsUrl,graphicsScale} from './graphics';
 import { DISPLAY } from './config';
 import { loadImage } from './table';
 
@@ -10,7 +11,8 @@ export async function loadCardManifest() {
 export async function loadCardSheet(manifest, setId, sizeIndex, orientation) {
   const sheet = manifest.sets.find(s => s.id === setId)?.sheets.find(s => s.sizeIndex === sizeIndex && s.orientation === orientation);
   if (!sheet) throw new Error('Unbekannter Kartensatz');
-  return { ...sheet, image: await loadImage(`${base}${sheet.file}`) };
+  const scale=graphicsScale();
+  return { ...sheet, assetScale:sheet.assetScale*scale, image: await loadImage(graphicsUrl(`cards/${sheet.file}`)) };
 }
 
 // Table.pas: HandRect/CardRect, one-player South, TABLEOFFS=5, kHandHigh=8.

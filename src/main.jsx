@@ -1,3 +1,4 @@
+import {useGraphics,setGraphics} from './graphics';
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { DISPLAY, fitScale } from './config';
@@ -54,7 +55,7 @@ function App() {
   const openFile = useRef(null);
   const [assets, setAssets] = useState(null);
   const [error, setError] = useState('');
-  const [artwork, setArtwork] = useState(() => displayPreference('artwork','enhanced')==='original'?'original':'enhanced');
+  const artwork=useGraphics(),setArtwork=setGraphics;
   const [requestedScale, setRequestedScale] = useState(() => Math.max(1,Math.min(3,displayPreference('scale',DISPLAY.scale))));
   const [fit, setFit] = useState(() => displayPreference('fit',DISPLAY.fitToWindow));
   const [viewport, setViewport] = useState({ width: document.documentElement.getBoundingClientRect().width, height: innerHeight, dpr: devicePixelRatio });
@@ -71,15 +72,15 @@ function App() {
       if (active) setSheets({ V, H });
     }).catch(e => { if (active) setError(e.message); });
     return () => { active = false; };
-  }, [cardSet, cardSize]);
+  }, [cardSet, cardSize, artwork]);
 
   useEffect(() => {
     let active = true;
-    loadAssets().then(value => { if (active) setAssets(value); }).catch(e => { if (active) setError(e.message); });
+    loadAssets(artwork).then(value => { if (active) setAssets(value); }).catch(e => { if (active) setError(e.message); });
     const resize = () => setViewport({ width: document.documentElement.getBoundingClientRect().width, height: innerHeight, dpr: devicePixelRatio });
     window.addEventListener('resize', resize);
     return () => { active = false; window.removeEventListener('resize', resize); };
-  }, []);
+  }, [artwork]);
 
   useEffect(() => {
     if (assets && canvas.current) {
@@ -107,7 +108,7 @@ function App() {
     Datei: <>{item('Spiel öffnen…', () => openFile.current.click())}{item('Spiel speichern…', game.download)}{item('Letztes Spiel fortsetzen', () => {replay.close();game.resume();})}{game.view&&item('Archivieren…',()=>openDialog('archive'))}{item('Spielerdaten…',()=>openDialog('profile'))}{item('Einstellungen…',()=>openDialog('preferences'))}{item('Beenden…',()=>openDialog('exit'))}</>,
     Jass: <>{item('Neuer Schieber…', () => setNewGame('schieber'))}{item('Neuer Differenzler…', () => setNewGame('differ'))}{item('Kartenverteilungen…',()=>openDialog('seed'))}{game.view&&<>{item('Computer Schnellspiel…',()=>openDialog('auto'))}{item('Gespräche…',()=>openDialog('say'))}{item('Spielstand…',()=>openDialog('results'))}{game.view.phase==='done'&&item('Revanche…',()=>openDialog('rematch'))}</>}{item('Gespielte Jass…', () => setMatchHistory(true))}{item('Bestenliste…',()=>openDialog('highscores'))}{activeKind==='differ'&&item('Ranglistenname…',()=>openDialog('highname'))}{item('Statistik…',()=>openDialog('statistics'))}</>,
     Ansicht: <>
-      {item('Verbesserte Tischgrafik', () => setArtwork('enhanced'), artwork === 'enhanced')}
+      {item('Verbesserte Grafik', () => setArtwork('enhanced'), artwork === 'enhanced')}
       {item('Originalgrafik', () => setArtwork('original'), artwork === 'original')}
       <hr />
       {item('Karten mittel', () => setCardSize(1), cardSize === 1)}
