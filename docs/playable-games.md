@@ -46,8 +46,12 @@ All 5,305 original WAVs have MP3 copies: 345,892,080 source bytes become
 FFmpeg (libmp3lame VBR quality 5), retaining original sample rates/channels.
 `public/assets/audio/manifest.json` records source hashes and sizes. The originals
 are untouched. Enable **Ton** to hear mapped shuffle, card, trick, victory and
-trump/shift sounds, loaded on demand. Mute cancels pending audio as well as
-playing clips. Full character banter and every original speech event are not
+trump/shift sounds, loaded on demand. Predictions and card/trump/prediction hints
+now use the original PCMEDIA resource mappings. Hidden computer predictions are
+never spoken. Multi-part phrases play sequentially; a newer game action replaces
+stale speech. Select one of the four original character voices (3–6); mute,
+volume and voice preferences persist in this browser. Mute cancels pending audio as well as
+playing clips. Undo and new games also cancel speech. Full character banter and every original speech event are not
 connected yet; conversion does not imply a listening review of every recording.
 
 The new Differenzler background was created with builtin image generation,
@@ -75,6 +79,11 @@ Remove-Item Env:TEST_PRODUCTION
 
 The worker receives an absolute AI-asset base URL from the page, so static
 deployment does not depend on the generated worker's directory.
+
+`npm run audio:test` checks original speech IDs, hidden-prediction protection and
+recording availability for every mapped prediction, trump and card hint. The
+browser audio test checks phrase order, cancellation and preference persistence
+using a controlled audio player; the separate MP3 test checks actual decoding.
 
 Native working copies of both top-level executables were run again using
 `scripts/reference-native.py` with the original archives. For Schieber's first

@@ -1,15 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
-import { soundForAction, stopAudio } from './audio';
+import { soundForAction, soundForHint, stopAudio } from './audio';
+function soundPreferences() {
+  let saved;
+  try { saved = JSON.parse(localStorage.getItem('sws-sound') || '{}'); } catch {}
+  return { enabled: saved?.enabled === true, volume: Number.isFinite(saved?.volume) ? Math.max(0, Math.min(1, saved.volume)) : 0.6,
+    voice: [3, 4, 5, 6].includes(saved?.voice) ? saved.voice : 3, set: 1 };
+}
 export function useGame() {
   const worker = useRef(null), latest = useRef(null), sequence = useRef(0);
   const [view, setView] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const [automatic, setAutomatic] = useState(false), [speed, setSpeed] = useState(650);
   const [paused, setPaused] = useState(false), [hint, setHint] = useState(null);
-  const [sound, setSound] = useState({ enabled: false, volume: 0.6, voice: 3, set: 1 });
+  const [sound, setSound] = useState(soundPreferences);
+  useEffect(() => { try { localStorage.setItem('sws-sound', JSON.stringify(sound)); } catch {} }, [sound]);
   const soundRef = useRef(sound); soundRef.current = sound;
   function send(message, restart = false) {
     if (restart || !worker.current) {
-      if (restart) { setView(null); setHint(null); setPaused(false); }
+      if (restart) { stopAudio(); setView(null); setHint(null); setPaused(false); }
       worker.current?.terminate(); worker.current = new Worker(new URL('./game.worker.js', import.meta.url), { type: 'module' });
       worker.current.onmessage = ({ data }) => {
         setBusy(false);
@@ -17,6 +24,7 @@ export function useGame() {
         setView(data.view); latest.current = data.saved;
         setHint(data.hint);
         soundForAction(data.soundAction, data.view, soundRef.current);
+        if (data.hint) soundForHint(data.hint, soundRef.current);
         try {
           localStorage.setItem('sws-game', JSON.stringify(data.saved));
           if (data.view.phase === 'done' && data.saved.options.id) {
@@ -34,7 +42,7 @@ export function useGame() {
     setBusy(true); setError(''); worker.current.postMessage({ ...message, id: ++sequence.current,
       assetBase: new URL(`${import.meta.env.BASE_URL}assets/ai/`, document.baseURI).href });
   }
-  useEffect(() => () => worker.current?.terminate(), []);
+  useEffect(() => () => { worker.current?.terminate(); stopAudio(); }, []);
   useEffect(() => {
     if (!view || busy || error || paused) return;
     let message;
@@ -46,7 +54,7 @@ export function useGame() {
   }, [view, busy, automatic, speed, error, paused]);
   return { view, busy, error, automatic, setAutomatic, speed, setSpeed, paused, setPaused, hint,
     sound, setSound: value => { if (!value.enabled) stopAudio(); setSound(value); },
-    getHint: () => send({type:'hint'}), undo: () => { setAutomatic(false); send({type:'undo'}); },
+    getHint: () => send({type:'hint'}), undo: () => { stopAudio(); setAutomatic(false); send({type:'undo'}); },
     start: options => { setAutomatic(false); setPaused(false); send({ type: 'new', options }, true); },
     action: action => send({ type: 'action', action }),
     answer: (command, data = {}) => send({ type: 'action', action: { type: 'answer', command, data: { fPlayer: view.request.player, ...data } } }),

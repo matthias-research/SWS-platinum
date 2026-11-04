@@ -1,13 +1,39 @@
 // PCMedia.pas resource IDs. Recordings are fetched only when requested.
+import { speechForAction, speechForHint } from './audioCues';
 const base = `${import.meta.env.BASE_URL}assets/audio/`;
 let files;
 let generation = 0;
 const playing = new Set();
+let speechGeneration = 0, cancelSpeech;
 async function available() {
   if (!files) files = fetch(`${base}index.json`).then(r => r.json()).then(paths => new Set(paths));
   return files;
 }
-export function stopAudio() { generation++; for (const audio of playing) audio.pause(); playing.clear(); }
+export function stopAudio() { generation++; stopSpeech(); for (const audio of playing) audio.pause(); playing.clear(); }
+function stopSpeech() { speechGeneration++; cancelSpeech?.(); cancelSpeech = null; }
+async function speak(cues, volume) {
+  stopSpeech();
+  const requested = speechGeneration;
+  if (!cues.length) return;
+  try {
+    const paths = await available();
+    for (const cue of cues) {
+      if (requested !== speechGeneration) return;
+      const choices = Array.from({ length: cue.variants }, (_, i) => `${cue.folder}/${cue.first + i}.mp3`).filter(p => paths.has(p));
+      if (!choices.length) continue;
+      const audio = new Audio(base + choices[Math.floor(Math.random() * choices.length)]);
+      audio.volume = volume;
+      await new Promise(resolve => {
+        const finish = () => { audio.pause(); if (cancelSpeech === finish) cancelSpeech = null; resolve(); };
+        cancelSpeech = finish; audio.onended = finish; audio.onerror = finish;
+        audio.play().catch(finish);
+      });
+    }
+  } catch { /* Optional speech must not interrupt the game. */ }
+}
+export function soundForHint(hint, settings) {
+  if (settings.enabled) speak(speechForHint(hint, settings), settings.volume);
+}
 export async function playOriginal(folder, first, variants = 1, volume = 0.6) {
   const requestedGeneration = generation;
   try {
@@ -26,9 +52,5 @@ export function soundForAction(action, view, settings) {
   if (action.type === 'deal') playOriginal('ANDERE', 1100, 10, settings.volume);
   else if (action.type === 'continue') playOriginal('ANDERE', 1250, 10, settings.volume);
   else if (action.command === 'cmdCard') playOriginal('ANDERE', view.phase === 'done' ? 1350 : 1200, 10, settings.volume);
-  else if (action.command === 'cmdTrump' || action.command === 'cmdShift') {
-    const voice = settings.voice, trump = action.data.fTrump ?? 0;
-    const folder = trump > 0 && trump < 5 ? `${settings.set === 1 ? 'DEUTSCH' : 'FRANZ'}/STIMME${voice}` : `STIMME${voice}`;
-    playOriginal(folder, 5000 + (voice - 1) * 1000 + 800 + trump * 10, 10, settings.volume);
-  }
+  speak(speechForAction(action, view, settings), settings.volume);
 }

@@ -9,6 +9,17 @@ const differ = await readFile('public/assets/ai/RGDIFF.DAT');
 const tables = { call: await readFile('public/assets/ai/Hcall.dat'), play: await readFile('public/assets/ai/HPLAY.DAT'), trashy: await readFile('public/assets/ai/TRASHY.DAT') };
 const factory = kind => kind === 'schieber' ? new SchieberAI(schieber) : new DifferAI(differ);
 
+test('individual setup strengths reach the AI and survive save restoration', () => {
+  const levels=[0,0,50,0,99], seen=[];
+  const ai={notify:(command,data)=>seen.push({command,data})};
+  const game=new Game({kind:'schieber',levels},ai);
+  assert.deepEqual(seen[0].data.fLevel,levels);
+  const restored=[];
+  Game.restore(JSON.parse(JSON.stringify(game.save())),{notify:(command,data)=>restored.push({command,data})});
+  assert.deepEqual(restored[0].data.fLevel,levels);
+  assert.throws(()=>new Game({kind:'schieber',levels:[0,0,50,0,100]},ai),/Spielstärken/);
+});
+
 for (const kind of ['schieber', 'differ']) for (const count of kind === 'differ' ? [3, 4] : [4]) {
   test(`${kind}, ${count} players: original AI completes a match; save/replay stays exact`, () => {
     const game = new Game({ kind, seed: 37, leading: 3, level: 66,

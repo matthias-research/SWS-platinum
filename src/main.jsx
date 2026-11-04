@@ -123,7 +123,7 @@ function App() {
       {!assets && !error && <p className="loading" role="status">Tisch wird geladen…</p>}
     </div>
     {!reviewEnabled && (replay.view ? <LegacyReplay replay={replay} setId={cardSet} /> : <GameControls game={game} onNew={setNewGame} />)}
-    {newGame && <GameSetup key={newGame} kind={newGame} setId={cardSet} onClose={() => setNewGame(null)} onStart={options => { replay.close();game.start(options); setNewGame(null); }} />}
+    {newGame && <GameSetup key={newGame} kind={newGame} setId={cardSet} displayScale={requestedScale} onClose={() => setNewGame(null)} onStart={options => { replay.close();game.start(options); setNewGame(null); }} />}
     {matchHistory && <MatchHistory onClose={() => setMatchHistory(false)} />}
     <input type="file" ref={openFile} hidden accept=".json,.sws.json,.jss,.jar" onChange={async e => {
       const file = e.target.files[0]; e.target.value = '';

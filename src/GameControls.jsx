@@ -2,11 +2,15 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as S from './engine/SWSBase';
 import * as D from './engine/DiffBase';
 import { cardName, gameHand, trumpLabels } from './gameDrawing';
+import { NewJassSetup } from './NewJassSetup';
 
-export function GameSetup({ kind, onStart, onClose, setId = 1 }) {
+export function GameSetup(props) {
+  return props.kind === 'schieber' ? <NewJassSetup {...props} renderRules={(rules,onApply,onClose)=><GameSetupForm {...props} initialRules={rules} rulesOnly onClose={onClose} onStart={options=>onApply(options.rules)} />} /> : <GameSetupForm {...props} />;
+}
+export function GameSetupForm({ kind, onStart, onClose, setId = 1, initialRules, rulesOnly = false }) {
   const trumpNames = trumpLabels(setId);
   const dialog = useRef(null);
-  const [rules, setRules] = useState(() => kind === 'schieber' ? S.DefaultRules() : D.DefaultRules());
+  const [rules, setRules] = useState(() => initialRules || (kind === 'schieber' ? S.DefaultRules() : D.DefaultRules()));
   const [level, setLevel] = useState(66);
   const [family, setFamily] = useState('grumpy');
   const [playerName, setPlayerName] = useState(() => { try { return localStorage.getItem('sws-player') || 'Sie'; } catch { return 'Sie'; } });
@@ -15,15 +19,17 @@ export function GameSetup({ kind, onStart, onClose, setId = 1 }) {
   const number = (key, label, min, max) => <label>{label}<input type="number" min={min} max={max} required value={rules[key]} onChange={e => change(key, Number(e.target.value))} /></label>;
   const check = (key, label) => <label className="checkbox"><input type="checkbox" checked={rules[key]} onChange={e => change(key, e.target.checked)} />{label}</label>;
   return <dialog ref={dialog} onCancel={onClose} className="game-setup">
-    <form onSubmit={e => { e.preventDefault(); try { localStorage.setItem('sws-player', playerName); } catch {}
+    <form onSubmit={e => { e.preventDefault(); try { if (!rulesOnly) localStorage.setItem('sws-player', playerName); } catch {}
       onStart({ kind, rules, level, family, human: 3, leading: 3, names:['','Nord','West',playerName,'Ost'], id:crypto.randomUUID(), seed: crypto.getRandomValues(new Uint32Array(1))[0] % 2147483646 + 1 }); }}>
-      <h1>Neuer {kind === 'schieber' ? 'Schieber' : 'Differenzler'}</h1>
+      <h1>{rulesOnly ? 'Schieber-Regeln' : `Neuer ${kind === 'schieber' ? 'Schieber' : 'Differenzler'}`}</h1>
+      {!rulesOnly && <>
       <p>Sie spielen im Süden. {kind === 'schieber' ? 'Nord ist Ihr Partner.' : 'Jeder spielt für sich.'}</p>
       <label>Ihr Name<input value={playerName} required maxLength={30} onChange={e=>setPlayerName(e.target.value)} /></label>
       <label>Spielstärke<select value={level} onChange={e => setLevel(Number(e.target.value))}>
         <option value={33}>Schwach</option><option value={66}>Mittel</option><option value={99}>Stark</option>
       </select></label>
       {kind === 'differ' && <label>Computer-Spieler<select value={family} onChange={e => setFamily(e.target.value)}><option value="grumpy">Grumpy Junior</option><option value="hacker">Hacker</option><option value="trashy">Trashy</option></select></label>}
+      </>}
       {kind === 'schieber' ? <>
         {check('fPointPlay', 'Auf Punkte spielen')}
         {rules.fPointPlay ? <>{number('fLimit', 'Zielpunkte', 1, 100000)}{number('fCut', 'Bergpreis', 0, rules.fLimit)}</> : number('fRoundLimit', 'Runden', 1, 48)}
@@ -45,7 +51,7 @@ export function GameSetup({ kind, onStart, onClose, setId = 1 }) {
         {check('fSCallBonus', 'Bonus für letzte offene Ansage')}
         {number('fDZeroBonus', 'Bonus bei genauer Ansage', 0, 100)}
       </>}
-      <div className="dialog-actions"><button type="button" onClick={onClose}>Abbrechen</button><button type="submit">Spielen</button></div>
+      <div className="dialog-actions"><button type="button" onClick={onClose}>Abbrechen</button><button type="submit">{rulesOnly ? 'Übernehmen' : 'Spielen'}</button></div>
     </form>
   </dialog>;
 }
@@ -91,6 +97,9 @@ export function GameControls({ game, onNew }) {
         <button onClick={() => setHistory(!history)} aria-expanded={history}>Resultate</button>
         <label><input type="checkbox" checked={game.sound.enabled} onChange={e => game.setSound({ ...game.sound, enabled: e.target.checked })} /> Ton</label>
         {game.sound.enabled && <label>Lautstärke <input type="range" min={0} max={1} step={0.1} value={game.sound.volume} onChange={e => game.setSound({...game.sound,volume:Number(e.target.value)})} /></label>}
+        {game.sound.enabled && <label>Stimme <select aria-label="Stimme" value={game.sound.voice} onChange={e => game.setSound({...game.sound,voice:Number(e.target.value)})}>
+          {[3,4,5,6].map(voice => <option key={voice} value={voice}>Stimme {voice}</option>)}
+        </select></label>}
       </>}
     </div>
     {game.error && <p role="alert" className="error">{game.error}</p>}

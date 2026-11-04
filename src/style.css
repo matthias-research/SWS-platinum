@@ -53,3 +53,36 @@ dialog button { display: block; margin-left: auto; min-width: 80px; padding: 6px
 .results table { border-collapse: collapse; width: 100%; background: white; }
 .results th, .results td { border: 1px solid #bbb; padding: 6px; text-align: center; }
 .results caption { text-align: left; padding: 8px 0; }
+
+dialog.legacy-new-jass { padding:0; border:0; max-width:none; max-height:none; overflow:hidden; background:#eee; }
+.legacy-setup-content { position:absolute; left:0; top:0; width:464px; height:439px; transform-origin:top left; font:13px Arial,sans-serif; }
+.legacy-caption { height:22px; line-height:22px; padding-left:2px; background:#f0f0f0; color:#111; font:12px/22px Arial,sans-serif; }
+.legacy-new-jass button { display:block; margin:0; min-width:0; padding:0; font:13px Arial,sans-serif; color:#111; cursor:pointer; }
+.legacy-caption button { position:absolute; right:0; top:0; width:30px; height:22px; border:0; background:transparent; font-size:20px; }
+.legacy-setup-board { position:relative; height:417px; width:464px; background-size:465px 419px; }
+.legacy-player { position:absolute; width:67px; height:110px; }
+.legacy-portrait { width:67px; height:110px; border:0; background:white; }
+.legacy-player img { display:block; width:100%; height:100%; }
+.legacy-scroll { position:absolute; top:93px; left:0; width:66px; height:16px; display:flex; background:#eee; }
+.legacy-scroll button { width:16px; height:16px; border:2px outset #ddd; background:#eee; font-size:9px; line-height:10px; }
+.legacy-scroll button:disabled { color:#aaa; cursor:default; }
+.legacy-scroll input { appearance:none; width:34px; height:16px; margin:0; background:#e4e4e4; border-top:1px solid #888; border-bottom:1px solid #fff; }
+.legacy-scroll input::-webkit-slider-thumb { appearance:none; width:15px; height:15px; border:2px outset #eee; background:#ddd; }
+.legacy-scroll input::-moz-range-thumb { width:11px; height:11px; border:2px outset #eee; border-radius:0; background:#ddd; }
+.legacy-player .legacy-avatar { position:absolute; left:5px; top:10px; width:56px; height:72px; padding:0; border:0; background:white; }
+.legacy-player .legacy-player-name { position:absolute; top:76px; left:0; width:67px; height:18px; padding:0 2px; border:2px inset #ddd; border-radius:0; background:#eee; text-align:center; font:13px Arial,sans-serif; }
+.legacy-bottom { position:absolute; top:386px; height:26px; border:2px outset #eee; background:#e9e9e9; }
+.legacy-bottom:active { border-style:inset; }
+.legacy-ok { left:10px; width:100px; }
+.legacy-cancel { left:120px; width:100px; }
+.legacy-random { left:256px; width:89px; }
+.legacy-rules { left:352px; width:89px; }
+.legacy-bottom span { position:absolute; left:3px; top:0; font:bold 20px Arial; color:green; }
+.legacy-cancel span { color:#b00000; }
+.legacy-new-jass :focus-visible { outline:1px dotted black; outline-offset:-4px; }
+.legacy-picker { position:absolute; inset:35px 22px auto; padding:12px; background:#eee; border:2px outset white; box-shadow:0 4px 20px #0007; }
+.legacy-picker p { margin:0 0 10px; }
+.legacy-picker > div { display:flex; flex-wrap:wrap; gap:6px; }
+.legacy-picker > div button { border:2px outset #eee; background:white; }
+.legacy-picker img { display:block; width:auto; height:72px; }
+.legacy-picker > button { margin-top:10px; padding:4px 15px; }

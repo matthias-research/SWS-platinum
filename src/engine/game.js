@@ -19,6 +19,8 @@ export class Game {
     assert(Number.isInteger(this.human) && this.human >= 1 && this.human <= this.count, 'Ungültiger Spieler');
     assert(Number.isInteger(options.leading ?? 3) && (options.leading ?? 3) >= 1 && (options.leading ?? 3) <= this.count, 'Ungültiger Startspieler');
     assert(Number.isInteger(options.level ?? 66) && (options.level ?? 66) >= 0 && (options.level ?? 66) <= 99, 'Ungültige Spielstärke');
+    const playerLevels = options.levels ?? [0, ...Array(4).fill(options.level ?? 66)];
+    assert(Array.isArray(playerLevels) && playerLevels.length === 5 && playerLevels.every(n=>Number.isInteger(n)&&n>=0&&n<=99), 'Ungültige Spieler-Spielstärken');
     for (const [key, value] of Object.entries(this.base.DefaultRules())) {
       if (typeof value === 'boolean') assert(typeof this.rules[key] === 'boolean', 'Ungültige Regel: '+key);
       else if (typeof value === 'number') assert(Number.isInteger(this.rules[key]) && this.rules[key] >= 0 && this.rules[key] <= 100000, 'Ungültige Regel: '+key);
@@ -36,7 +38,7 @@ export class Game {
     this.lastTrick = null; this.pause = false; this.pending = null;
     this.ai.notify('cmdNew', { fRules: this.rules, fPlayer: this.state.fLeading,
       fTypes: [0, 1, 1, 1, 1].map((v, p) => p === this.human ? 0 : v), fNames: this.names,
-      fLevel: [0, ...Array(4).fill(options.level ?? 66)] });
+      fLevel: playerLevels });
   }
   get round() { return this.state.fRounds[this.state.fRound]; }
   notify(command, data, recipients) { this.ai.notify(command, data, recipients); }

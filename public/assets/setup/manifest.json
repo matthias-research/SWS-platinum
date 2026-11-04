@@ -1,0 +1,706 @@
+{
+  "background": {
+    "source": {
+      "file": "original/SchiebPl.exe",
+      "fileSha256": "e459420bece30466a47b5a5016c4b978cb79b5cbd3b624c05f50b94c51722ec9",
+      "project": "Schieber",
+      "offset": 2232216,
+      "resource": {
+        "type": 10,
+        "name": "TDLGNEWJASS",
+        "language": 0,
+        "payloadSha256": "2ebb456c0d0f0425ca0d66babf0d165301719cf340597bab7a8fa31f91315831"
+      },
+      "form": "TDLGNEWJASS",
+      "component": "DlgNewJass.BackImage",
+      "class": "TImage",
+      "property": "Picture.Data",
+      "propertyOffset": 2232204
+    },
+    "sha256": "7e4a7bee051fa1b0121c7531dfea38486da5b8d1e44a9672918d774f4e62f6e8"
+  },
+  "icons": {
+    "source": {
+      "file": "original/SchiebPl.exe",
+      "fileSha256": "e459420bece30466a47b5a5016c4b978cb79b5cbd3b624c05f50b94c51722ec9",
+      "project": "Schieber",
+      "offset": 2791576,
+      "resource": {
+        "type": 10,
+        "name": "TICONFORM",
+        "language": 0,
+        "payloadSha256": "063d0ac7f4aa1675bee3f34156c134b7dd5006ef6a0dd67f5ef4cfa4fadbb292"
+      },
+      "form": "TICONFORM",
+      "component": "iconForm.Icons",
+      "class": "TImage",
+      "property": "Picture.Data",
+      "propertyOffset": 2791564
+    },
+    "sha256": "7dd2ba6966c8ae3524679530c4114579eb77b5d3fe5e59c035b01758daede17d",
+    "exported": [
+      {
+        "id": 7006,
+        "rect": {
+          "left": 0,
+          "top": 0,
+          "right": 67,
+          "bottom": 110
+        }
+      },
+      {
+        "id": 7007,
+        "rect": {
+          "left": 67,
+          "top": 0,
+          "right": 134,
+          "bottom": 110
+        }
+      },
+      {
+        "id": 7008,
+        "rect": {
+          "left": 134,
+          "top": 0,
+          "right": 201,
+          "bottom": 110
+        }
+      },
+      {
+        "id": 8006,
+        "rect": {
+          "left": 201,
+          "top": 0,
+          "right": 268,
+          "bottom": 110
+        }
+      },
+      {
+        "id": 8007,
+        "rect": {
+          "left": 268,
+          "top": 0,
+          "right": 335,
+          "bottom": 110
+        }
+      },
+      {
+        "id": 8008,
+        "rect": {
+          "left": 335,
+          "top": 0,
+          "right": 402,
+          "bottom": 110
+        }
+      },
+      {
+        "id": 9006,
+        "rect": {
+          "left": 402,
+          "top": 0,
+          "right": 469,
+          "bottom": 110
+        }
+      },
+      {
+        "id": 9007,
+        "rect": {
+          "left": 469,
+          "top": 0,
+          "right": 536,
+          "bottom": 110
+        }
+      },
+      {
+        "id": 9008,
+        "rect": {
+          "left": 536,
+          "top": 0,
+          "right": 603,
+          "bottom": 110
+        }
+      },
+      {
+        "id": 10006,
+        "rect": {
+          "left": 603,
+          "top": 0,
+          "right": 670,
+          "bottom": 110
+        }
+      },
+      {
+        "id": 10007,
+        "rect": {
+          "left": 670,
+          "top": 0,
+          "right": 737,
+          "bottom": 110
+        }
+      },
+      {
+        "id": 10008,
+        "rect": {
+          "left": 737,
+          "top": 0,
+          "right": 804,
+          "bottom": 110
+        }
+      },
+      {
+        "id": 5006,
+        "rect": {
+          "left": 804,
+          "top": 0,
+          "right": 871,
+          "bottom": 110
+        }
+      },
+      {
+        "id": 5200,
+        "rect": {
+          "left": 0,
+          "top": 346,
+          "right": 56,
+          "bottom": 418
+        }
+      },
+      {
+        "id": 5201,
+        "rect": {
+          "left": 56,
+          "top": 346,
+          "right": 112,
+          "bottom": 418
+        }
+      },
+      {
+        "id": 5202,
+        "rect": {
+          "left": 112,
+          "top": 346,
+          "right": 168,
+          "bottom": 418
+        }
+      },
+      {
+        "id": 5203,
+        "rect": {
+          "left": 168,
+          "top": 346,
+          "right": 224,
+          "bottom": 418
+        }
+      },
+      {
+        "id": 5204,
+        "rect": {
+          "left": 224,
+          "top": 346,
+          "right": 280,
+          "bottom": 418
+        }
+      },
+      {
+        "id": 5205,
+        "rect": {
+          "left": 280,
+          "top": 346,
+          "right": 336,
+          "bottom": 418
+        }
+      },
+      {
+        "id": 5206,
+        "rect": {
+          "left": 336,
+          "top": 346,
+          "right": 392,
+          "bottom": 418
+        }
+      },
+      {
+        "id": 5207,
+        "rect": {
+          "left": 392,
+          "top": 346,
+          "right": 448,
+          "bottom": 418
+        }
+      },
+      {
+        "id": 5208,
+        "rect": {
+          "left": 448,
+          "top": 346,
+          "right": 504,
+          "bottom": 418
+        }
+      },
+      {
+        "id": 5209,
+        "rect": {
+          "left": 504,
+          "top": 346,
+          "right": 560,
+          "bottom": 418
+        }
+      },
+      {
+        "id": 5210,
+        "rect": {
+          "left": 560,
+          "top": 346,
+          "right": 616,
+          "bottom": 418
+        }
+      },
+      {
+        "id": 5211,
+        "rect": {
+          "left": 616,
+          "top": 346,
+          "right": 672,
+          "bottom": 418
+        }
+      },
+      {
+        "id": 5212,
+        "rect": {
+          "left": 672,
+          "top": 346,
+          "right": 728,
+          "bottom": 418
+        }
+      },
+      {
+        "id": 5213,
+        "rect": {
+          "left": 728,
+          "top": 346,
+          "right": 784,
+          "bottom": 418
+        }
+      },
+      {
+        "id": 5214,
+        "rect": {
+          "left": 784,
+          "top": 346,
+          "right": 840,
+          "bottom": 418
+        }
+      },
+      {
+        "id": 5215,
+        "rect": {
+          "left": 560,
+          "top": 274,
+          "right": 616,
+          "bottom": 346
+        }
+      },
+      {
+        "id": 5216,
+        "rect": {
+          "left": 616,
+          "top": 274,
+          "right": 672,
+          "bottom": 346
+        }
+      },
+      {
+        "id": 5217,
+        "rect": {
+          "left": 672,
+          "top": 274,
+          "right": 728,
+          "bottom": 346
+        }
+      },
+      {
+        "id": 5218,
+        "rect": {
+          "left": 728,
+          "top": 274,
+          "right": 784,
+          "bottom": 346
+        }
+      },
+      {
+        "id": 5219,
+        "rect": {
+          "left": 784,
+          "top": 274,
+          "right": 840,
+          "bottom": 346
+        }
+      }
+    ]
+  },
+  "controls": [
+    {
+      "name": "DlgNewJass",
+      "properties": {
+        "Left": 365,
+        "Top": 178,
+        "ActiveControl": "OKBtn",
+        "BorderIcons": [
+          "biSystemMenu"
+        ],
+        "BorderStyle": "bsDialog",
+        "Caption": "Neues Spiel",
+        "ClientHeight": 417,
+        "ClientWidth": 464,
+        "Color": "clBtnFace",
+        "Font.Charset": "DEFAULT_CHARSET",
+        "Font.Color": "clBlack",
+        "Font.Height": -11,
+        "Font.Name": "MS Sans Serif",
+        "Font.Style": [
+          "fsBold"
+        ],
+        "OldCreateOrder": true,
+        "Position": "poScreenCenter",
+        "Scaled": false,
+        "OnCreate": "FormCreate",
+        "OnDestroy": "FormDestroy",
+        "PixelsPerInch": 96,
+        "TextHeight": 13
+      }
+    },
+    {
+      "name": "PaintBox1",
+      "properties": {
+        "Left": 208,
+        "Top": 69,
+        "Width": 67,
+        "Height": 110,
+        "OnPaint": "PaintBox1Paint"
+      }
+    },
+    {
+      "name": "PaintBox2",
+      "properties": {
+        "Left": 93,
+        "Top": 174,
+        "Width": 67,
+        "Height": 110,
+        "OnPaint": "PaintBox2Paint"
+      }
+    },
+    {
+      "name": "PaintBox3",
+      "properties": {
+        "Left": 208,
+        "Top": 210,
+        "Width": 67,
+        "Height": 110,
+        "OnPaint": "PaintBox3Paint"
+      }
+    },
+    {
+      "name": "PaintBox4",
+      "properties": {
+        "Left": 321,
+        "Top": 174,
+        "Width": 67,
+        "Height": 110,
+        "OnPaint": "PaintBox4Paint"
+      }
+    },
+    {
+      "name": "OKBtn",
+      "properties": {
+        "Left": 10,
+        "Top": 386,
+        "Width": 100,
+        "Height": 26,
+        "Font.Charset": "DEFAULT_CHARSET",
+        "Font.Color": "clBlack",
+        "Font.Height": -13,
+        "Font.Name": "Arial",
+        "Font.Style": [],
+        "ParentFont": false,
+        "TabOrder": 0,
+        "Kind": "bkOK",
+        "Margin": 2,
+        "Spacing": -1,
+        "IsControl": true
+      }
+    },
+    {
+      "name": "CancelBtn",
+      "properties": {
+        "Left": 120,
+        "Top": 386,
+        "Width": 100,
+        "Height": 26,
+        "Caption": "Abbrechen",
+        "Font.Charset": "DEFAULT_CHARSET",
+        "Font.Color": "clBlack",
+        "Font.Height": -13,
+        "Font.Name": "Arial",
+        "Font.Style": [],
+        "ParentFont": false,
+        "TabOrder": 10,
+        "Kind": "bkCancel",
+        "Margin": 2,
+        "Spacing": -1,
+        "IsControl": true
+      }
+    },
+    {
+      "name": "rulesBtn",
+      "properties": {
+        "Left": 352,
+        "Top": 386,
+        "Width": 89,
+        "Height": 26,
+        "Caption": "Regeln...",
+        "Font.Charset": "DEFAULT_CHARSET",
+        "Font.Color": "clBlack",
+        "Font.Height": -13,
+        "Font.Name": "Arial",
+        "Font.Style": [],
+        "ParentFont": false,
+        "TabOrder": 9
+      }
+    },
+    {
+      "name": "scroll2",
+      "properties": {
+        "Left": 93,
+        "Top": 267,
+        "Width": 66,
+        "Height": 16,
+        "Max": 2,
+        "PageSize": 0,
+        "TabOrder": 3,
+        "OnChange": "scroll2Change"
+      }
+    },
+    {
+      "name": "scroll1",
+      "properties": {
+        "Left": 208,
+        "Top": 162,
+        "Width": 66,
+        "Height": 16,
+        "Max": 2,
+        "PageSize": 0,
+        "TabOrder": 1,
+        "OnChange": "scroll1Change"
+      }
+    },
+    {
+      "name": "scroll4",
+      "properties": {
+        "Left": 321,
+        "Top": 267,
+        "Width": 66,
+        "Height": 16,
+        "Max": 2,
+        "PageSize": 0,
+        "Position": 1,
+        "TabOrder": 7,
+        "OnChange": "scroll4Change"
+      }
+    },
+    {
+      "name": "scroll3",
+      "properties": {
+        "Left": 208,
+        "Top": 304,
+        "Width": 66,
+        "Height": 16,
+        "Max": 2,
+        "PageSize": 0,
+        "TabOrder": 5,
+        "OnChange": "scroll3Change"
+      }
+    },
+    {
+      "name": "radio2",
+      "properties": {
+        "Left": 92,
+        "Top": 290,
+        "Width": 73,
+        "Height": 17,
+        "Caption": "beginnt",
+        "Color": "clOlive",
+        "Font.Charset": "DEFAULT_CHARSET",
+        "Font.Color": "clBlack",
+        "Font.Height": -13,
+        "Font.Name": "Arial",
+        "Font.Style": [
+          "fsBold"
+        ],
+        "ParentColor": false,
+        "ParentFont": false,
+        "TabOrder": 4,
+        "OnClick": "radio2Click"
+      }
+    },
+    {
+      "name": "radio1",
+      "properties": {
+        "Left": 208,
+        "Top": 185,
+        "Width": 73,
+        "Height": 17,
+        "Caption": "beginnt",
+        "Color": "clOlive",
+        "Font.Charset": "DEFAULT_CHARSET",
+        "Font.Color": "clBlack",
+        "Font.Height": -13,
+        "Font.Name": "Arial",
+        "Font.Style": [
+          "fsBold"
+        ],
+        "ParentColor": false,
+        "ParentFont": false,
+        "TabOrder": 2,
+        "OnClick": "radio1Click"
+      }
+    },
+    {
+      "name": "radio3",
+      "properties": {
+        "Left": 208,
+        "Top": 326,
+        "Width": 73,
+        "Height": 17,
+        "Caption": "beginnt",
+        "Color": "clOlive",
+        "Font.Charset": "DEFAULT_CHARSET",
+        "Font.Color": "clBlack",
+        "Font.Height": -13,
+        "Font.Name": "Arial",
+        "Font.Style": [
+          "fsBold"
+        ],
+        "ParentColor": false,
+        "ParentFont": false,
+        "TabOrder": 6,
+        "OnClick": "radio3Click"
+      }
+    },
+    {
+      "name": "radio4",
+      "properties": {
+        "Left": 320,
+        "Top": 290,
+        "Width": 73,
+        "Height": 17,
+        "Caption": "beginnt",
+        "Color": "clOlive",
+        "Font.Charset": "DEFAULT_CHARSET",
+        "Font.Color": "clBlack",
+        "Font.Height": -13,
+        "Font.Name": "Arial",
+        "Font.Style": [
+          "fsBold"
+        ],
+        "ParentColor": false,
+        "ParentFont": false,
+        "TabOrder": 8,
+        "OnClick": "radio4Click"
+      }
+    },
+    {
+      "name": "Button1",
+      "properties": {
+        "Left": 208,
+        "Top": 144,
+        "Width": 67,
+        "Height": 18,
+        "Font.Charset": "DEFAULT_CHARSET",
+        "Font.Color": "clBlack",
+        "Font.Height": -13,
+        "Font.Name": "Arial",
+        "Font.Style": [],
+        "ParentFont": false,
+        "TabOrder": 11,
+        "OnClick": "Button1Click"
+      }
+    },
+    {
+      "name": "Button2",
+      "properties": {
+        "Left": 93,
+        "Top": 249,
+        "Width": 67,
+        "Height": 18,
+        "Font.Charset": "DEFAULT_CHARSET",
+        "Font.Color": "clBlack",
+        "Font.Height": -13,
+        "Font.Name": "Arial",
+        "Font.Style": [],
+        "ParentFont": false,
+        "TabOrder": 12,
+        "OnClick": "Button2Click"
+      }
+    },
+    {
+      "name": "Button3",
+      "properties": {
+        "Left": 208,
+        "Top": 286,
+        "Width": 67,
+        "Height": 18,
+        "Font.Charset": "DEFAULT_CHARSET",
+        "Font.Color": "clBlack",
+        "Font.Height": -13,
+        "Font.Name": "Arial",
+        "Font.Style": [],
+        "ParentFont": false,
+        "TabOrder": 13,
+        "OnClick": "Button3Click"
+      }
+    },
+    {
+      "name": "Button4",
+      "properties": {
+        "Left": 321,
+        "Top": 249,
+        "Width": 67,
+        "Height": 18,
+        "Font.Charset": "DEFAULT_CHARSET",
+        "Font.Color": "clBlack",
+        "Font.Height": -13,
+        "Font.Name": "Arial",
+        "Font.Style": [],
+        "ParentFont": false,
+        "TabOrder": 14,
+        "OnClick": "Button4Click"
+      }
+    },
+    {
+      "name": "ShakeButton",
+      "properties": {
+        "Left": 256,
+        "Top": 386,
+        "Width": 89,
+        "Height": 26,
+        "Caption": "Zufällig",
+        "Font.Charset": "DEFAULT_CHARSET",
+        "Font.Color": "clBlack",
+        "Font.Height": -13,
+        "Font.Name": "Arial",
+        "Font.Style": [],
+        "ParentFont": false,
+        "TabOrder": 15,
+        "OnClick": "ShakeButtonClick"
+      }
+    },
+    {
+      "name": "PopupMenu",
+      "properties": {
+        "Left": 432,
+        "Top": 336
+      }
+    }
+  ],
+  "assetScale": 1
+}

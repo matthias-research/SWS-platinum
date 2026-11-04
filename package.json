@@ -16,6 +16,8 @@
     "engine:test": "node tests-node/engine.test.mjs && node tests-node/lifecycle.test.mjs && node tests-node/game.test.mjs && node tests-node/legacy.test.mjs",
     "ai:build": "node scripts/build-ai.mjs",
     "assets:audio": "python scripts/prepare-audio.py",
+    "assets:setup": "node scripts/prepare-setup.mjs",
+    "audio:test": "node tests-node/audio.test.mjs",
     "engine:fixtures": "node scripts/prepare-engine-fixtures.mjs"
   },
   "engines": {

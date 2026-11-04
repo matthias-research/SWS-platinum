@@ -5,8 +5,13 @@ for (const kind of ['Schieber', 'Differenzler']) test(`${kind}: play a complete 
   await page.goto('/');
   await page.getByRole('button', { name: `Neuer ${kind}…`, exact: true }).click();
   const dialog = page.getByRole('dialog');
-  if (kind === 'Schieber') await dialog.getByLabel('Auf Punkte spielen').uncheck();
-  await dialog.getByLabel('Runden', { exact: true }).fill('1');
+  if (kind === 'Schieber') {
+    await dialog.getByRole('button',{name:'Regeln…',exact:true}).click();
+    const rules = page.locator('.game-setup');
+    await rules.getByLabel('Auf Punkte spielen').uncheck();
+    await rules.getByLabel('Runden',{exact:true}).fill('1');
+    await rules.getByRole('button',{name:'Übernehmen',exact:true}).click();
+  } else await dialog.getByLabel('Runden', { exact: true }).fill('1');
   await dialog.getByRole('button', { name: 'Spielen', exact: true }).click();
   await expect(page.getByRole('group', { name: 'Ihre Karten' }).getByRole('button')).toHaveCount(9);
   await page.screenshot({ path: `artifacts/browser/${kind.toLowerCase()}-deal.png` });

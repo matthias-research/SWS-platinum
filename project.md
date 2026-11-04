@@ -327,6 +327,12 @@ Implement explicit decoders or conversions for the five AI data files. Port the 
 
 ### M7 — Playable browser versions of both games
 
+Schieber's new-game screen now reproduces the original graphical player dialog:
+embedded background, four character portraits, 20 human avatars, individual
+strength controls, random selection and a separate rules dialog. Coordinates
+and assets are traceable to the original form and executable. See
+[setup-dialog notes](docs/new-jass-dialog.md).
+
 **Status: Complete for end-to-end single-player games.** Both games support setup, human decisions, original AI, scores, round transitions and new matches; Differenzler supports three and four players. Browser tests exercise full matches and human card/hint/undo controls. Final artwork acceptance remains separate under M4/M9.
 
 Integrate rendering, interaction, rules and AI. Deliver Schieber first as an end-to-end game, then Differenzler using the shared infrastructure. Include game setup, human decisions, computer turns, scores, round transitions and restarting. Keep both games directly accessible without rebuilding the old launcher application.
@@ -335,7 +341,7 @@ Integrate rendering, interaction, rules and AI. Deliver Schieber first as an end
 
 ### M8 — Persistence, voices and supporting features
 
-**Status: Core features implemented; full legacy presentation/support parity remains open.** Browser save/resume and file export/import, legacy archive replay, display preferences, player name, match history, hints, undo and pause work. All WAVs are converted; core effects and trump/shift speech load on demand. Fourteen supplied legacy files replay; older Differenzler TEST.JSS is incompatible. Native-state continuation, old profile/high-score import and complete character dialogue are not implemented.
+**Status: Core features implemented; full legacy presentation/support parity remains open.** Browser save/resume and file export/import, legacy archive replay, display preferences, player name, match history, hints, undo and pause work. All WAVs are converted; core effects, trump/shift, visible predictions and card/trump/prediction hints load on demand using the original PCMEDIA mappings. Speech phrases are sequenced and cancellable; voice/volume/mute preferences persist. Hidden predictions remain silent. Fourteen supplied legacy files replay; older Differenzler TEST.JSS is incompatible. Native-state continuation, old profile/high-score import and complete character dialogue are not implemented.
 
 Add browser settings and saved-game storage, explicit import/export, and compatibility checks using the supplied `.JSS`/`.JAR` examples. Restore profiles, high scores, hints, undo, pause, replay and statistics. Preserve sound-event and character mappings, loading speech/effects on demand rather than downloading the entire collection at startup. Support browser audio activation and mute/volume controls.
 
