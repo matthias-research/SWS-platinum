@@ -9,6 +9,7 @@ import { useGame } from './useGame';
 import { GameSetup, GameControls, GameCardTargets, MatchHistory } from './GameControls';
 import { drawGame } from './gameDrawing';
 import {GameFeed} from './GameFeed';
+import {DifferPoints} from './DifferPoints';
 import { parseLegacy } from './engine/legacy';
 import { LegacyReplay, useLegacyReplay } from './LegacyReplay';
 import {PreferencesDialog} from './dialogs/PreferencesDialog';
@@ -36,6 +37,16 @@ function App() {
   const openDialog=name=>{previousPause.current=game.paused;game.setPaused(true);setActiveDialog(name);};
   const closeDialog=()=>{setActiveDialog(null);game.setPaused(previousPause.current);};
   const activeKind=game.view?.kind||'schieber';
+  const lastRoundNotice=useRef('');
+  useEffect(()=>{
+    const v=game.view;
+    if(!v){lastRoundNotice.current='';return;}
+    if(!v.history.length||!['deal','done'].includes(v.phase))return;
+    const key=`${game.saved()?.options.id}:${v.history.length}`;
+    if(lastRoundNotice.current===key)return;
+    lastRoundNotice.current=key;
+    if(!game.automatic||(v.phase==='done'&&game.series<=1))openDialog('results');
+  },[game.view,game.automatic,game.series]);
   const cardNames=['Deutsch','Französisch','Französisch (4 Farben)','Französisch 3D','Französisch 3D (4 Farben)'];
   const [cardSet, setCardSet] = useState(() => Math.max(1,Math.min(5,displayPreference('cardSet',1)))), [cardSize, setCardSize] = useState(() => displayPreference('cardSize',1)===2?2:1);
   const [sheets, setSheets] = useState({});
@@ -130,8 +141,10 @@ function App() {
       </canvas>
       {reviewEnabled && assets && <CardTargets review={review} scale={scale} canvas={canvas} />}
       {!reviewEnabled && !replay.view && game.view && <GameCardTargets game={game} sheet={sheets.V} scale={scale} setId={cardSet} />}
+      {!reviewEnabled&&!replay.view&&game.view&&<DifferPoints view={game.view} scale={scale}/>}
       {!reviewEnabled&&!replay.view&&game.view&&<GameFeed key={game.saved()?.options.id||'game'} view={game.view} scale={scale} setId={cardSet} cardHeight={sheets.V?.cards[0].rect.height} messages={messages} duration={preferences.viewBubbleS??5}/>}
       {!reviewEnabled&&!replay.view&&game.view?.pause&&!['deal','done'].includes(game.view.phase)&&!game.busy&&!game.paused&&!game.automatic&&<button type="button" className="trick-clear-target" aria-label="Stich auf dem Tisch abräumen" onClick={()=>game.action({type:'continue'})}/>}
+      {!reviewEnabled&&!replay.view&&game.view?.phase==='deal'&&!game.busy&&!game.paused&&!game.automatic&&<button type="button" className="trick-clear-target" aria-label="Nächste Runde durch Klick auf den Tisch" onClick={()=>game.action({type:'deal'})}/>}
       {!assets && !error && <p className="loading" role="status">Tisch wird geladen…</p>}
     </div>
     {!reviewEnabled && (replay.view ? <LegacyReplay replay={replay} setId={cardSet} /> : <GameControls key={game.view?(game.saved()?.options.id||game.view.kind):'idle'} game={game} onNew={setNewGame} onDialog={openDialog} displayScale={requestedScale}/>)}

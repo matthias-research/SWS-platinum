@@ -15,7 +15,7 @@ export function eventText(event,view,setId){
     case 'suit':return `${name} weist: ${event.value}`;
     case 'stockings':return `${name}: Stöck ${event.subtract?'abziehen':'dazuzählen'}`;
     case 'say':return `${name}: ${event.text}`;
-    case 'result':return view.kind==='schieber'?`Nord & Süd ${event.points[1]} · West & Ost ${event.points[2]}`:view.names.slice(1,view.count+1).map((n,i)=>`${n} ${event.points[i+1]}`).join(' · ');
+    case 'result':return view.kind==='schieber'?`${view.names[1]} & ${view.names[3]} ${event.points[1]} · ${view.names[2]} & ${view.names[4]} ${event.points[2]}`:view.names.slice(1,view.count+1).map((n,i)=>`${n} ${event.points[i+1]}`).join(' · ');
     default:return '';
   }
 }

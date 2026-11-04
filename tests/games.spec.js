@@ -22,9 +22,16 @@ for (const kind of ['Schieber', 'Differenzler']) test(`${kind}: play a complete 
   await page.getByRole('button', { name: 'Computer weiterspielen lassen' }).click();
   await expect(page.getByRole('status')).toContainText('Jass beendet', { timeout: 30000 });
   await expect(page.getByRole('button', {name:'Neuer Jass',exact:true})).toBeVisible();
-  await page.getByRole('button', {name:'Resultate',exact:true}).click();
-  await expect(page.locator('.results tbody tr')).toHaveCount(1);
+  const results=page.getByRole('dialog',{name:kind==='Schieber'?'Ende der Runde':'Jass beendet',exact:true});
+  await expect(results).toBeVisible();
+  if(kind==='Differenzler')await expect(results.getByRole('row')).toHaveCount(4);
   await page.screenshot({ path: `artifacts/browser/${kind.toLowerCase()}-finished.png` });
+  await results.getByRole('button',{name:'Weiter',exact:true}).click();
+  if(kind==='Schieber'){
+    const victory=page.getByRole('dialog',{name:'Sieg',exact:true});
+    await expect(victory).toBeVisible();
+    await victory.getByRole('button',{name:'Weiter',exact:true}).click();
+  }
   await expect(page.getByRole('alert')).toHaveCount(0);
   expect(errors).toEqual([]);
   await page.reload();
@@ -33,10 +40,10 @@ for (const kind of ['Schieber', 'Differenzler']) test(`${kind}: play a complete 
 });
 
 test('human cards, hint, undo and three-player Trashy stay usable', async ({page})=>{
+  await page.addInitScript(()=>localStorage.setItem('sws-preferences',JSON.stringify({differFamily:'trashy'})));
   await page.goto('/');
   await page.getByRole('button',{name:'Neuer Differenzler…',exact:true}).click();
   const dialog=page.getByRole('dialog');
-  await dialog.getByRole('combobox',{name:'Computer-Spieler',exact:true}).selectOption('trashy');
   await dialog.getByRole('button',{name:'Regeln…',exact:true}).click();
   const rules=page.getByRole('dialog',{name:'Spielregeln'});
   await rules.getByRole('radio',{name:'3 Spieler',exact:true}).check();

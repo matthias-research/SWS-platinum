@@ -4,10 +4,25 @@ import { readFile } from 'node:fs/promises';
 import { Game } from '../src/engine/game.js';
 import { SchieberAI } from '../src/ai/schieber.js';
 import { DifferAI } from '../src/ai/differ.js';
+import {ValueOfTrick} from '../src/engine/DiffBase.js';
 const schieber = await readFile('public/assets/ai/RUGD7000.DAT');
 const differ = await readFile('public/assets/ai/RGDIFF.DAT');
 const tables = { call: await readFile('public/assets/ai/Hcall.dat'), play: await readFile('public/assets/ai/HPLAY.DAT'), trashy: await readFile('public/assets/ai/TRASHY.DAT') };
 const factory = kind => kind === 'schieber' ? new SchieberAI(schieber) : new DifferAI(differ);
+
+for(const count of [3,4])test(`Differenzler ${count}: plates count cleared tricks, reset each round and survive undo/replay`,()=>{
+  const game=new Game({kind:'differ',seed:37,rules:{fNuPlayers:count,fRoundLimit:2,fStockings:0}},factory('differ'));
+  game.act({type:'deal'});while(!game.pause)game.computer();
+  const before=structuredClone(game.save()),winner=game.lastTrick.winner,points=ValueOfTrick(game.round.fTrump,game.lastTrick);
+  assert.deepEqual(game.view().collected,[0,0,0,0,0]);
+  game.act({type:'continue'});assert.equal(game.view().collected[winner],points);
+  const state=structuredClone(game.state);game.view();game.view();assert.deepEqual(game.state,state);
+  assert.deepEqual(Game.restore(before,factory('differ')).view().collected,[0,0,0,0,0]);
+  assert.deepEqual(Game.restore(game.save(),factory('differ')).view().collected,game.view().collected);
+  while(game.phase!=='deal'){if(game.pause)game.act({type:'continue'});else game.computer();}
+  assert.equal(game.view().collected.slice(1).reduce((a,b)=>a+b,0),157);
+  game.act({type:'deal'});assert.deepEqual(game.view().collected,[0,0,0,0,0]);
+});
 
 for(const mode of [0,1,2])test(`public feed respects Differenzler prediction visibility mode ${mode}`,()=>{
   const game=new Game({kind:'differ',seed:37,human:3,rules:{fCallMode:mode,fRoundLimit:1}},factory('differ'));
@@ -15,10 +30,14 @@ for(const mode of [0,1,2])test(`public feed respects Differenzler prediction vis
   while(game.phase==='call'){
     game.computer();calls++;
     const published=game.view().feed.filter(e=>e.kind==='call');
-    if(mode===0||mode===1&&game.phase==='call')assert.ok(published.every(e=>e.player===3));
+    if(mode===0||mode===1&&game.phase==='call')assert.equal(published.length,0);
     else assert.equal(published.length,calls);
   }
-  while(game.phase!=='done'){if(game.pause)game.act({type:'continue'});else game.computer();}
+  if(mode===0)assert.equal(Game.restore(game.save(),factory('differ')).view().feed.filter(e=>e.kind==='call').length,0);
+  while(game.phase!=='done'){
+    if(mode===0)assert.equal(game.view().feed.filter(e=>e.kind==='call').length,0);
+    if(game.pause)game.act({type:'continue'});else game.computer();
+  }
   assert.equal(game.view().feed.filter(e=>e.kind==='call').length,4);
   assert.deepEqual(Game.restore(JSON.parse(JSON.stringify(game.save())),factory('differ')).view().feed,game.view().feed);
 });

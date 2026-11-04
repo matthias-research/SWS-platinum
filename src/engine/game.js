@@ -51,9 +51,8 @@ export class Game {
     else if(command==='cmdTrump')add({kind:'trump',player:data.fPlayer,trump:data.fTrump});
     else if(command==='cmdShift')add({kind:'shift',player:data.fPlayer});
     else if(command==='cmdCall'){
-      // Never serialize another player's hidden prediction into the public view.
+      // The shared feed only announces public predictions, including the human's.
       if(!recipients)for(let p=1;p<=this.count;p++)call(p,this.round.fCall[p]);
-      else if(recipients.includes(this.human))call(this.human,data.fCall);
     }
     else if(command==='cmdSuit'&&data.fSuit.fCount){
       const suits=data.fSuit.fCalls.slice(0,data.fSuit.fCount).map(s=>[...s.fCards]);
@@ -201,12 +200,26 @@ export class Game {
     const r = active ? this.round : this.history.at(-1)?.round;
     const visibleCalls = this.kind === 'differ' && r ? r.fCall.map((call, p) =>
       p === this.human || !active || this.rules.fCallMode === D.kShowShow || (this.rules.fCallMode === D.kHideShow && this.phase !== 'call') ? call : D.NoCall) : null;
+    let collected=null,bonuses=null;
+    if(this.kind==='differ'){
+      collected=Array(5).fill(0);bonuses=Array(5).fill(0);
+      if(active){
+        // Table.RemoveTrick credits points when the trick is cleared, not while
+        // its cards are still waiting on the carpet. Do not call DeltaOfRound:
+        // that scoring routine mutates bonuses and is only for round settlement.
+        const cleared=Math.max(0,r.fTrick-(this.pause?1:0));
+        for(let i=0;i<cleared;i++)collected[r.fTricks[i+1].fLeading]+=D.ValueOfTrick(r.fTrump,r.fTricks[i]);
+        if(cleared===36/this.count)collected[r.fTricks[cleared].fLeading]+=5;
+      }else if(this.history.length){
+        collected=[...this.history.at(-1).result.made];bonuses=[...this.history.at(-1).result.bonus];
+      }
+    }
     return { kind: this.kind, phase: this.phase, count: this.count, human: this.human, names: this.names,
       roundNumber: active ? this.state.fRoundTotal + 1 : this.state.fRoundTotal, trump: r?.fTrump ?? 0, rules: this.rules,
       hand: [...this.state.fHands[this.human]],
       handCounts: this.state.fHands.map(h => h.filter(Boolean).length),
       trick: this.pause ? this.lastTrick : active ? this.base.GetCurrentTrick(this.state) : this.lastTrick,
-      lastTrick: this.lastTrick, pause: this.pause, calls: visibleCalls,
+      lastTrick: this.lastTrick, pause: this.pause, calls: visibleCalls,collected,bonuses,
       scores: this.kind === 'schieber' ? this.state.fPoints : this.state.fTotal,
       winner: this.state.fWinner ?? 0, ranks: this.state.fFinal,
       feed:structuredClone(this.feed),characters:this.options.characters,avatar:this.options.avatar,

@@ -1,5 +1,20 @@
 import { test, expect } from '@playwright/test';
 
+test('Differenzler uses the AI choice saved in settings, without a setup dropdown',async({page})=>{
+  await page.goto('/');
+  await page.getByRole('button',{name:'Datei',exact:true}).click();
+  await page.getByRole('button',{name:'Einstellungen…',exact:true}).click();
+  const settings=page.getByRole('dialog',{name:'Einstellungen',exact:true});
+  await settings.getByRole('combobox',{name:'Differenzler Computer-Spieler'}).selectOption('hacker');
+  await settings.getByRole('button',{name:'OK',exact:true}).click();
+  await page.reload();
+  await page.getByRole('button',{name:'Neuer Differenzler…',exact:true}).click();
+  const setup=page.getByRole('dialog',{name:'Neuer Jass',exact:true});
+  await expect(setup.getByRole('combobox')).toHaveCount(0);
+  await setup.getByRole('button',{name:'Spielen',exact:true}).click();
+  await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('sws-game'))?.options.family)).toBe('hacker');
+});
+
 test('original Schieber setup selects portraits, strengths and human profile before starting', async ({page}) => {
   await page.addInitScript(()=>localStorage.setItem('sws-display',JSON.stringify({scale:1})));
   await page.goto('/');
@@ -23,6 +38,7 @@ test('original Schieber setup selects portraits, strengths and human profile bef
   expect(saved.options.characters[1]).toBe(1);
   expect(saved.options.avatar).toBe(5203);
   expect(saved.options.names[3]).toBe('Matthi');
+  expect(saved.options.names).toEqual(['','Beat','Stéphanie','Matthi','Walter']);
 });
 
 test('setup fits a narrow screen and cancel leaves the current game untouched',async({page})=>{

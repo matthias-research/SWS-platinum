@@ -6,6 +6,7 @@ import {useDialogCatalog,formImage} from './dialogs/LegacyDialog';
 const base = `${import.meta.env.BASE_URL}assets/setup/`;
 const seats = [{p:1,name:'Nord',x:208,y:69},{p:2,name:'West',x:93,y:174},{p:4,name:'Ost',x:321,y:174}];
 const strengths = ['Schwach','Mittel','Stark'];
+const characterNames = ['Birgit','Beat','Stéphanie','Walter'];
 const levels = [0,50,99];
 const defaults = { characters:[0,0,2,0,3], strengths:[0,2,2,0,2], avatar:5208 };
 function savedSelection() {
@@ -22,7 +23,6 @@ export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules, d
   const dialog = useRef(null);
   const [selection,setSelection] = useState(savedSelection);
   const [rules,setRules] = useState(()=>{const fallback=differ?DifferRules():DefaultRules();try{return {...fallback,...JSON.parse(localStorage.getItem(`sws-rules-${kind}`)||'{}')};}catch{return fallback;}});
-  const [family,setFamily]=useState('grumpy');
   const [editingRules,setEditingRules] = useState(false);
   const [picker,setPicker] = useState(null);
   const [name,setName] = useState(()=>{try{return localStorage.getItem('sws-player')||'Sie';}catch{return 'Sie';}});
@@ -33,8 +33,10 @@ export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules, d
   const change = (key,p,value) => setSelection(s=>({...s,[key]:s[key].map((n,i)=>i===p?value:n)}));
   const start = e => {
     e.preventDefault();
+    let family='grumpy';
+    try {const saved=JSON.parse(localStorage.getItem('sws-preferences')||'{}').differFamily;if(['grumpy','hacker','trashy'].includes(saved))family=saved;}catch{}
     try {localStorage.setItem('sws-player',name);localStorage.setItem('sws-setup',JSON.stringify(selection));localStorage.setItem(`sws-rules-${kind}`,JSON.stringify(rules));}catch{}
-    onStart({kind,family,rules,human:3,leading:3,names:['','Nord','West',name,'Ost'],level:99,
+    onStart({kind,family,rules,human:3,leading:3,names:selection.characters.map((character,p)=>p===0?'':p===3?name:characterNames[character]),level:99,
       levels:selection.strengths.map(n=>levels[n]),characters:selection.characters,avatar:selection.avatar,
       id:crypto.randomUUID(),seed:crypto.getRandomValues(new Uint32Array(1))[0]%2147483646+1});
   };
@@ -45,7 +47,7 @@ export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules, d
         <div className="legacy-setup-board" style={{height:height-22,backgroundImage:`url(${differ?formImage(catalog,'differ','TDLGNEWJASS',rules.fNuPlayers===3?'Back3Image':'BackImage'):base+'schieber.png'})`,backgroundPosition:`0 ${offset}px`}}>
           {seats.filter(s=>!differ||s.p<=rules.fNuPlayers).map(({p,name:seat,x,y})=><div key={p} className="legacy-player" style={{left:x,top:y+offset}}>
             <button type="button" className="legacy-portrait" aria-label={`${seat}: Figur ${selection.characters[p]+1}, ${strengths[selection.strengths[p]]}. Spieler wählen`} onClick={()=>setPicker(p)}>
-              <img src={`${base}${7006+1000*selection.characters[p]+selection.strengths[p]}.png`} alt="" draggable="false" />
+              <img src={`${base}${7006+1000*selection.characters[p]+selection.strengths[p]}.png`} alt="" title={characterNames[selection.characters[p]]} draggable="false" />
             </button>
             <div className="legacy-scroll">
               <button type="button" aria-label={`${seat} stärker`} disabled={selection.strengths[p]===2} onClick={()=>change('strengths',p,selection.strengths[p]+1)}>◀</button>
@@ -65,7 +67,6 @@ export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules, d
             setSelection(s=>({...s,characters:[0,characters[0],characters[1],0,characters[2]]}));
           }}>Zufällig</button>
           <button className="legacy-rules legacy-bottom" type="button" onClick={()=>setEditingRules(true)}>Regeln…</button>
-          {differ&&<label className="setup-family">Computer-Spieler <select aria-label="Computer-Spieler" value={family} onChange={e=>setFamily(e.target.value)}><option value="grumpy">Grumpy Junior</option><option value="hacker">Hacker</option><option value="trashy">Trashy</option></select></label>}
         </div>
         {picker!==null && <div className="legacy-picker" role="group" aria-label={picker===3?'Spielerbild auswählen':'Computer-Spieler auswählen'}>
           <p>{picker===3?'Ihr Spielerbild':'Computer-Spieler'}</p>

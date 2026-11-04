@@ -2,6 +2,7 @@ import React,{useState} from 'react';
 import {LegacyDialog,DialogFrame,useDialogCatalog,formImage,looseImage,imageUrl} from './LegacyDialog';
 import * as D from '../engine/DiffBase';
 import {CreditsCanvas} from './BitmapCanvas';
+import differPieces from '../../public/assets/differ-pieces.json';
 const setupBase=`${import.meta.env.BASE_URL}assets/setup/`;
 const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}};
 export function downloadJSON(value,name){const url=URL.createObjectURL(new Blob([JSON.stringify(value)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
@@ -33,10 +34,50 @@ export function AboutDialog({kind,onClose,scale,exit=false,onSave,onEnd}){
 export function ResultsDialog({game,onClose,scale}){
   const {data}=useDialogCatalog();if(!data||!game.view)return null;
   const v=game.view,kind=v.kind;
+  if(kind==='differ')return <DifferRoundDialog view={v} onClose={onClose} scale={scale}/>;
+  if(kind==='schieber'&&v.history.length)return <SchieberRoundDialog view={v} onClose={onClose} scale={scale}/>;
   const background=kind==='differ'?formImage(data,kind,'TROUNDDLG','BackImg'):looseImage(data,v.phase==='done'?v.winner===1?'win1.bmp':'win2.bmp':'round1.bmp');
   return <LegacyDialog kind={kind} form={kind==='differ'?'TROUNDDLG':'TINFODLG'} title={v.phase==='done'?'Jass beendet':'Spielstand'} onClose={onClose} scale={scale} render={c=>c.name==='PaintBox'?null:undefined}>
     <img className="original-background" src={background} alt=""/>
     <div className="original-result-table results"><table><caption>Rundenresultate</caption><thead><tr><th>Runde</th>{kind==='schieber'?<><th>Nord & Süd</th><th>West & Ost</th></>:v.names.slice(1,v.count+1).map((n,i)=><th key={i}>{n}<br/>Ansage / Punkte / Differenz</th>)}</tr></thead><tbody>{v.history.map((r,i)=><tr key={i}><td>{i+1}</td>{kind==='schieber'?<><td>{r.pts[1]}</td><td>{r.pts[2]}</td></>:Array.from({length:v.count},(_,j)=><td key={j}>{r.call[j+1]} / {r.made[j+1]} / {D.DeltaOf(r.call[j+1],r.made[j+1],r.bonus[j+1])}</td>)}</tr>)}</tbody></table></div>
+  </LegacyDialog>;
+}
+function SchieberRoundDialog({view:v,onClose,scale}){
+  const {data}=useDialogCatalog(),[stage,setStage]=useState('round');
+  if(!data)return null;
+  const round=v.history.at(-1),win=stage==='win',winner=v.winner,team=round.pts[1]>=round.pts[2]?1:2;
+  const next=()=>{if(!win&&v.phase==='done'&&winner)setStage('win');else onClose();};
+  const portraits=win?(winner===1?[[1,357,58],[3,451,58]]:[[2,357,58],[4,451,58]]):[[2,304,152],[4,388,153],[1,304,258],[3,392,258]];
+  const factor=Math.max(1,v.rules.fTrumpFactor[round.trump]);
+  return <LegacyDialog kind="schieber" form="TINFODLG" title={win?'Sieg':'Ende der Runde'} onClose={next} onAction={next} scale={scale} render={c=>c.name==='PaintBox'?null:undefined}>
+    <img className="original-background" src={looseImage(data,win?'win2.bmp':'round2.bmp')} alt=""/>
+    {portraits.map(([p,left,top])=>{const happy=(p===1||p===3?1:2)===(win?winner:team),icon=p===v.human?(v.avatar||5208):7009+1000*(v.characters?.[p]||0)+(happy?2:0);return <img key={p} src={`${setupBase}${icon}.png`} alt={v.names[p]} title={v.names[p]} style={{position:'absolute',left,top,width:56,height:72}}/>;})}
+    {[2,1].map((t,i)=><div key={t} role="group" aria-label={`${v.names[t===1?1:2]} & ${v.names[t===1?3:4]}`} style={{position:'absolute',left:win?367:99,top:win?180+i*80.5:135+i*90,width:win?134:155,height:win?80.5:90,fontFamily:'Arial',textAlign:'center'}}>
+      {!win&&<div style={{height:45,display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:13.333}}>{factor}×(<span style={{fontSize:21.333}}>{(round.pts[t]-round.suitPts[t])/factor}</span>+{round.suitPts[t]/factor})={round.pts[t]}</div>}
+      <div style={{height:win?80.5:45,display:'flex',alignItems:'center',justifyContent:'center',color:'yellow',fontSize:21.333}}>{v.scores[t]}</div>
+    </div>)}
+  </LegacyDialog>;
+}
+function DifferRoundDialog({view:v,onClose,scale}){
+  const {data}=useDialogCatalog();if(!data)return null;
+  const round=v.history.at(-1),players=Array.from({length:v.count},(_,i)=>i+1);
+  const total=p=>v.history.reduce((sum,r)=>sum+D.DeltaOf(r.call[p],r.made[p],r.bonus[p]),0);
+  players.sort((a,b)=>total(a)-total(b));
+  const digit=(id,left,top)=>{const r=differPieces.rects[id];return <span style={{position:'absolute',left,top,width:r.width,height:r.height,backgroundImage:`url(${import.meta.env.BASE_URL}assets/differ-pieces.bmp)`,backgroundPosition:`-${r.x}px -${r.y}px`}}/>;};
+  return <LegacyDialog kind="differ" form="TROUNDDLG" title={v.phase==='done'?'Jass beendet':'Spielstand'} onClose={onClose} scale={scale}>
+    <img className="original-background" src={formImage(data,'differ','TROUNDDLG','BackImg')} alt=""/>
+    {round&&<div role="table" aria-label="Rundenresultat" style={{position:'absolute',left:279,top:138,width:295,height:230,color:'white',font:'11px Arial'}}>
+      {players.map((p,i)=>{const h=Math.floor(230/v.count),y=i*h+Math.floor(h/2),level=i===0?2:i===1?1:0,icon=p===v.human?5100+(v.avatar||5208)-5200:7100+1000*(v.characters?.[p]||0)+level;
+        return <div role="row" key={p} aria-label={`${i+1}. ${v.names[p]}`}>
+          {digit(94+i,5,y-7)}{digit(103,5+differPieces.rects[94+i].width,y-7)}
+          <img src={`${setupBase}${icon}.png`} alt={v.names[p]} style={{position:'absolute',left:25,top:y-23,width:41,height:47}}/>
+          <span role="cell" style={{position:'absolute',left:71,top:y-6,width:70,overflow:'hidden',whiteSpace:'nowrap'}}>{v.names[p]}</span>
+          <span role="cell" style={{position:'absolute',left:146,top:y-6}}>{round.call[p]}:{round.made[p]}{round.bonus[p]>0?`-${round.bonus[p]}`:''}</span>
+          <span role="cell" style={{position:'absolute',left:196,top:y-6}}>= {D.DeltaOf(round.call[p],round.made[p],round.bonus[p])}</span>
+          <span role="cell" style={{position:'absolute',left:236,top:y-6,color:'yellow',whiteSpace:'nowrap'}}>{total(p)} ({(total(p)/v.history.length).toFixed(1)})</span>
+        </div>;
+      })}
+    </div>}
   </LegacyDialog>;
 }
 export function HighScoresDialog({kind,onClose,scale}){
