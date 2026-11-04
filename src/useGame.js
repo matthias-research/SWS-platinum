@@ -13,7 +13,10 @@ export function useGame() {
   const [view, setView] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const lastView=useRef(null),animationTimer=useRef(null);
   const [animation,setAnimation]=useState(null);
-  const [automatic, setAutomatic] = useState(false), [speed, setSpeed] = useState(500);
+  const [automatic, setAutomatic] = useState(false), [speed, setSpeed] = useState(()=>{
+    try {const value=JSON.parse(localStorage.getItem('sws-preferences')||'{}').viewThinkS;if(Number.isFinite(value)&&value>=0&&value<=2000)return value;}catch{}
+    return 500;
+  });
   const [series,setSeries]=useState(1);
   const [paused, setPaused] = useState(false), [hint, setHint] = useState(null);
   const [sound, setSound] = useState(soundPreferences);

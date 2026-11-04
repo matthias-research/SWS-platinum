@@ -1,3 +1,4 @@
+import {loadRules,saveRules} from './settingsStorage';
 import {graphicsUrl} from './graphics';
 import React, { useEffect, useRef, useState } from 'react';
 import { DefaultRules } from './engine/SWSBase';
@@ -31,7 +32,7 @@ export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules })
   const differ=kind==='differ',offset=differ?-8:0;
   const dialog = useRef(null);
   const [selection,setSelection] = useState(()=>savedSelection(kind));
-  const [rules,setRules] = useState(()=>{const fallback=differ?DifferRules():DefaultRules();try{return {...fallback,...JSON.parse(localStorage.getItem(`sws-rules-${kind}`)||'{}')};}catch{return fallback;}});
+  const [rules,setRules] = useState(()=>loadRules(kind,differ?DifferRules():DefaultRules()));
   const [editingRules,setEditingRules] = useState(false);
   const [picker,setPicker] = useState(null);
   const [name,setName] = useState(()=>{try{return localStorage.getItem('sws-player')||'Sie';}catch{return 'Sie';}});
@@ -86,6 +87,6 @@ export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules })
         </div>}
       </form>
     </dialog>
-    {editingRules && renderRules(rules,value=>{setRules(value);setEditingRules(false);},()=>setEditingRules(false))}
+    {editingRules && renderRules(rules,value=>{setRules(value);saveRules(kind,value);setEditingRules(false);},()=>setEditingRules(false))}
   </>;
 }
