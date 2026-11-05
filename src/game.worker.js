@@ -23,11 +23,13 @@ self.onmessage = async ({ data: message }) => {
     assetBase = message.assetBase;
     if(message.type==='archive'){self.postMessage({id:message.id,archive:{format:'sws-archive',version:1,text:archiveText(game,message.title,message.scope)}});return;}
     let hint = null;
+    const priorFeed=game?.feedSequence||0;
+    if(game?.commentary&&message.commentary)game.commentary.settings=message.commentary;
     if (message.type === 'new') {
-      game = new Game(message.options, await createAI(message.options.kind, message.options.families??message.options.family));
+      game = new Game(message.options, await createAI(message.options.kind, message.options.families??message.options.family),message.commentary||{});
       game.act({ type: 'deal' });
     } else if (message.type === 'restore') {
-      game = Game.restore(message.saved, await createAI(message.saved.options.kind, message.saved.options.families??message.saved.options.family));
+      game = Game.restore(message.saved, await createAI(message.saved.options.kind, message.saved.options.families??message.saved.options.family),message.commentary||{});
     } else if (message.type === 'hint') {
       const copy = Game.restore(game.save(), await createAI(game.kind, game.options.families??game.options.family));
       const request = copy.request();
@@ -39,11 +41,19 @@ self.onmessage = async ({ data: message }) => {
       const last = saved.actions.findLastIndex(a => a.type === 'forfeit' || (a.type === 'answer' && a.data.fPlayer === game.human));
       if (last < 0) throw new Error('Es gibt noch keinen eigenen Zug zum Zurücknehmen.');
       saved.actions = saved.actions.slice(0, last);
-      game = Game.restore(saved, await createAI(game.kind, game.options.families??game.options.family));
+      game = Game.restore(saved, await createAI(game.kind, game.options.families??game.options.family),message.commentary||{});
     } else if (message.type === 'computer') game.computer();
     else if (message.type === 'action') game.act(message.action);
     else throw new Error('Unbekannte Anfrage');
-    self.postMessage({ id: message.id, view: game.view(), saved: game.save(), hint,
-      soundAction: ['computer', 'action', 'new'].includes(message.type) ? game.journal.at(-1) : null });
+    const view=game.view();
+    const live=['new','computer','action'].includes(message.type);
+    const fresh=live?view.feed.filter(e=>e.id>(message.type==='new'?0:priorFeed)):[];
+    view.commentaryIds=fresh.filter(e=>e.kind==='say').map(e=>e.id);
+    const soundAction=live?game.journal.at(-1):null;
+    // A journal answer can contain private suit cards or only accept/decline.
+    // Speak the manager's public notifications, including later reveals/Stöck.
+    const soundActions=[...(soundAction&&soundAction.command!=='cmdSuit'?[soundAction]:[]),
+      ...fresh.filter(e=>e.kind==='suit').map(e=>({command:'cmdSuit',data:{fPlayer:e.player,fSuit:e.suit}}))];
+    self.postMessage({ id: message.id, view, saved: game.save(), hint,soundAction,soundActions });
   } catch (error) { self.postMessage({ id: message.id, error: error.message }); }
 };

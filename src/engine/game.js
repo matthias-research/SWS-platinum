@@ -1,6 +1,7 @@
 import {playerLabel} from '../germanText.js';
 import * as S from './SWSBase.js';
 import * as D from './DiffBase.js';
+import {Commentary} from '../commentary.js';
 
 const hiddenSuit = suit => ({ fCount: suit.fCount, fCalls: suit.fCalls.map(s => ({ ...s, fCards: new Set() })) });
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
@@ -8,7 +9,7 @@ const assert = (condition, message) => { if (!condition) throw new Error(message
 // Browser command boundary, following TJassManager in SWSPlay/DiffPlay.
 // The AI receives notifications through its adapter, never the manager state.
 export class Game {
-  constructor(options, ai) {
+  constructor(options, ai, commentarySettings=null) {
     assert(['schieber', 'differ'].includes(options.kind), 'Unbekanntes Spiel');
     this.options = structuredClone(options);
     this.kind = options.kind; this.base = this.kind === 'schieber' ? S : D;
@@ -37,11 +38,13 @@ export class Game {
     this.random = new S.RandomStreams(); this.random.SetRnd(this.random.gDealRnd, options.seed ?? 1);
     this.phase = 'deal'; this.journal = []; this.history = []; this.events = [];
     this.feed=[];this.feedSequence=0;
+    this.commentary=commentarySettings?new Commentary({...options,count:this.count,human:this.human,names:this.names},commentarySettings):null;
     this.lastTrick = null; this.pause = false; this.pending = null;
     this.ai.notify('cmdNew', { fRules: this.rules, fPlayer: this.state.fLeading,
       fTypes: [0, 1, 1, 1, 1].map((v, p) => p===0||p===this.human?0:
         this.kind==='differ'&&options.families?(options.characters?.[p]!==undefined?options.characters[p]+2:{hacker:2,trashy:4,grumpy:5}[options.families[p]]):v), fNames: this.names,
       fLevel: playerLevels });
+    this.commentary?.notify('cmdNew');
   }
   get round() { return this.state.fRounds[this.state.fRound]; }
   notify(command, data, recipients) {
@@ -58,13 +61,15 @@ export class Game {
     }
     else if(command==='cmdSuit'&&data.fSuit.fCount){
       const suits=data.fSuit.fCalls.slice(0,data.fSuit.fCount).map(s=>[...s.fCards]);
-      add({kind:'suit',player:data.fPlayer,value:S.ValueOfSuit(this.round.fTrump,false,data.fSuit),cards:suits});
+      add({kind:'suit',player:data.fPlayer,value:S.ValueOfSuit(this.round.fTrump,false,data.fSuit),cards:suits,suit:structuredClone(data.fSuit)});
     }
     else if(command==='cmdStockings'&&data.fStockings)add({kind:'stockings',player:data.fPlayer,subtract:data.fStockings===2,trump:this.round.fTrump});
     else if(command==='cmdCount'){
       if(this.kind==='differ')for(let p=1;p<=this.count;p++)call(p,data.fCall[p]);
       add({kind:'result',points:this.kind==='schieber'?data.fPoints.map((n,i)=>n+data.fSuitPts[i]):data.fMade});
     }
+    this.commentary?.notify(command,data,{recipients,leading:this.state.fLeading});
+    for(const event of this.commentary?.drain()||[])add(event);
   }
   deal() {
     assert(this.phase === 'deal', 'Jetzt können keine Karten verteilt werden.');
@@ -164,6 +169,8 @@ export class Game {
         this.lastTrick = { ...structuredClone(r.fTricks[trickIndex]), winner: r.fTricks[r.fTrick].fLeading };
         this.pause = true;
       }
+      if(signals?.signalBPrice)this.notifyCommentary('cmdBPrice',{fTeam:this.state.fBPrice});
+      if(signals?.signalWinner)this.notifyCommentary('cmdWinner',{fTeam:this.state.fWinner});
       if (this.base.RoundFinished(this.state) && !(this.kind === 'differ' && this.rules.fCallMode === D.kShowShow && D.NeedStockings(this.state).needed)) this.finish();
     } else throw new Error('Unbekannter Spielbefehl');
     this.pending = null;
@@ -177,6 +184,14 @@ export class Game {
       this.notify('cmdCount', { fPoints: result.pts.map((n, i) => n - suits[i]), fSuitPts: suits, fMatchBy: result.matchBy });
     }
     this.phase = this.base.MatchFinished(this.state) ? 'done' : 'deal';
+    if(result.signalBPrice)this.notifyCommentary('cmdBPrice',{fTeam:this.state.fBPrice});
+    if(this.kind==='schieber'&&result.signalWinner)this.notifyCommentary('cmdWinner',{fTeam:this.state.fWinner});
+    if(this.kind==='differ'&&this.phase==='done')this.notifyCommentary('cmdWinner',{fTable:this.state.fFinal});
+  }
+  notifyCommentary(command,data){
+    this.commentary?.notify(command,data);
+    for(const event of this.commentary?.drain()||[])this.feed.push({id:++this.feedSequence,round:this.state.fRoundTotal,...event});
+    this.feed=this.feed.slice(-50);
   }
   act(action) {
     if (action.type === 'deal') this.deal();
@@ -239,9 +254,9 @@ export class Game {
       request: req ? { player: req.player, command: req.command, ...(req.player === this.human ? { data: req.data } : {}) } : null };
   }
   save() { return { format: 'sws-browser', version: 1, options: this.options, actions: this.journal }; }
-  static restore(saved, ai) {
+  static restore(saved, ai, commentarySettings=null) {
     assert(saved?.format === 'sws-browser' && saved.version === 1 && Array.isArray(saved.actions) && saved.actions.length <= 20000, 'Ungültige SWS-Spiel-Datei');
-    const game = new Game(saved.options, ai);
+    const game = new Game(saved.options, ai, commentarySettings);
     for (const action of saved.actions) {
       if (action.source === 'computer') {
         const req = game.request();

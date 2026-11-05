@@ -24,26 +24,33 @@ export function eventText(event,view,setId){
 }
 function EventContent({event,view,setId}){
   const cards=event.kind==='stockings'?[[9*(event.trump-1)+7,9*(event.trump-1)+8]]:event.cards?.filter(row=>row.length);
-  const icon=event.player===view.human?5100+((view.avatar||5208)-5200):7101+1000*(view.characters?.[event.player]||0);
+  const icon=event.icon??(event.player===view.human?5100+((view.avatar||5208)-5200):7101+1000*(view.characters?.[event.player]||0));
   return <>
     <div className="feed-line">{event.kind==='say'&&<img className="feed-portrait" src={graphicsUrl(`setup/${icon}.png`)} alt=""/>}<span>{event.kind==='trump'?trumpAnnouncement(event,view):eventText(event,view,setId)}</span>{event.kind==='trump'&&<img className="feed-trump" src={graphicsUrl(`dialogs/symbols/${setId}-${event.trump}.png`)} alt={trumpLabels(setId)[event.trump]}/>}</div>
     {cards?.length>0&&<div className="feed-cards"><DialogCards setId={setId} width={148} height={cards.length*59} rows={cards}/></div>}
   </>;
 }
 const positions={1:{left:310,top:38},2:{left:203,top:144},3:{left:310,top:280},4:{left:410,top:144}};
-export function GameFeed({view,scale,setId,cardHeight=118,messages=[],duration=5,size=BASE_TABLE}){
+const noMessages=[];
+export function GameFeed({view,scale,setId,cardHeight=118,messages=noMessages,duration=5,size=BASE_TABLE}){
   const entries=view.feed||[],last=entries.at(-1)?.id||0;
-  const seen=useRef(last),seenMessage=useRef(messages.length),timers=useRef(new Map()),scroller=useRef(null),atBottom=useRef(true);
+  const seen=useRef(last),seenMessage=useRef(messages.length),scroller=useRef(null),atBottom=useRef(true);
+  const initial=useRef(true);
   const [bubbles,setBubbles]=useState({});
-  const dismiss=player=>{clearTimeout(timers.current.get(player));timers.current.delete(player);setBubbles(b=>{const next={...b};delete next[player];return next;});};
+  const dismiss=player=>{setBubbles(b=>{const next={...b};delete next[player];return next;});};
   useEffect(()=>{
-    if(last<seen.current){for(const timer of timers.current.values())clearTimeout(timer);timers.current.clear();setBubbles({});}
-    const fresh=entries.filter(e=>e.id>seen.current).concat(messages.slice(seenMessage.current));seen.current=last;seenMessage.current=messages.length;
-    if(fresh.some(e=>e.kind==='round')){for(const timer of timers.current.values())clearTimeout(timer);timers.current.clear();setBubbles({});}
-    if(duration<=0){for(const timer of timers.current.values())clearTimeout(timer);timers.current.clear();setBubbles({});return;}
-    for(const event of fresh){if(!event.player)continue;setBubbles(b=>({...b,[event.player]:event}));clearTimeout(timers.current.get(event.player));timers.current.set(event.player,setTimeout(()=>dismiss(event.player),duration*1000));}
+    if(last<seen.current)setBubbles({});
+    const fresh=entries.filter(e=>e.id>seen.current||(initial.current&&view.commentaryIds?.includes(e.id))).concat(messages.slice(seenMessage.current));seen.current=last;seenMessage.current=messages.length;initial.current=false;
+    if(fresh.some(e=>e.kind==='round'))setBubbles({});
+    if(duration<=0){setBubbles({});return;}
+    for(const event of fresh){if(!event.player)continue;setBubbles(b=>({...b,[event.player]:{...event,shownAt:Date.now()}}));}
   },[last,messages,duration]);
-  useEffect(()=>()=>{for(const timer of timers.current.values())clearTimeout(timer);},[]);
+  // Recreate timers after effect cleanup (including StrictMode's mount replay).
+  // Absolute deadlines keep other bubbles from gaining time on each update.
+  useEffect(()=>{
+    const timers=Object.entries(bubbles).map(([player,event])=>setTimeout(()=>dismiss(player),Math.max(0,event.shownAt+duration*1000-Date.now())));
+    return()=>timers.forEach(clearTimeout);
+  },[bubbles,duration]);
   useEffect(()=>{if(atBottom.current&&scroller.current)scroller.current.scrollTop=scroller.current.scrollHeight;},[last,messages,setId,cardHeight]);
   const {log}=layout(size.width,size.height,cardHeight),offset=tableOffset(size);
   const feed=[...entries.map(e=>({...e,order:e.id})),...messages.map((e,i)=>({...e,order:e.after+(i+1)/1000}))].sort((a,b)=>a.order-b.order);

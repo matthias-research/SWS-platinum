@@ -19,6 +19,8 @@
     "assets:setup": "node scripts/prepare-setup.mjs",
     "assets:dialogs": "node scripts/prepare-dialogs.mjs",
     "audio:test": "node tests-node/audio.test.mjs",
+    "commentary:test": "node tests-node/commentary-triggers.test.mjs && node tests-node/commentary.test.mjs",
+    "assets:commentary": "node scripts/prepare-commentary.mjs",
     "engine:fixtures": "node scripts/prepare-engine-fixtures.mjs",
     "deploy": "wrangler deploy",
     "deploy:preview": "wrangler dev"

@@ -6,7 +6,7 @@ import {DialogCards} from './DecisionDialogs';
 const simple={winLimit:'fLimit',winCut:'fCut',winRoundLimit:'fRoundLimit',suitEnabled:'fSuitsEnabled',suitFour:'fSuitAllFourEqs',suitCross:'fSuitCrossingOn',suitPoints:'fSuitsIncrement',matchBonus:'fMatchBonus',rulesNrRounds:'fRoundLimit',rulesCallBonus:'fSCallBonus'};
 const radios={winPoints:['fPointPlay',true],winRounds:['fPointPlay',false],trickFirst:['fSuitsComeFirst',false],suitFirst:['fSuitsComeFirst',true],beginLooser:['fLooserBegins',true],beginNext:['fLooserBegins',false],rules3Players:['fNuPlayers',3],rules4Players:['fNuPlayers',4],rulesHideHide:['fCallMode',0],rulesHideShow:['fCallMode',1],rulesShowShow:['fCallMode',2],rulesAddDiffs:['fSumUpRanks',false],rulesAddRanks:['fSumUpRanks',true],rulesStockingsNo:['fStockings',0],rulesStockingsAdd:['fStockings',1],rulesStockingsSub:['fStockings',2]};
 export function PreferencesDialog({kind,rules,onClose,onApply,settings={},onSettings,initialTab=1,title,locked=false,scale}) {
-  const [draft,setDraft]=useState(()=>structuredClone(rules)),[prefs,setPrefs]=useState({...settings}),[error,setError]=useState('');
+  const [draft,setDraft]=useState(()=>structuredClone(rules)),[prefs,setPrefs]=useState({genSayBefore:true,genSayDuring:true,genSayAfter:true,genSayWin:true,...settings}),[error,setError]=useState('');
   const values={viewInfoRound:true,viewInfoWin:true,viewInfoMatch:true,genInfoRound:true,genInfoGame:true,...prefs,viewAscending:prefs.viewDescending!==true,viewDescending:prefs.viewDescending===true,rulesBonus:draft.fDZeroBonus>0};
   for(const [control,key] of Object.entries(simple))values[control]=draft[key];
   for(const [control,[key,value]] of Object.entries(radios))values[control]=draft[key]===value;
@@ -22,7 +22,7 @@ export function PreferencesDialog({kind,rules,onClose,onApply,settings={},onSett
   const overrides={runningLabel:{Visible:false},winPoints:{'aria-label':'Auf Punkte spielen'},winRoundLimit:{'aria-label':'Runden'},rulesNrRounds:{'aria-label':'Runden','Items.Strings':Array.from({length:48},(_,i)=>String(i+1))},winLimit:{'aria-label':'Zielpunkte'},winCut:{'aria-label':'Bergpreis'},suitEnabled:{'aria-label':'Weis und Stöck'},viewCardsBox:{Style:'csDropDownList'}};
   Object.assign(overrides,{GroupBox10:{Top:16},GroupBox9:{Top:kind==='differ'?120:152},...(kind==='differ'?{GroupBox4:{Top:208}}:{})});
   for(const name of [...Object.keys(simple),...Object.keys(radios),'rulesBonus',...Array.from({length:6},(_,i)=>`Fact${i+1}`)])overrides[name]={...overrides[name],Enabled:!locked};
-  for(const name of ['genSavePrefs','genVoice','genSayBefore','genSayDuring','genSayAfter','genSayWin','genAviShow','viewAviShow','genIntroSound','viewGoepf'])overrides[name]={...overrides[name],Enabled:false};
+  for(const name of ['genSavePrefs','genAviShow','viewAviShow','genIntroSound','viewGoepf'])overrides[name]={...overrides[name],Enabled:false};
   const apply=()=>{
     if(!locked&&Object.values(draft).some(n=>typeof n==='number'&&(!Number.isInteger(n)||n<0||n>100000))){setError('Bitte ganze Zahlen zwischen 0 und 100000 eingeben.');return;}
     if(!locked && (!Number.isInteger(draft.fRoundLimit)||draft.fRoundLimit<1||draft.fRoundLimit>48||kind==='schieber'&&(!Number.isInteger(draft.fLimit)||draft.fLimit<1||draft.fTrumpFactor.some(n=>!Number.isInteger(n)||n<0||n>10)||!draft.fTrumpFactor.some(n=>n>0)))){setError('Bitte gültige Spielregeln eingeben (1–48 Spiele, positive Zielpunkte).');return;}

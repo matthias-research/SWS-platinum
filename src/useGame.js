@@ -1,15 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { soundForAction, soundForHint, stopAudio } from './audio';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { soundForAction, soundForHint, soundForComments, stopAudio, configureAudio, subscribeSpeech, speechBusy } from './audio';
 import {cardTransition} from './cardAnimation';
 function soundPreferences() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem('sws-sound') || '{}'); } catch {}
   return { enabled: saved?.enabled === true, volume: Number.isFinite(saved?.volume) ? Math.max(0, Math.min(1, saved.volume)) : 0.6,
     voice: [3, 4, 5, 6].includes(saved?.voice) ? saved.voice : 3, set: 1,
-    noise:saved?.noise!==false,calls:saved?.calls!==false,hints:saved?.hints!==false,own:saved?.own!==false };
+    noise:saved?.noise!==false,calls:saved?.calls!==false,hints:saved?.hints!==false,own:saved?.own!==false,comments:saved?.comments!==false };
 }
 export function useGame() {
   const worker = useRef(null), latest = useRef(null), sequence = useRef(0);
+  const startedAt = useRef(Date.now());
+  const speaking = useSyncExternalStore(subscribeSpeech, speechBusy);
   const [view, setView] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const lastView=useRef(null);
   const [animation,setAnimation]=useState(null);
@@ -37,10 +39,14 @@ export function useGame() {
         const transition=cardTransition(lastView.current,data.view,steps);
         setAnimation(transition);
 
+        const lastFeedId=lastView.current?.feed?.at(-1)?.id??0;
         lastView.current=data.view;
         setView(data.view); latest.current = data.saved;
         setHint(data.hint);
-        soundForAction(data.soundAction, data.view, soundRef.current);
+        let gender;try{gender=JSON.parse(localStorage.getItem('sws-profile')||'{}').gender;}catch{}
+        for(const action of data.soundActions??[data.soundAction])soundForAction(action, data.view, {...soundRef.current,gender});
+        // Restore/undo reconstruct the feed but must never replay old recordings.
+        if(data.soundAction) soundForComments((data.view.feed||[]).filter(event=>event.kind==='say'&&(data.view.commentaryIds?data.view.commentaryIds.includes(event.id):event.id>lastFeedId)),soundRef.current);
 
         try {
           localStorage.setItem('sws-game', JSON.stringify(data.saved));
@@ -57,12 +63,18 @@ export function useGame() {
       worker.current.onerror = e => { setError(e.message || 'Der Computer-Spieler konnte nicht geladen werden.'); setBusy(false); setAutomatic(false); };
     }
     if(message.type!=='hint')setHint(null);
+    let preferences={};try{preferences=JSON.parse(localStorage.getItem('sws-preferences')||'{}');}catch{}
+    let gender;try{gender=JSON.parse(localStorage.getItem('sws-profile')||'{}').gender;}catch{}
+    const parts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Zurich',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',weekday:'short',hourCycle:'h23'}).formatToParts(new Date()).map(p=>[p.type,p.value]));
+    const commentary={before:preferences.genSayBefore!==false,during:preferences.genSayDuring!==false,after:preferences.genSayAfter!==false,results:preferences.genSayWin!==false,set:soundRef.current.set,gender,
+      date:{monthDay:Number(parts.month)*100+Number(parts.day),time:Number(parts.hour)*100+Number(parts.minute),weekday:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].indexOf(parts.weekday)},elapsedMinutes:Math.floor((Date.now()-startedAt.current)/60000)};
     setBusy(true); setError(''); worker.current.postMessage({ ...message, id: ++sequence.current,
+      commentary,
       assetBase: new URL(`${import.meta.env.BASE_URL}assets/ai/`, document.baseURI).href });
   }
   useEffect(() => () => { worker.current?.terminate(); stopAudio(); }, []);
   useEffect(() => {
-    if (!view || busy || animation || error || paused) return;
+    if (!view || busy || animation || speaking || error || paused) return;
     let message;
     if (view.phase === 'done' && !view.pause) {
       if(automatic&&series>1){const timer=setTimeout(()=>{setSeries(n=>n-1);send({type:'new',options:{...latest.current.options,id:crypto.randomUUID(),seed:crypto.getRandomValues(new Uint32Array(1))[0]%2147483646+1}},true);},speed);return()=>clearTimeout(timer);}
@@ -72,13 +84,13 @@ export function useGame() {
     else if (view.phase === 'deal' && automatic) message = { type: 'action', action: { type: 'deal' } };
     else if (view.request && (automatic || view.request.player !== view.human)) message = { type: 'computer' };
     if (message) { const timer = setTimeout(() => send(message), speed); return () => clearTimeout(timer); }
-  }, [view, busy, animation, automatic, speed, error, paused,series]);
+  }, [view, busy, animation, speaking, automatic, speed, error, paused,series]);
   return { view, busy:busy||Boolean(animation), animation, finishAnimation, error, automatic, setAutomatic, speed, setSpeed, paused, setPaused, hint,series,
     end:()=>{worker.current?.terminate();worker.current=null;stopAudio();setAnimation(null);lastView.current=null;setView(null);setHint(null);setAutomatic(false);setPaused(false);},
     saved: () => latest.current,
     archive: (title,scope) => send({type:'archive',title,scope}),
     playSeries: count=>{setSeries(count);setAutomatic(true);},
-    sound, setSound: value => { if (!value.enabled) stopAudio(); setSound(value); },
+    sound, setSound: value => { configureAudio(value); soundRef.current=value; setSound(value); },
     getHint: () => send({type:'hint'}), undo: () => { stopAudio(); setAutomatic(false); send({type:'undo'}); },
     start: options => { setSeries(1);setAutomatic(false); setPaused(false); send({ type: 'new', options }, true); },
     action: action => send({ type: 'action', action }),
