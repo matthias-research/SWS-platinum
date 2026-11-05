@@ -198,7 +198,7 @@ function App() {
       {!reviewEnabled&&!replay.view&&game.view?.phase==='deal'&&!game.view.pause&&!game.busy&&!game.paused&&!game.automatic&&<button type="button" className="trick-clear-target" aria-label="Nächste Runde durch Klick auf den Tisch" onClick={()=>game.action({type:'deal'})}/>}
       {!assets && !error && <p className="loading" role="status">Tisch wird geladen…</p>}
     </div>}
-    {!reviewEnabled && !showWelcome && (replay.view ? <LegacyReplay lowLevel={lowLevel} replay={replay} setId={cardSet} /> : <GameControls sceneRef={sceneRef} lowLevel={lowLevel} key={game.view?(game.saved()?.options.id||game.view.kind):'idle'} game={game} onNew={setNewGame} onDialog={openDialog} displayScale={scale}/>)}
+    {!reviewEnabled && !showWelcome && (replay.view ? <LegacyReplay lowLevel={lowLevel} replay={replay} setId={cardSet} /> : <GameControls bubbleDuration={preferences.viewBubbleS??5} sceneRef={sceneRef} lowLevel={lowLevel} key={game.view?(game.saved()?.options.id||game.view.kind):'idle'} game={game} onNew={setNewGame} onDialog={openDialog} displayScale={scale}/>)}
 
     {newGame && <GameSetup key={newGame} kind={newGame} setId={cardSet} settings={settings} onSettings={applySettings} displayScale={scale} onClose={() => setNewGame(null)} onStart={options => { setStartingKind(options.kind);replay.close();game.start({...options,...(dealSeed!==null?{seed:dealSeed}:{})});setMessages([]); setNewGame(null); }} />}
     {matchHistory && <MatchHistory scale={scale} onClose={() => setMatchHistory(false)} />}

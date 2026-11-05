@@ -14,6 +14,7 @@ export function useGame() {
   const speaking = useSyncExternalStore(subscribeSpeech, speechBusy);
   const [view, setView] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const lastView=useRef(null);
+  const [openingCommentsAt,setOpeningCommentsAt]=useState(0);
   const [animation,setAnimation]=useState(null);
   const finishAnimation=useCallback(completed=>setAnimation(current=>current===completed?null:current),[]);
   const [automatic, setAutomatic] = useState(false), [speed, setSpeed] = useState(()=>{
@@ -40,6 +41,7 @@ export function useGame() {
         setAnimation(transition);
 
         const lastFeedId=lastView.current?.feed?.at(-1)?.id??0;
+        if(!lastView.current)setOpeningCommentsAt(data.view.commentaryIds?.length?Date.now():0);
         lastView.current=data.view;
         setView(data.view); latest.current = data.saved;
         setHint(data.hint);
@@ -85,7 +87,7 @@ export function useGame() {
     else if (view.request && (automatic || view.request.player !== view.human)) message = { type: 'computer' };
     if (message) { const timer = setTimeout(() => send(message), speed); return () => clearTimeout(timer); }
   }, [view, busy, animation, speaking, automatic, speed, error, paused,series]);
-  return { view, busy:busy||Boolean(animation), animation, finishAnimation, error, automatic, setAutomatic, speed, setSpeed, paused, setPaused, hint,series,
+  return { view, openingCommentsAt, busy:busy||Boolean(animation), animation, finishAnimation, error, automatic, setAutomatic, speed, setSpeed, paused, setPaused, hint,series,
     end:()=>{worker.current?.terminate();worker.current=null;stopAudio();setAnimation(null);lastView.current=null;setView(null);setHint(null);setAutomatic(false);setPaused(false);},
     saved: () => latest.current,
     archive: (title,scope) => send({type:'archive',title,scope}),

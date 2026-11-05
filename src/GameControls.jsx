@@ -60,13 +60,21 @@ export function GameSetupForm({ kind, onStart, onClose, setId = 1, initialRules,
   </dialog>;
 }
 
-export function GameControls({ game, onNew, onDialog, displayScale, lowLevel=false, sceneRef }) {
+export function GameControls({ game, onNew, onDialog, displayScale, lowLevel=false, sceneRef, bubbleDuration=5 }) {
   const trumpNames = trumpLabels(game.sound.set);
   const v = game.view, req = v?.request;
   const [call, setCall] = useState(50), [history, setHistory] = useState(false);
   const [dismissed,setDismissed]=useState(''),[dismissedHint,setDismissedHint]=useState(null);
+  const openingDeadline=game.openingCommentsAt?game.openingCommentsAt+Math.max(0,bubbleDuration)*1000:0;
+  const [elapsedOpeningDeadline,setElapsedOpeningDeadline]=useState(0);
+  useEffect(()=>{
+    if(!openingDeadline)return;
+    const timer=setTimeout(()=>setElapsedOpeningDeadline(openingDeadline),Math.max(0,openingDeadline-Date.now()));
+    return()=>clearTimeout(timer);
+  },[openingDeadline]);
+  const waitingForOpeningComments=openingDeadline>elapsedOpeningDeadline&&openingDeadline>Date.now();
   const decisionKey=v?`${v.roundNumber}/${v.phase}/${req?.command}/${v.hand.join(',')}/${v.events.join('|')}`:'';
-  const showDecision=Boolean(v&&req&&req.player===v.human&&!game.automatic&&!game.paused&&req.command!=='cmdPlay'&&dismissed!==decisionKey);
+  const showDecision=Boolean(v&&req&&req.player===v.human&&!game.automatic&&!game.paused&&req.command!=='cmdPlay'&&dismissed!==decisionKey&&!(waitingForOpeningComments&&['cmdTrump','cmdShift','cmdCall'].includes(req.command)));
   const inlineHint=['cmdTrump','cmdShift','cmdCard'].includes(game.hint?.command);
   const showHint=game.hint&&game.hint!==dismissedHint&&!inlineHint;
   useEffect(()=>{if(['cmdTrump','cmdShift'].includes(game.hint?.command))setDismissed('');},[game.hint]);

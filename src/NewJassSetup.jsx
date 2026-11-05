@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { DefaultRules } from './engine/SWSBase';
 import { DefaultRules as DifferRules } from './engine/DiffBase';
 import {useDialogCatalog,formImage} from './dialogs/LegacyDialog';
+import {useCanvasDialogPosition} from './dialogs/useCanvasDialogPosition';
 const seats = [{p:1,name:'Nord',x:208,y:69},{p:2,name:'West',x:93,y:174},{p:4,name:'Ost',x:321,y:174}];
 const strengths = ['Schwach','Mittel','Stark'];
 const characterNames = ['Birgit','Beat','Stéphanie','Walter'];
@@ -39,6 +40,7 @@ export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules, d
   const [viewport,setViewport] = useState({width:innerWidth,height:innerHeight});
   const height=differ?431:439;
   const scale = Math.min(displayScale,(viewport.width-24)/464,(viewport.height-24)/height);
+  const centered=useCanvasDialogPosition(464*scale,height*scale);
   useEffect(()=>{dialog.current.showModal();const resize=()=>setViewport({width:innerWidth,height:innerHeight});window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize);},[]);
   const change = (key,p,value) => setSelection(s=>({...s,[key]:s[key].map((n,i)=>i===p?value:n)}));
   const start = e => {
@@ -51,7 +53,7 @@ export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules, d
       id:crypto.randomUUID(),seed:crypto.getRandomValues(new Uint32Array(1))[0]%2147483646+1});
   };
   return <>
-    <dialog ref={dialog} className="legacy-new-jass" aria-label="Neuer Jass" onCancel={e=>{if(picker!==null){e.preventDefault();setPicker(null);}else onClose();}} style={{width:464*scale,height:height*scale,'--setup-button-top':`${386+offset}px`}}>
+    <dialog ref={dialog} className="legacy-new-jass" aria-label="Neuer Jass" onCancel={e=>{if(picker!==null){e.preventDefault();setPicker(null);}else onClose();}} style={{width:464*scale,height:height*scale,...centered,'--setup-button-top':`${386+offset}px`}}>
       <form onSubmit={start} className="legacy-setup-content" style={{height,transform:`scale(${scale})`}}>
         <header className="legacy-caption">{differ?'Neuer Differenzler':'Neuer Jass'}<button type="button" aria-label="Schliessen" onClick={onClose}>×</button></header>
         <div className="legacy-setup-board" style={{height:height-22,backgroundImage:`url(${differ?formImage(catalog,'differ','TDLGNEWJASS',rules.fNuPlayers===3?'Back3Image':'BackImage'):graphicsUrl('setup/schieber.png')})`,backgroundPosition:`0 ${offset}px`}}>

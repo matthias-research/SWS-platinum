@@ -1,5 +1,6 @@
 import {informalCaption} from '../germanText';
 import {graphicsUrl,useGraphics} from '../graphics';
+import {useCanvasDialogPosition} from './useCanvasDialogPosition';
 import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
 export const dialogBase=`${import.meta.env.BASE_URL}assets/dialogs/`;
 let catalogPromise;
@@ -37,7 +38,8 @@ export function DialogFrame({title,width,height,onClose,children,className='',ke
   },[keepHandVisible,width,height,scale]);
   useEffect(()=>{ref.current.showModal();const resize=()=>setViewport({w:innerWidth,h:innerHeight});window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize);},[]);
   const zoom=keepHandVisible&&placement?placement.zoom:Math.min(scale,(viewport.w-20)/width,(viewport.h-20)/(height+22));
-  return <dialog ref={ref} aria-label={title} className={`original-dialog ${keepHandVisible?'decision-dialog':''} ${className}`} onCancel={e=>{e.preventDefault();onClose();}} style={{width:width*zoom,height:(height+22)*zoom,...(keepHandVisible&&placement?{position:'fixed',inset:'auto',left:placement.left,top:placement.top,margin:0}:{})}}>
+  const centered=useCanvasDialogPosition(width*zoom,(height+22)*zoom,!keepHandVisible);
+  return <dialog ref={ref} aria-label={title} className={`original-dialog ${keepHandVisible?'decision-dialog':''} ${className}`} onCancel={e=>{e.preventDefault();onClose();}} style={{width:width*zoom,height:(height+22)*zoom,...centered,...(keepHandVisible&&placement?{position:'fixed',inset:'auto',left:placement.left,top:placement.top,margin:0}:{})}}>
     <div className="original-dialog-content" style={{width,height:height+22,transform:`scale(${zoom})`}}>
       <header className="original-caption">{title}<button type="button" aria-label="Schliessen" onClick={onClose}>×</button></header>
       <div className="original-client" style={{height}}>{children}</div>
