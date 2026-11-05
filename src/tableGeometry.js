@@ -1,7 +1,7 @@
 // One-player Delphi Table geometry, shared by canvas drawing and HTML overlays.
 export const BASE_TABLE = Object.freeze({width:768,height:528});
 export function tableOffset(size=BASE_TABLE){
-  return {x:Math.floor(size.width/2)-384,y:Math.floor(size.height/2)-264};
+  return {x:Math.floor(size.width/2)-384+(size.shiftX||0),y:Math.floor(size.height/2)-264};
 }
 export function carpetRect(size=BASE_TABLE){
   const {x,y}=tableOffset(size);

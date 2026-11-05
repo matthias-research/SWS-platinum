@@ -51,6 +51,10 @@ Choose **Neuer Schieber…** or **Neuer Differenzler…** to play complete match
 
 Under **Ansicht**, **Verbesserte Grafik** switches tables, cards, portraits, dialogs and sprites to the enhanced 2× assets; **Originalgrafik** restores the originals. Choose 1×/2×/3×, select card sets/sizes, or fit the table to the window. **Einstellungen…** opens preferences directly from the top menu. Enable **Ton** below the table for sounds loaded on demand. Restart a stopped development server with `npm run dev` from this directory.
 
+## Mobile fullscreen
+
+Choosing a game opens setup without requesting fullscreen. On phones, fullscreen prompts also require landscape orientation, even when Mobile horizontal was saved manually; rotating back to portrait exits fullscreen. Opening the page in **Mobile horizontal**, or entering it from another view (through rotation in Auto view or the Browser menu), offers fullscreen when the browser supports it and fullscreen is off. **Vollbild einschalten** enables it; **Nicht jetzt** or Escape continues in the page. Leaving Mobile horizontal dismisses the prompt and exits fullscreen. Dismissing the prompt or manually exiting fullscreen does not prompt again until a new transition into Mobile horizontal.
+
 ## Scaling and assets
 
 `src/config.js` is the central configuration: `DISPLAY.scale` defaults to `2`. Drawing remains in a 768 × 528 logical coordinate system. Window fitting, asset resolution and device pixel ratio are independent; disable fitting to see the literal selected scale. `toLogicalPoint` converts pointer coordinates back to logical coordinates for card selection.

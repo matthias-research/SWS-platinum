@@ -26,6 +26,8 @@ import {PuzzleDialog} from './dialogs/PuzzleDialog';
 import {ProfileDialog,SeedDialog,AboutDialog,ResultsDialog,HighScoresDialog,StatisticsDialog,ConversationDialog,ConfirmDialog,AutoPlayDialog,AssetLibraryDialog,ArchiveDialog,FastPlayDialog,HighNameDialog} from './dialogs/SupportingDialogs';
 import {DefaultRules as SchieberRules} from './engine/SWSBase';
 import {DefaultRules as DifferRules} from './engine/DiffBase';
+import {viewModes,resolveView,mobileLayout} from './viewLayout';
+import {MobileFullscreen} from './MobileFullscreen';
 
 const reviewEnabled = new URLSearchParams(location.search).get('review') === 'cards';
 function displayPreference(key, fallback) {
@@ -93,8 +95,18 @@ function App() {
   const artwork=useGraphics(),setArtwork=setGraphics;
   const [fit, setFit] = useState(() => displayPreference('resolution','') ? displayPreference('resolution','')==='adaptive' : displayPreference('fit',DISPLAY.fitToWindow));
   const requestedScale=fit?Infinity:1;
+  const [viewMode,setViewMode]=useState(()=>{const saved=displayPreference('viewMode','auto');return viewModes.includes(saved)?saved:'auto';});
+  const [coarse,setCoarse]=useState(()=>matchMedia('(pointer: coarse)').matches);
+  const [landscape,setLandscape]=useState(()=>matchMedia('(orientation: landscape)').matches);
+  useEffect(()=>{const query=matchMedia('(orientation: landscape)'),update=()=>setLandscape(query.matches);query.addEventListener('change',update);return()=>query.removeEventListener('change',update);},[]);
+  useEffect(()=>{const query=matchMedia('(pointer: coarse)'),update=()=>setCoarse(query.matches);query.addEventListener('change',update);return()=>query.removeEventListener('change',update);},[]);
   const [viewport, setViewport] = useState({ width: document.documentElement.getBoundingClientRect().width, height: innerHeight, dpr: devicePixelRatio });
+  const effectiveView=reviewEnabled?'desktop':resolveView(viewMode,{...viewport,coarse,screenWidth:screen.width,screenHeight:screen.height});
+  const mobile=effectiveView!=='desktop';
+  const mobileGeometry=useMemo(()=>mobile?mobileLayout(effectiveView,viewport.width,viewport.height,fit):null,[effectiveView,viewport.width,viewport.height,mobile,fit]);
   const [menu, setMenu] = useState(null);
+  const compactMenu=effectiveView==='mobile-horizontal';
+  useEffect(()=>setMenu(null),[effectiveView]);
   // Keep the auxiliary controls available for development; normal startup hides them.
   const [lowLevel,setLowLevel]=useState(false);
   const canvas = useRef(null),sceneRef=useRef(null);
@@ -105,14 +117,14 @@ function App() {
   const navigation = useRef(null);
   // Normal play needs only the menu, frame, margins and control padding.
   const reservedHeight = reviewEnabled ? 180 : lowLevel || replay.view ? 145 : 60;
-  const tableSize=useMemo(()=>!fit&&!reviewEnabled
+  const tableSize=useMemo(()=>mobileGeometry?.size||(!fit&&!reviewEnabled
     ? {width:Math.max(640,Math.floor(viewport.width-16)),height:Math.max(480,Math.floor(viewport.height-reservedHeight))}
-    : {width:DISPLAY.width,height:DISPLAY.height},[fit,reviewEnabled,viewport.width,viewport.height,reservedHeight]);
+    : {width:DISPLAY.width,height:DISPLAY.height}),[mobileGeometry,fit,reviewEnabled,viewport.width,viewport.height,reservedHeight]);
   const joker=game.view&&jokerAssets?jokerRect(jokerAssets,game.view.kind,sheets.V?.cards[0].rect.height,tableSize):null;
-  const scale = fitScale(viewport.width - 16, viewport.height - reservedHeight, requestedScale, fit);
+  const scale = mobileGeometry?.scale??fitScale(viewport.width - 16, viewport.height - reservedHeight, requestedScale, fit);
   // Adaptive scales the large cards; fixed mode follows Delphi's size threshold.
-  const cardSize=fit||(tableSize.width>700&&tableSize.height>530)?2:1;
-  useEffect(() => { try {localStorage.setItem('sws-display',JSON.stringify({cardSet,artwork,scale:1,fit,resolution:fit?'adaptive':'fixed'}));}catch{} },[cardSet,cardSize,artwork,requestedScale,fit]);
+  const cardSize=mobile||fit||(tableSize.width>700&&tableSize.height>530)?2:1;
+  useEffect(() => { try {localStorage.setItem('sws-display',JSON.stringify({cardSet,artwork,scale:1,fit,resolution:fit?'adaptive':'fixed',viewMode}));}catch{} },[cardSet,cardSize,artwork,requestedScale,fit,viewMode]);
 
   useEffect(() => {
     let active = true;
@@ -128,7 +140,8 @@ function App() {
     loadAssets(artwork).then(value => { if (active) setAssets(value); }).catch(e => { if (active) setError(e.message); });
     const resize = () => setViewport({ width: document.documentElement.getBoundingClientRect().width, height: innerHeight, dpr: devicePixelRatio });
     window.addEventListener('resize', resize);
-    return () => { active = false; window.removeEventListener('resize', resize); };
+    document.addEventListener('fullscreenchange',resize);
+    return () => { active = false; window.removeEventListener('resize', resize);document.removeEventListener('fullscreenchange',resize); };
   }, [artwork]);
 
   useLayoutEffect(() => {
@@ -161,6 +174,11 @@ function App() {
     Jass: <>{item('Neuer Schieber…', () => setNewGame('schieber'))}{item('Neuer Differenzler…', () => setNewGame('differ'))}{item('Kartenverteilungen…',()=>openDialog('seed'))}{game.view&&<>{item('Computer Schnellspiel…',()=>openDialog('auto'))}{item('Gespräche…',()=>openDialog('say'))}{item('Spielstand…',()=>openDialog('results'))}{game.view.phase==='done'&&item('Revanche…',()=>openDialog('rematch'))}</>}{item('Gespielte Jass…', () => setMatchHistory(true))}{item('Bestenliste…',()=>openDialog('highscores'))}{activeKind==='differ'&&item('Ranglistenname…',()=>openDialog('highname'))}{item('Statistik…',()=>openDialog('statistics'))}</>,
     Einstellungen: <>{item('Allgemein…',()=>openDialog('preferences-general'))}{item('Regeln…',()=>openDialog('preferences-rules'),undefined,Boolean(game.view&&game.view.phase!=='done'))}{item('Darstellungen…',()=>openDialog('preferences-display'))}</>,
     Browser: <>
+      {item('Desktop view',()=>setViewMode('desktop'),viewMode==='desktop')}
+      {item('Mobile horizontal',()=>setViewMode('mobile-horizontal'),viewMode==='mobile-horizontal')}
+      {item('Mobile vertical',()=>setViewMode('mobile-vertical'),viewMode==='mobile-vertical')}
+      {item('Auto view',()=>setViewMode('auto'),viewMode==='auto')}
+      <hr />
       {item('Lowlevel menu',()=>setLowLevel(value=>!value),lowLevel)}
       <hr />
       {item('Verbesserte Grafik', () => setArtwork('enhanced'), artwork === 'enhanced')}
@@ -172,16 +190,19 @@ function App() {
     Hilfe: <>{item('Über Stöck Wyys Stich…', () => openDialog('about'))}{item('Entwicklungsteam…',()=>openDialog('team'))}{item('Graphik design…',()=>openDialog('publisher'))}{item('Herausgeber…',()=>window.open('https://www.optobyte.ch','_blank','noopener,noreferrer'))}{item('Puzzle…',()=>openDialog('puzzle'))}</>,
   };
 
-  return <main className="application" style={{ '--scene-width': `${tableSize.width * scale}px` }}>
+  return <main className={`application view-${effectiveView}${showWelcome?' showing-welcome':''}`} data-view={effectiveView} style={{ '--scene-width': `${tableSize.width * scale}px` }}>
     {!showWelcome&&<nav className="menu-bar" aria-label="Hauptmenü" ref={navigation}>
+      {compactMenu&&<button type="button" className="menu-title compact-menu-toggle" aria-expanded={menu!==null} aria-controls="compact-menu" onClick={()=>setMenu(menu===null?'root':null)}>Menu</button>}
+      {(!compactMenu||menu!==null)&&<div id={compactMenu?'compact-menu':undefined} className={compactMenu?'compact-menu-dropdown':'menu-categories'}>
       {Object.entries(menus).map(([name, content]) => <div className="menu" key={name}>
         <button type="button" className={`menu-title ${menu === name ? 'active' : ''}`} aria-expanded={menu === name}
-          aria-controls={`menu-${name}`} onClick={() => setMenu(menu === name ? null : name)}>{name}</button>
+          aria-controls={`menu-${name}`} onClick={() => setMenu(menu === name ? (compactMenu?'root':null) : name)}>{name}</button>
         {menu === name && <div id={`menu-${name}`} className="menu-popup" aria-label={name}>{content}</div>}
       </div>)}
+      </div>}
     </nav>}
     {reviewEnabled && <CardReviewControls review={review} />}
-    {showWelcome?<WelcomePanel lowLevel={lowLevel} onNew={setNewGame} onResume={game.resume} scale={fit?Math.min((viewport.width-24)/430,(viewport.height-(lowLevel?70:24))/432):1}/>:<div ref={sceneRef} className="scene-frame" style={{ width: tableSize.width * scale + 4, height: tableSize.height * scale + 4 }}>
+    {showWelcome?<WelcomePanel lowLevel={lowLevel} onNew={setNewGame} onResume={game.resume} scale={mobile||fit?Math.min((viewport.width-24)/430,(viewport.height-(lowLevel?70:24))/432):1}/>:<div ref={sceneRef} className="scene-frame" style={{ width: tableSize.width * scale + 4, height: tableSize.height * scale + 4 }}>
       <canvas ref={canvas} data-animation={game.animation?.type||'none'} data-ready={Boolean(assets && (!reviewEnabled || review.sheet))} data-artwork={artwork} data-game-kind={activeKind} data-scale={scale} data-resolution={fit?'adaptive':'fixed'} data-card-size={cardSize}
         style={{ width: tableSize.width * scale, height: tableSize.height * scale }}
         role="img" aria-label={reviewEnabled ? "Schieber-Spieltisch mit Karten-Vorschau" : displayView ? `${displayView.kind === 'differ' ? 'Differenzler' : 'Schieber'}-Spieltisch, Runde ${displayView.roundNumber}` : `${activeKind==='differ'?'Differenzler':'Schieber'}-Spieltisch`}>
@@ -230,6 +251,7 @@ function App() {
     {activeDialog==='highname'&&<HighNameDialog onClose={closeDialog} scale={scale}/>}
     {activeDialog==='fast'&&game.view&&<FastPlayDialog game={game} onClose={()=>{setActiveDialog(null);game.setAutomatic(false);}} scale={scale}/>}
     {activeDialog==='art'&&<AssetLibraryDialog onClose={closeDialog} scale={scale}/>}
+    <MobileFullscreen view={coarse&&Math.min(screen.width,screen.height)<=600&&!landscape?'mobile-vertical':effectiveView}/>
   </main>;
 }
 

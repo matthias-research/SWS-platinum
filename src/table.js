@@ -35,8 +35,8 @@ export async function loadAssets(mode='original') {
 }
 
 // TTable.BackBmpRect, TableBounds, LogBorderRect and ScoreBorderRect.
-export function layout(width = DISPLAY.width, height = DISPLAY.height, cardHeight = 118) {
-  const background = { x: Math.floor(width / 2) - 512, y: Math.floor(height / 2) - 384 };
+export function layout(width = DISPLAY.width, height = DISPLAY.height, cardHeight = 118, size = BASE_TABLE) {
+  const background = { x: Math.floor(width / 2) - 512+(size.shiftX||0), y: Math.floor(height / 2) - 384 };
   const tableLeft = background.x + 323;
   const tableRight = tableLeft + 375;
   const handTop = height - 10 - cardHeight;
@@ -70,8 +70,9 @@ function sprite(ctx, assets, id, x, y, maskId) {
 
 // Original TTable.GloonRect: the joker sits over the bottom edge of its board.
 export function jokerRect(assets,kind,cardHeight=118,size=BASE_TABLE){
-  const {log,score}=layout(size.width,size.height,cardHeight),r=assets.manifest.rects;
-  const board=kind==='differ'?log:score,base=kind==='differ'?39:59;
+  const {log,score}=layout(size.width,size.height,cardHeight,size),r=assets.manifest.rects;
+  const useLog=kind==='differ'&&!size.hideFeed;
+  const board=useLog?log:score,base=useLog?39:59;
   return {x:board.x+board.width-r[base+6].width-(kind==='differ'?18:0)-r[90].width,
     y:board.y+board.height-r[base+10].height-53,width:r[90].width,height:r[90].height};
 }
@@ -123,15 +124,17 @@ export function drawTable(canvas, assets, mode, scale, pixelRatio, cardHeight = 
   // The original centered bitmap has finite bounds; keep larger windows dark.
   ctx.fillStyle = '#0d0d0d';
   ctx.fillRect(0, 0, size.width, size.height);
-  const { background, log, score } = layout(size.width, size.height, cardHeight);
+  const { background, log, score } = layout(size.width, size.height, cardHeight,size);
   const a=ASSETS[mode];
   ctx.drawImage(assets[mode],0,0,1024*a.scale,768*a.scale,background.x,background.y,1024,768);
 
+  if(!size.hideFeed){
   const paper = border(ctx, assets, log, 39);
   ctx.fillStyle = '#fff'; ctx.fillRect(paper.x, paper.y, paper.width, paper.height);
   // The HTML feed supplies the working scrollbar; do not paint a static one.
   sprite(ctx, assets, 87, log.x + Math.floor(log.width / 2) - 78, log.y, 88);
   sprite(ctx, assets, 85, log.x + 5, log.y + 20, 86);
+  }
 
   const board = border(ctx, assets, score, 59);
   ctx.save(); ctx.beginPath(); ctx.rect(board.x, board.y, board.width, board.height); ctx.clip();

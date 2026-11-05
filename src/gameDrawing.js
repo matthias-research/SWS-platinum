@@ -36,7 +36,7 @@ export function cardMotions(animation,sheets,size=BASE_TABLE){
   const positions=trickPositions(sheets.V,size);
   if(animation.type==='play'){
     const {player,card,before}=animation,to=positions[player];
-    const c=carpetRect(size),boards=layout(size.width,size.height,sheets.V.cards[0].rect.height);
+    const c=carpetRect(size),boards=layout(size.width,size.height,sheets.V.cards[0].rect.height,size);
     const from=player===before.human?gameHand(before,sheets.V,size).find(c=>c.id===card):
       {...to,...[null,{x:c.x+116-to.width/2,y:-to.height},{x:boards.log.x+boards.log.width-to.width,y:c.y+116-to.height/2},{x:c.x+116-to.width/2,y:size.height},{x:boards.score.x+18,y:c.y+116-to.height/2}][player]};
     return from?[{player,card,from,to}]:[];
@@ -66,9 +66,9 @@ export function drawGame(canvas, view, sheets, setId = 1, animation=null, size=B
     drawCard(ctx, sheets.V, card.id, card);
     if (legal && !legal.includes(card.id)) { ctx.fillStyle = '#0005'; ctx.fillRect(card.x + 2, card.y + 2, card.width - 4, card.height - 4); }
   }
-  const { log, score } = layout(size.width, size.height, h);
+  const { log, score } = layout(size.width, size.height, h,size);
   ctx.save(); ctx.font = '11px Arial'; ctx.textBaseline = 'top'; ctx.fillStyle = '#111';
-  if(!view.feed){
+  if(!view.feed&&!size.hideFeed){
   const x = log.x + 18; let y = log.y + 54;
   ctx.fillText(view.kind === 'schieber' ? 'Schieber' : 'Differenzler', x, y); y += 20;
   ctx.fillText(`Runde ${view.roundNumber}`, x, y); y += 18;
