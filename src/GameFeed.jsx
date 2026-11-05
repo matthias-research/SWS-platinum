@@ -48,7 +48,7 @@ export function GameFeed({view,scale,setId,cardHeight=118,messages=[],duration=5
   const {log}=layout(size.width,size.height,cardHeight),offset=tableOffset(size);
   const feed=[...entries.map(e=>({...e,order:e.id})),...messages.map((e,i)=>({...e,order:e.after+(i+1)/1000}))].sort((a,b)=>a.order-b.order);
   return <div className="game-presentation" style={{width:size.width,height:size.height,transform:`scale(${scale})`}}>
-    <div ref={scroller} className="illustrated-feed" role="log" aria-label="Spielverlauf" aria-live="off" style={{left:log.x+15,top:log.y+44,width:log.width-31,height:log.height-59}} onScroll={e=>{const el=e.currentTarget;atBottom.current=el.scrollHeight-el.scrollTop-el.clientHeight<8;}}>
+    <div ref={scroller} className="illustrated-feed" role="log" aria-label="Spielverlauf" aria-live="off" tabIndex={0} style={{left:log.x+15,top:log.y+44,width:log.width-31,height:log.height-59}} onScroll={e=>{const el=e.currentTarget;atBottom.current=el.scrollHeight-el.scrollTop-el.clientHeight<8;}}>
       {feed.map(e=><div key={`${e.kind}-${e.id}`} className={`feed-entry feed-${e.kind}`}><EventContent event={e} view={view} setId={setId}/></div>)}
     </div>
     <div aria-live="polite" aria-label="Spieler-Sprechblasen">{Object.entries(bubbles).map(([player,event])=><div key={player} role="group" className="player-bubble" style={{left:positions[player].left+offset.x,top:positions[player].top+offset.y}} aria-label={eventText(event,view,setId)}>

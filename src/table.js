@@ -129,12 +129,7 @@ export function drawTable(canvas, assets, mode, scale, pixelRatio, cardHeight = 
 
   const paper = border(ctx, assets, log, 39);
   ctx.fillStyle = '#fff'; ctx.fillRect(paper.x, paper.y, paper.width, paper.height);
-  const scrollbarX = paper.x + paper.width - 18;
-  ctx.fillStyle = '#c0c0c0'; ctx.fillRect(scrollbarX, paper.y, 18, paper.height);
-  ctx.strokeStyle = '#808080'; ctx.lineWidth = 1; ctx.strokeRect(scrollbarX + 0.5, paper.y + 0.5, 17, paper.height - 1);
-  sprite(ctx, assets, 79, scrollbarX, paper.y);
-  sprite(ctx, assets, 81, scrollbarX, paper.y + paper.height - 17);
-  sprite(ctx, assets, 82, scrollbarX, paper.y + 17);
+  // The HTML feed supplies the working scrollbar; do not paint a static one.
   sprite(ctx, assets, 87, log.x + Math.floor(log.width / 2) - 78, log.y, 88);
   sprite(ctx, assets, 85, log.x + 5, log.y + 20, 86);
 

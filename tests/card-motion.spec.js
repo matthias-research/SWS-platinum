@@ -39,6 +39,20 @@ for(const kind of ['schieber','differ'])test(kind+': compositor animates cards w
   await page.waitForTimeout(400); // Longer than the animation duration: no timer may finish it.
   await expect(table).toHaveAttribute('data-animation','play');
   await expect(page.getByRole('dialog')).toHaveCount(0);
+  // Open a modal while a compositor card is still in flight.
+  await page.getByRole('button',{name:'Datei',exact:true}).click();
+  await page.getByRole('button',{name:'Spielerdaten…',exact:true}).click();
+  const dialog=page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+  expect(await dialog.evaluate(el=>{
+    const r=el.getBoundingClientRect();
+    return {modal:el.matches(':modal'),composited:getComputedStyle(el).willChange,
+      backdrop:getComputedStyle(el,'::backdrop').willChange,
+      onTop:el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))};
+  })).toEqual({modal:true,composited:'transform',backdrop:'transform',onTop:true});
+  await expect(layer.locator('canvas')).toHaveCount(1);
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
   await page.evaluate(()=>document.querySelector('.card-motion-layer canvas').getAnimations()[0].finish());
   const clear=page.getByRole('button',{name:'Stich auf dem Tisch abräumen',exact:true});await expect(clear).toBeVisible();
   await clear.click({position:{x:20,y:20}});
