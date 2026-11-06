@@ -2,6 +2,7 @@ import {BASE_TABLE} from './tableGeometry';
 import { ASSETS, DISPLAY } from './config';
 import { drawMaskedSprite } from './raster';
 import {graphicsUrl} from './graphics';
+import {loadBoardFont} from './boardFont';
 
 export function loadImage(url) {
   return new Promise((resolve, reject) => {
@@ -19,6 +20,7 @@ export function loadImage(url) {
 }
 
 export async function loadAssets(mode='original') {
+  const boardFont=await loadBoardFont();
   const [original, enhanced, pieces, manifest] = await Promise.all([
     loadImage(ASSETS.original.url), loadImage(ASSETS.enhanced.url), loadImage(graphicsUrl('schieber-pieces.bmp',mode)),
     fetch(ASSETS.manifest).then(r => { if (!r.ok) throw new Error('Grafikverzeichnis fehlt'); return r.json(); }),
@@ -29,7 +31,7 @@ export async function loadAssets(mode='original') {
     fetch(`${import.meta.env.BASE_URL}assets/differ-pieces.json`).then(r=>r.json()),
   ]);
   manifest.assetScale=pieces.assetScale;diffManifest.assetScale=diffPieces.assetScale;
-  return { original, enhanced, pieces, manifest, sprites: new Map(), differ: {
+  return { original, enhanced, pieces, manifest, boardFont, sprites: new Map(), differ: {
     original:differOriginal, enhanced:differEnhanced, pieces:diffPieces, manifest:diffManifest, sprites:new Map(),
   } };
 }
@@ -148,9 +150,6 @@ export function drawTable(canvas, assets, mode, scale, pixelRatio, cardHeight = 
   const pattern=ctx.createPattern(tile, 'repeat');pattern.setTransform(new DOMMatrix().scale(1/tileScale));
   ctx.fillStyle = pattern;
   ctx.fillRect(board.x, board.y, board.width, board.height);
-  ctx.fillStyle = '#fff'; ctx.font = '11px Arial'; ctx.textBaseline = 'top';
-  ctx.fillText('West & Ost', board.x + 10, board.y + 8);
-  ctx.fillText('Nord & Süd', board.x + 10, board.y + Math.floor(board.height / 2) + 8);
   ctx.strokeStyle = '#fff'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(board.x, board.y + Math.floor(board.height / 2) + 0.5);
   ctx.lineTo(board.x + board.width, board.y + Math.floor(board.height / 2) + 0.5); ctx.stroke();

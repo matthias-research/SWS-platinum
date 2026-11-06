@@ -3,6 +3,7 @@ import React,{useState} from 'react';
 import {LegacyDialog,DialogFrame,useDialogCatalog,formImage,looseImage,imageUrl} from './LegacyDialog';
 import * as D from '../engine/DiffBase';
 import {CreditsCanvas} from './BitmapCanvas';
+import {BoardText} from './BoardText';
 import differPieces from '../../public/assets/differ-pieces.json';
 const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}};
 export function downloadJSON(value,name){const url=URL.createObjectURL(new Blob([JSON.stringify(value)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
@@ -53,8 +54,8 @@ function SchieberRoundDialog({view:v,onClose,scale,notice}){
     <img className="original-background" src={looseImage(data,win?'win2.bmp':'round2.bmp')} alt=""/>
     {portraits.map(([p,left,top])=>{const happy=(p===1||p===3?1:2)===(win?winner:team),icon=p===v.human?(v.avatar||5208):7009+1000*(v.characters?.[p]||0)+(happy?2:0);return <img key={p} src={graphicsUrl(`setup/${icon}.png`)} alt={v.names[p]} title={v.names[p]} style={{position:'absolute',left,top,width:56,height:72}}/>;})}
     {[2,1].map((t,i)=><div key={t} role="group" aria-label={`${v.names[t===1?1:2]} & ${v.names[t===1?3:4]}`} style={{position:'absolute',left:win?367:99,top:win?180+i*80.5:135+i*90,width:win?134:155,height:win?80.5:90,fontFamily:'Arial',textAlign:'center'}}>
-      {!win&&<div style={{height:45,display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:13.333}}>{factor}×(<span style={{fontSize:21.333}}>{(round.pts[t]-round.suitPts[t])/factor}</span>+{round.suitPts[t]/factor})={round.pts[t]}</div>}
-      <div style={{height:win?80.5:45,display:'flex',alignItems:'center',justifyContent:'center',color:'yellow',fontSize:21.333}}>{v.scores[t]}</div>
+      {!win?<div style={{paddingTop:12}}><BoardText scale={scale} lines={[`Gespielt: ${(round.pts[t]-round.suitPts[t])/factor}`,`Gewiesen: ${round.suitPts[t]/factor}`]}/></div>:
+      <div style={{height:80.5,display:'flex',alignItems:'center',justifyContent:'center',color:'yellow',fontSize:21.333}}>{v.scores[t]}</div>}
     </div>)}
   </LegacyDialog>;
 }

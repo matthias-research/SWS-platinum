@@ -103,7 +103,7 @@ function App() {
   const [viewport, setViewport] = useState({ width: document.documentElement.getBoundingClientRect().width, height: innerHeight, dpr: devicePixelRatio });
   const effectiveView=reviewEnabled?'desktop':resolveView(viewMode,{...viewport,coarse,screenWidth:screen.width,screenHeight:screen.height});
   const mobile=effectiveView!=='desktop';
-  const mobileGeometry=useMemo(()=>mobile?mobileLayout(effectiveView,viewport.width,viewport.height,fit):null,[effectiveView,viewport.width,viewport.height,mobile,fit]);
+  const mobileGeometry=useMemo(()=>mobile?mobileLayout(effectiveView,viewport.width,viewport.height,fit,activeKind):null,[effectiveView,viewport.width,viewport.height,mobile,fit,activeKind]);
   const [menu, setMenu] = useState(null);
   const compactMenu=effectiveView==='mobile-horizontal';
   useEffect(()=>setMenu(null),[effectiveView]);
@@ -149,7 +149,7 @@ function App() {
       drawTable(canvas.current, activeKind === 'differ' ? assets.differ : assets, artwork, scale, viewport.dpr, reviewEnabled ? review.sheet?.cards[0].rect.height : sheets.V?.cards[0].rect.height,tableSize);
       if (reviewEnabled && review.sheet) drawHand(canvas.current, review.sheet, review.cards, review.selected);
       const animation=!reviewEnabled&&!replay.view?game.animation:null;
-      if (!reviewEnabled && (replay.view || game.view)) drawGame(canvas.current, replay.view || game.view, sheets, cardSet,animation,tableSize);
+      if (!reviewEnabled && (replay.view || game.view)) drawGame(canvas.current, replay.view || game.view, sheets, cardSet,animation,tableSize,assets.boardFont);
       if(!reviewEnabled&&!replay.view&&game.view&&jokerCanvas.current)drawTableJoker(canvas.current,jokerCanvas.current,jokerAssets,game.view.kind,sheets.V?.cards[0].rect.height,jokerPressed&&canHint,tableSize);
 
     }

@@ -1,6 +1,7 @@
 import {BASE_TABLE,carpetRect,pileRect} from './tableGeometry';
 import { drawCard } from './cards';
 import { layout } from './table';
+import {drawBoardText} from './boardFont';
 export const trumpNames = ['', 'Schellen', 'Schilten', 'Rosen', 'Eicheln', 'Obenabe', 'Undenufe'];
 export function trumpLabels(set = 1) { return set === 1 ? trumpNames : ['', 'Karo', 'Herz', 'Kreuz', 'Pik', 'Obenabe', 'Undenufe']; }
 export function cardName(id, set = 1) {
@@ -50,7 +51,7 @@ export function cardMotions(animation,sheets,size=BASE_TABLE){
     return motions;
   }
 }
-export function drawGame(canvas, view, sheets, setId = 1, animation=null, size=BASE_TABLE) {
+export function drawGame(canvas, view, sheets, setId = 1, animation=null, size=BASE_TABLE, boardFont=null) {
   if (!view || !sheets.V || !sheets.H) return;
   const ctx = canvas.getContext('2d'), {height:h}=sheets.V.cards[0].rect,positions=trickPositions(sheets.V,size);
   drawTrumpCorners(ctx,sheets.V,view.trump,size);
@@ -81,21 +82,23 @@ export function drawGame(canvas, view, sheets, setId = 1, animation=null, size=B
   }
   ctx.fillStyle = '#fff';
   if (view.kind === 'schieber') {
-    ctx.font = '25px Georgia';
-    ctx.fillText(String(view.scores[2]), score.x + 30, score.y + 70);
-    ctx.fillText(String(view.scores[1]), score.x + 30, score.y + score.height / 2 + 65);
+    const maxWidth=score.width-50;
+    for(const [players,team,top] of [[[2,4],2,score.y+25],[[1,3],1,score.y+score.height/2+18]]){
+      players.forEach((p,i)=>drawBoardText(ctx,boardFont,view.names[p],score.x+25,top+i*20,{size:17,maxWidth}));
+      drawBoardText(ctx,boardFont,view.scores[team],score.x+30,top+48,{size:30,maxWidth:maxWidth-5});
+    }
   } else {
-    // Cover the Schieber team labels inside the existing frame.
+    // Clear the team divider for the individual-player scoreboard.
     ctx.fillStyle = '#10131b'; ctx.fillRect(score.x + 18, score.y + 17, score.width - 36, score.height - 34);
     ctx.fillStyle = '#fff'; ctx.font = '10px Arial';
     const cellWidth = (score.width - 42) / view.count, top = score.y + 23, bottom = score.y + score.height - 24;
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 0.5;
     for (let p = 1; p <= view.count; p++) {
       const left = score.x + 23 + (p - 1) * cellWidth;
-      ctx.fillText(view.names[p], left + 3, top, cellWidth - 5);
+      drawBoardText(ctx,boardFont,view.names[p],left+3,top,{size:13,maxWidth:cellWidth-5});
       ctx.beginPath(); ctx.moveTo(left, top); ctx.lineTo(left,bottom); ctx.stroke();
-      ctx.fillText(String(view.scores[p]), left+5, bottom-12);
-      view.history.slice(-12).forEach((r,i)=>{if(r.call)ctx.fillText(String(Math.abs(r.call[p]-r.made[p])-r.bonus[p]),left+5,top+25+i*16);});
+      drawBoardText(ctx,boardFont,view.scores[p],left+5,bottom-14,{size:14,maxWidth:cellWidth-7});
+      view.history.slice(-12).forEach((r,i)=>{if(r.call)drawBoardText(ctx,boardFont,Math.abs(r.call[p]-r.made[p])-r.bonus[p],left+5,top+25+i*16,{size:13,maxWidth:cellWidth-7});});
     }
   }
   ctx.restore();

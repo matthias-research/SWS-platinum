@@ -18,7 +18,14 @@ for(const final of [false,true])test(`Schieber: original round results and victo
   await clear.click({position:{x:20,y:20}});
   await expect(dialog).toBeVisible();
   for(const name of game.names.slice(1))await expect(dialog.getByRole('img',{name,exact:true})).toBeVisible();
-  await expect(dialog.getByRole('group',{name:'Birgit & Matthi'})).toContainText(String(game.view().scores[1]));
+  const round=game.view().history.at(-1),factor=Math.max(1,game.rules.fTrumpFactor[round.trump]);
+  for(const [team,name] of [[1,'Birgit & Matthi'],[2,'Beat & Walter']]){
+    const group=dialog.getByRole('group',{name,exact:true});
+    const text=`Gespielt: ${(round.pts[team]-round.suitPts[team])/factor}, Gewiesen: ${round.suitPts[team]/factor}`;
+    await expect(group.getByRole('img',{name:text,exact:true})).toBeVisible();
+    await expect(group).not.toContainText(/[×+=]/);
+    await expect.poll(()=>group.locator('canvas').evaluate(c=>c.getContext('2d').getImageData(0,0,c.width,c.height).data.some((v,i)=>i%4===3&&v>0))).toBe(true);
+  }
   await dialog.screenshot({path:`artifacts/browser/schieber-round-${final}.png`});
   await dialog.getByRole('button',{name:'Weiter',exact:true}).click();
   if(final){

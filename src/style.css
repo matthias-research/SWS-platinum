@@ -155,6 +155,9 @@ dialog.decision-dialog { box-shadow:3px 3px 8px #0004; }
 .original-dialog :focus-visible { outline:1px dotted black; outline-offset:-3px; }
 .trump-symbol { font-size:24px;line-height:26px; }
 .original-control.TLabel { pointer-events:none; }
+.preserve-decision-ui .original-client button:not(.picture-hit):not(.gloon-hint),
+.preserve-decision-ui .original-client input:not([type=range]),
+.preserve-decision-ui .original-control.TLabel {transform:scale(var(--dialog-ui-ratio));transform-origin:center;}
 .trump-board { width:225px;height:235px;background-repeat:no-repeat;position:relative; }
 .original-dialog button.picture-hit { position:absolute;border:0;background:transparent; }
 .picture-hit:hover { box-shadow:inset 0 0 0 2px #ffeb70; }

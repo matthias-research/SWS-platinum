@@ -1,4 +1,21 @@
 import {test,expect} from '@playwright/test';
+test.beforeEach(async({page})=>{
+  await page.addInitScript(()=>localStorage.setItem('sws-preferences',JSON.stringify({viewBubbleS:0})));
+});
+
+async function expectEnlargedDecision(page,dialog){
+  await expect.poll(()=>dialog.evaluate(el=>{
+    const scene=document.querySelector('.scene-frame > canvas').getBoundingClientRect();
+    const cards=[...document.querySelectorAll('.card-target')].map(c=>c.getBoundingClientRect());
+    const content=el.querySelector('.original-dialog-content');
+    const width=parseFloat(content.style.width),height=parseFloat(content.style.height);
+    const preferred=Number(document.querySelector('.scene-frame > canvas').dataset.scale)*1.5;
+    const above=Math.min(innerHeight-8,Math.min(...cards.map(c=>c.top))-10)-Math.max(8,scene.top+6);
+    const below=innerHeight-8-Math.max(8,Math.max(...cards.map(c=>c.bottom))+10);
+    const expected=Math.min(preferred,(innerWidth-20)/width,Math.max(above,below)/height);
+    return Math.abs(new DOMMatrix(getComputedStyle(content).transform).a-expected);
+  })).toBeLessThan(0.01);
+}
 
 for(const kind of ['Differenzler'])test(`${kind} table joker opens advice`,async({page})=>{
   await page.goto('/');
@@ -68,7 +85,25 @@ for(const mode of ['adaptive','fixed'])test('trump dialog follows '+mode+' resol
   await checkHandVisible(page);
   const scale=Number(await table.getAttribute('data-scale'));
   if(mode==='adaptive')expect(scale).toBeGreaterThan(1.5);else expect(scale).toBe(1);
-  await expect.poll(async()=>Math.abs((await dialog.boundingBox()).width-225*scale)).toBeLessThan(2);
+  await expectEnlargedDecision(page,dialog);
   await page.setViewportSize({width:1000,height:750});await checkHandVisible(page);
-  await expect.poll(async()=>Math.abs((await dialog.boundingBox()).width-225*Number(await table.getAttribute('data-scale')))).toBeLessThan(2);
+  await expectEnlargedDecision(page,dialog);
+});
+
+for(const kind of ['Schieber','Differenzler'])test(`${kind}: portrait board width and enlarged decision`,async({page})=>{
+  await page.addInitScript(()=>localStorage.setItem('sws-display',JSON.stringify({viewMode:'mobile-vertical',resolution:'adaptive'})));
+  await page.setViewportSize({width:390,height:844});await page.goto('/');
+  await page.getByRole('button',{name:`Neuer ${kind}…`,exact:true}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Spielen',exact:true}).click();
+  const dialog=page.locator('dialog.decision-dialog');
+  await checkHandVisible(page);
+  await expectEnlargedDecision(page,dialog);
+  const ratio=await page.locator('.scene-frame > canvas').evaluate(el=>{const r=el.getBoundingClientRect();return r.width/r.height;});
+  expect(ratio).toBeCloseTo((kind==='Schieber'?520:580)/620,3);
+  const tableScale=Number(await page.locator('.scene-frame > canvas').getAttribute('data-scale'));
+  const zoom=await dialog.locator('.original-dialog-content').evaluate(el=>new DOMMatrix(getComputedStyle(el).transform).a);
+  const uiScale=Math.min(tableScale,zoom);
+  expect((await dialog.getByRole('button',{name:'Abbrechen',exact:true}).boundingBox()).width).toBeCloseTo(100*uiScale,0);
+  expect((await dialog.locator('.original-caption').boundingBox()).height).toBeCloseTo(22*uiScale,0);
+  expect(await dialog.evaluate(el=>getComputedStyle(el).borderTopWidth)).toBe('1px');
 });

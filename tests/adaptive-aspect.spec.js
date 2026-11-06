@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 
-for(const [viewMode,ratio] of [['desktop',768/528],['mobile-horizontal',768/528],['mobile-vertical',580/620]]){
+for(const [viewMode,ratio] of [['desktop',768/528],['mobile-horizontal',768/528],['mobile-vertical',520/620]]){
   test(`${viewMode}: adaptive canvas retains its aspect ratio when resized tall`,async({page})=>{
     await page.addInitScript(viewMode=>{
       localStorage.setItem('sws-display',JSON.stringify({viewMode,resolution:'adaptive'}));
