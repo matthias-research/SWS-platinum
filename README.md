@@ -51,9 +51,11 @@ Choose **Neuer Schieber…** or **Neuer Differenzler…** to play complete match
 
 Under **Ansicht**, **Verbesserte Grafik** switches tables, cards, portraits, dialogs and sprites to the enhanced 2× assets; **Originalgrafik** restores the originals. Choose 1×/2×/3×, select card sets/sizes, or fit the table to the window. **Einstellungen…** opens preferences directly from the top menu. Enable **Ton** below the table for sounds loaded on demand. Restart a stopped development server with `npm run dev` from this directory.
 
+Browser menu settings reset on each app load: Adaptive resolution, Auto view, enhanced graphics, and Lowlevel menu off. Changes last only until reload; the selected card set still persists.
+
 ## Mobile fullscreen
 
-Choosing a game opens setup without requesting fullscreen. On phones, fullscreen prompts also require landscape orientation, even when Mobile horizontal was saved manually; rotating back to portrait exits fullscreen. Opening the page in **Mobile horizontal**, or entering it from another view (through rotation in Auto view or the Browser menu), offers fullscreen when the browser supports it and fullscreen is off. **Vollbild einschalten** enables it; **Nicht jetzt** or Escape continues in the page. Leaving Mobile horizontal dismisses the prompt and exits fullscreen. Dismissing the prompt or manually exiting fullscreen does not prompt again until a new transition into Mobile horizontal.
+Choosing a game opens setup without requesting fullscreen. On phones, fullscreen prompts also require landscape orientation, even when Mobile horizontal was selected manually; rotating back to portrait exits fullscreen. Opening the page in **Mobile horizontal**, or entering it from another view (through rotation in Auto view or the Browser menu), offers fullscreen when the browser supports it and fullscreen is off. **Vollbild einschalten** enables it; **Nicht jetzt** or Escape continues in the page. Leaving Mobile horizontal dismisses the prompt and exits fullscreen. Dismissing the prompt or manually exiting fullscreen does not prompt again until a new transition into Mobile horizontal.
 
 ## Scaling and assets
 

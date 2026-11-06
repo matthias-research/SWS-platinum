@@ -26,7 +26,7 @@ import {PuzzleDialog} from './dialogs/PuzzleDialog';
 import {ProfileDialog,SeedDialog,AboutDialog,ResultsDialog,HighScoresDialog,StatisticsDialog,ConversationDialog,ConfirmDialog,AutoPlayDialog,AssetLibraryDialog,ArchiveDialog,FastPlayDialog,HighNameDialog} from './dialogs/SupportingDialogs';
 import {DefaultRules as SchieberRules} from './engine/SWSBase';
 import {DefaultRules as DifferRules} from './engine/DiffBase';
-import {viewModes,resolveView,mobileLayout} from './viewLayout';
+import {resolveView,mobileLayout} from './viewLayout';
 import {MobileFullscreen} from './MobileFullscreen';
 
 const reviewEnabled = new URLSearchParams(location.search).get('review') === 'cards';
@@ -54,10 +54,13 @@ function App() {
   const activeKind=displayView?.kind||newGame||startingKind||'schieber';
   const lastRoundNotice=useRef('');
   const lastPrizeNotice=useRef({id:null,team:0});
+  const lastWinnerNotice=useRef({id:null,team:0,announced:false});
   const [information,setInformation]=useState([]);
+  const [finishedMatchId,setFinishedMatchId]=useState(null);
+  const rematchStarted=useRef(null);
   useEffect(()=>{
     const v=game.view;
-    if(!v){lastRoundNotice.current='';lastPrizeNotice.current={id:null,team:0};setInformation([]);return;}
+    if(!v){lastRoundNotice.current='';lastPrizeNotice.current={id:null,team:0};lastWinnerNotice.current={id:null,team:0,announced:false};setInformation([]);setFinishedMatchId(null);return;}
     if(game.animation)return;
     const id=game.saved()?.options.id,notices=[];
     if(lastPrizeNotice.current.id!==id)lastPrizeNotice.current={id,team:v.bPrice};
@@ -65,16 +68,35 @@ function App() {
       if(v.bPrice&&preferences.viewInfoWin!==false&&!game.automatic)notices.push({type:'bp',team:v.bPrice});
       lastPrizeNotice.current={id,team:v.bPrice};
     }
+    if(lastWinnerNotice.current.id!==id)lastWinnerNotice.current={id,team:v.winner,announced:false};
+    if(v.kind==='schieber'&&v.winner!==lastWinnerNotice.current.team){
+      const announce=Boolean(v.winner&&!['deal','done'].includes(v.phase)&&preferences.viewInfoWin!==false&&!game.automatic);
+      if(announce)notices.push({type:'win',team:v.winner});
+      lastWinnerNotice.current={id,team:v.winner,announced:announce};
+    }
     if(!v.pause&&v.history.length&&['deal','done'].includes(v.phase)){
       const key=`${id}:${v.history.length}`;
       if(lastRoundNotice.current!==key){
         lastRoundNotice.current=key;
-        if(!game.automatic||(v.phase==='done'&&game.series<=1))notices.push(...roundInformation(v,preferences));
+        if(!game.automatic||(v.phase==='done'&&game.series<=1))notices.push(...roundInformation(v,preferences).filter(n=>n.type!=='win'||!lastWinnerNotice.current.announced));
+        if(v.phase==='done')setFinishedMatchId(id);
       }
     }
     if(notices.length)setInformation(old=>old.concat(notices.map(n=>({...n,view:v}))));
   },[game.view,game.automatic,game.series,game.animation,preferences]);
   useEffect(()=>{if(information.length&&!activeDialog)openDialog('information');},[information,activeDialog]);
+  const startRematch=()=>{
+    rematchStarted.current=game.saved()?.options.id;
+    setStartingKind(game.view.kind);setMessages([]);game.rematch();
+  };
+  useEffect(()=>{
+    const id=game.saved()?.options.id;
+    // Wait for collection, result dialogs and speech. Explicit computer series
+    // retain their chosen length instead of becoming an endless human session.
+    if(game.view?.phase==='done'&&!game.view.pause&&finishedMatchId===id&&rematchStarted.current!==id&&
+      !game.automatic&&!game.busy&&!game.speaking&&!game.error&&!game.paused&&
+      !information.length&&!activeDialog&&!newGame&&!replay.view)startRematch();
+  },[game,finishedMatchId,information,activeDialog,newGame,replay.view]);
   const nextInformation=()=>{
     const notice=information[0];
     setInformation(items=>items.slice(1));
@@ -93,9 +115,9 @@ function App() {
   const [assets, setAssets] = useState(null);
   const [error, setError] = useState('');
   const artwork=useGraphics(),setArtwork=setGraphics;
-  const [fit, setFit] = useState(() => displayPreference('resolution','') ? displayPreference('resolution','')==='adaptive' : displayPreference('fit',DISPLAY.fitToWindow));
+  const [fit, setFit] = useState(true);
   const requestedScale=fit?Infinity:1;
-  const [viewMode,setViewMode]=useState(()=>{const saved=displayPreference('viewMode','auto');return viewModes.includes(saved)?saved:'auto';});
+  const [viewMode,setViewMode]=useState('auto');
   const [coarse,setCoarse]=useState(()=>matchMedia('(pointer: coarse)').matches);
   const [landscape,setLandscape]=useState(()=>matchMedia('(orientation: landscape)').matches);
   useEffect(()=>{const query=matchMedia('(orientation: landscape)'),update=()=>setLandscape(query.matches);query.addEventListener('change',update);return()=>query.removeEventListener('change',update);},[]);
@@ -124,7 +146,8 @@ function App() {
   const scale = mobileGeometry?.scale??fitScale(viewport.width - 16, viewport.height - reservedHeight, requestedScale, fit);
   // Adaptive scales the large cards; fixed mode follows Delphi's size threshold.
   const cardSize=mobile||fit||(tableSize.width>700&&tableSize.height>530)?2:1;
-  useEffect(() => { try {localStorage.setItem('sws-display',JSON.stringify({cardSet,artwork,scale:1,fit,resolution:fit?'adaptive':'fixed',viewMode}));}catch{} },[cardSet,cardSize,artwork,requestedScale,fit,viewMode]);
+  // Only the card set persists; Browser menu choices belong to this app load.
+  useEffect(() => { try {localStorage.setItem('sws-display',JSON.stringify({cardSet}));}catch{} },[cardSet]);
 
   useEffect(() => {
     let active = true;
@@ -245,7 +268,7 @@ function App() {
     {activeDialog==='say'&&<ConversationDialog kind={activeKind} onSay={text=>setMessages(m=>m.concat({id:crypto.randomUUID(),kind:'say',player:game.view.human,text,after:game.view.feed.at(-1)?.id||0}))} onClose={closeDialog} scale={scale}/>}
     {activeDialog==='archive'&&<ArchiveDialog kind={activeKind} game={game} onClose={closeDialog} scale={scale}/>}
     {activeDialog==='auto'&&<AutoPlayDialog kind={activeKind} onApply={(count,speed)=>{closeDialog();game.setSpeed(speed);game.setPaused(false);game.playSeries(count);if(speed<=50)setActiveDialog('fast');}} onClose={closeDialog} scale={scale}/>}
-    {['forfeit','rematch'].includes(activeDialog)&&<ConfirmDialog kind={activeKind} action={activeDialog} onConfirm={()=>{closeDialog();if(activeDialog==='forfeit')game.action({type:'forfeit'});else game.start({...game.saved().options,id:crypto.randomUUID(),seed:crypto.getRandomValues(new Uint32Array(1))[0]%2147483646+1});}} onClose={closeDialog} scale={scale}/>}
+    {['forfeit','rematch'].includes(activeDialog)&&<ConfirmDialog kind={activeKind} action={activeDialog} onConfirm={()=>{closeDialog();if(activeDialog==='forfeit')game.action({type:'forfeit'});else startRematch();}} onClose={closeDialog} scale={scale}/>}
     {['team','publisher','intro'].includes(activeDialog)&&<LegacyDialog kind={activeKind} form={{team:'TTEAMDLG',publisher:'THPDLG',intro:'TINTRODLG'}[activeDialog]} title={{team:'Entwicklungsteam',publisher:'Graphik design',intro:'Stöck Wyys Stich'}[activeDialog]} onClose={closeDialog} scale={scale}/>}
     {activeDialog==='puzzle'&&<PuzzleDialog onClose={closeDialog} scale={scale}/>}
     {activeDialog==='highname'&&<HighNameDialog onClose={closeDialog} scale={scale}/>}

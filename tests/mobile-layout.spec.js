@@ -24,7 +24,7 @@ async function fits(page){
   }
   }).toPass({timeout:3000});
 }
-test('manual modes persist and fit a narrow desktop browser',async({page})=>{
+test('manual modes fit a narrow desktop browser and reset on reload',async({page})=>{
   await page.setViewportSize({width:390,height:844});
   await start(page);
   await page.keyboard.press('Escape');
@@ -35,7 +35,7 @@ test('manual modes persist and fit a narrow desktop browser',async({page})=>{
   await expect(page.getByRole('log')).toHaveCount(0);
   await fits(page);
   await page.reload();
-  await expect(page.locator('main')).toHaveAttribute('data-view','mobile-vertical');
+  await expect(page.locator('main')).toHaveAttribute('data-view','desktop');
 });
 
 test('phone auto view rotates, preserves cards, and opens landscape menus beside the table',async({browser})=>{

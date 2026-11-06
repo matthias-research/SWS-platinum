@@ -46,16 +46,17 @@ export function ResultsDialog({game,onClose,scale}){
 function SchieberRoundDialog({view:v,onClose,scale,notice}){
   const {data}=useDialogCatalog(),[stage,setStage]=useState(notice?.type||'round');
   if(!data)return null;
-  const round=v.history.at(-1),win=stage==='win',winner=v.winner,team=round.pts[1]>=round.pts[2]?1:2;
+  const round=v.history.at(-1),win=stage==='win',winner=v.winner,team=win?winner:round.pts[1]>=round.pts[2]?1:2;
+  const scores=win&&!['deal','done'].includes(v.phase)?v.liveScores||v.scores:v.scores;
   const next=()=>{if(!notice&&!win&&v.phase==='done'&&winner)setStage('win');else onClose();};
   const portraits=win?(winner===1?[[1,357,58],[3,451,58]]:[[2,357,58],[4,451,58]]):[[2,304,152],[4,388,153],[1,304,258],[3,392,258]];
-  const factor=Math.max(1,v.rules.fTrumpFactor[round.trump]);
+  const factor=win?1:Math.max(1,v.rules.fTrumpFactor[round.trump]);
   return <LegacyDialog kind="schieber" form="TINFODLG" title={win?'Sieg':'Ende der Runde'} onClose={next} onAction={next} scale={scale} render={c=>c.name==='PaintBox'?null:undefined}>
     <img className="original-background" src={looseImage(data,win?'win2.bmp':'round2.bmp')} alt=""/>
     {portraits.map(([p,left,top])=>{const happy=(p===1||p===3?1:2)===(win?winner:team),icon=p===v.human?(v.avatar||5208):7009+1000*(v.characters?.[p]||0)+(happy?2:0);return <img key={p} src={graphicsUrl(`setup/${icon}.png`)} alt={v.names[p]} title={v.names[p]} style={{position:'absolute',left,top,width:56,height:72}}/>;})}
     {[2,1].map((t,i)=><div key={t} role="group" aria-label={`${v.names[t===1?1:2]} & ${v.names[t===1?3:4]}`} style={{position:'absolute',left:win?367:99,top:win?180+i*80.5:135+i*90,width:win?134:155,height:win?80.5:90,fontFamily:'Arial',textAlign:'center'}}>
       {!win?<div style={{paddingTop:12}}><BoardText scale={scale} lines={[`Gespielt: ${(round.pts[t]-round.suitPts[t])/factor}`,`Gewiesen: ${round.suitPts[t]/factor}`]}/></div>:
-      <div style={{height:80.5,display:'flex',alignItems:'center',justifyContent:'center',color:'yellow',fontSize:21.333}}>{v.scores[t]}</div>}
+      <div style={{height:80.5,display:'flex',alignItems:'center',justifyContent:'center',color:'yellow',fontSize:21.333}}>{scores[t]}</div>}
     </div>)}
   </LegacyDialog>;
 }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { soundForAction, soundForHint, soundForComments, stopAudio, configureAudio, subscribeSpeech, speechBusy } from './audio';
 import {cardTransition} from './cardAnimation';
+import {rematchOptions} from './rematch';
 function soundPreferences() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem('sws-sound') || '{}'); } catch {}
@@ -79,7 +80,7 @@ export function useGame() {
     if (!view || busy || animation || speaking || error || paused) return;
     let message;
     if (view.phase === 'done' && !view.pause) {
-      if(automatic&&series>1){const timer=setTimeout(()=>{setSeries(n=>n-1);send({type:'new',options:{...latest.current.options,id:crypto.randomUUID(),seed:crypto.getRandomValues(new Uint32Array(1))[0]%2147483646+1}},true);},speed);return()=>clearTimeout(timer);}
+      if(automatic&&series>1){const timer=setTimeout(()=>{setSeries(n=>n-1);send({type:'new',options:rematchOptions(latest.current.options,view)},true);},speed);return()=>clearTimeout(timer);}
       return;
     }
     if (view.pause && automatic) message = { type: 'action', action: { type: 'continue' } };
@@ -87,7 +88,7 @@ export function useGame() {
     else if (view.request && (automatic || view.request.player !== view.human)) message = { type: 'computer' };
     if (message) { const timer = setTimeout(() => send(message), speed); return () => clearTimeout(timer); }
   }, [view, busy, animation, speaking, automatic, speed, error, paused,series]);
-  return { view, openingCommentsAt, busy:busy||Boolean(animation), animation, finishAnimation, error, automatic, setAutomatic, speed, setSpeed, paused, setPaused, hint,series,
+  return { view, openingCommentsAt, speaking, busy:busy||Boolean(animation), animation, finishAnimation, error, automatic, setAutomatic, speed, setSpeed, paused, setPaused, hint,series,
     end:()=>{worker.current?.terminate();worker.current=null;stopAudio();setAnimation(null);lastView.current=null;setView(null);setHint(null);setAutomatic(false);setPaused(false);},
     saved: () => latest.current,
     archive: (title,scope) => send({type:'archive',title,scope}),
@@ -95,6 +96,7 @@ export function useGame() {
     sound, setSound: value => { configureAudio(value); soundRef.current=value; setSound(value); },
     getHint: () => send({type:'hint'}), undo: () => { stopAudio(); setAutomatic(false); send({type:'undo'}); },
     start: options => { setSeries(1);setAutomatic(false); setPaused(false); send({ type: 'new', options }, true); },
+    rematch:()=>{setSeries(1);setAutomatic(false);send({type:'new',options:rematchOptions(latest.current.options,view)},true);},
     action: action => send({ type: 'action', action }),
     answer: (command, data = {}) => send({ type: 'action', action: { type: 'answer', command, data: { fPlayer: view.request.player, ...data } } }),
     restore: saved => { setAutomatic(false); send({ type: 'restore', saved }, true); },

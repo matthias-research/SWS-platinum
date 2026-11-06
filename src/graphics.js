@@ -1,7 +1,6 @@
 import {useSyncExternalStore} from 'react';
 
 let mode='enhanced';
-try {if(JSON.parse(localStorage.getItem('sws-display')||'{}').artwork==='original')mode='original';}catch{}
 const listeners=new Set();
 export const graphicsScale=()=>mode==='enhanced'?2:1;
 export const graphicsUrl=(path,selected=mode)=>`${import.meta.env.BASE_URL}assets/${selected==='enhanced'?'enhanced/':''}${path}`;
