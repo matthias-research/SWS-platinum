@@ -48,18 +48,39 @@ for(const mode of ['adaptive','fixed'])test('Weis and settings follow '+mode+' s
     await dialog.getByRole('button',{name:'Abbrechen',exact:true}).click();await page.setViewportSize({width:1400,height:1000});
   }
 });
-for(const mode of ['adaptive','fixed'])test('new-game dialog follows '+mode+' scaling',async({page})=>{
+for(const mode of ['adaptive','fixed'])for(const kind of ['Schieber','Differenzler'])test('mobile new-game fills viewport: '+kind+' '+mode,async({page})=>{
   await page.addInitScript(mode=>localStorage.setItem('sws-display',JSON.stringify({resolution:mode})),mode);
-  await page.setViewportSize({width:1400,height:1000});await page.goto('/');
-  await page.getByRole('button',{name:'Neuer Schieber…',exact:true}).click();
-  const content=page.locator('.legacy-setup-content');
-  const scale=Number(await page.locator('.scene-frame > canvas').getAttribute('data-scale'));
-  const actual=await content.evaluate(el=>new DOMMatrix(getComputedStyle(el).transform).a);
-  expect(actual).toBeCloseTo(scale,3);
-  const dialog=page.getByRole('dialog');
-  await expectCanvasCenter(dialog);
-  for(const viewport of [{width:1000,height:1000},{width:700,height:600},{width:1400,height:700}]){
+  await page.addInitScript(()=>{
+    const original=window.matchMedia.bind(window);
+    window.matchMedia=q=>q==='(pointer: coarse)'?{matches:true,addEventListener(){},removeEventListener(){}}:original(q);
+    Object.defineProperty(screen,'width',{value:390});
+    Object.defineProperty(document,'fullscreenEnabled',{value:false});
+  });
+  await page.goto('/');
+  await page.getByRole('button',{name:'Neuer '+kind+'…',exact:true}).click();
+  const dialog=page.getByRole('dialog',{name:'Neuer Jass',exact:true});
+  for(const viewport of [{width:1400,height:1000},{width:700,height:600},{width:390,height:844}]){
     await page.setViewportSize(viewport);
-    await expectCanvasCenter(dialog);
+    await expect.poll(()=>dialog.evaluate(el=>{
+      const r=el.getBoundingClientRect();
+      return Math.max(Math.abs(r.x),Math.abs(r.y),Math.abs(r.width-innerWidth),Math.abs(r.height-innerHeight));
+    })).toBeLessThan(1);
+    await expect.poll(()=>page.locator('.legacy-setup-content').evaluate(el=>{
+      const r=el.getBoundingClientRect();
+      return Math.max(-r.x,-r.y,r.right-innerWidth,r.bottom-innerHeight);
+    })).toBeLessThan(1);
+    await expect(dialog.getByRole('button',{name:'Spielen',exact:true})).toBeVisible();
   }
+});
+
+test('desktop new-game retains a centered dialog',async({page})=>{
+  await page.setViewportSize({width:1400,height:1000});
+  await page.goto('/');
+  await page.getByRole('button',{name:'Neuer Schieber…',exact:true}).click();
+  const dialog=page.getByRole('dialog',{name:'Neuer Jass',exact:true});
+  await expect(dialog).not.toHaveClass(/fullscreen-setup/);
+  await expectCanvasCenter(dialog);
+  const bounds=await dialog.boundingBox();
+  expect(bounds.width).toBeLessThan(1400);
+  expect(bounds.height).toBeLessThan(1000);
 });

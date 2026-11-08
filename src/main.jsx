@@ -244,7 +244,7 @@ function App() {
     </div>}
     {!reviewEnabled && !showWelcome && (replay.view ? <LegacyReplay lowLevel={lowLevel} replay={replay} setId={cardSet} /> : <GameControls bubbleDuration={preferences.viewBubbleS??5} sceneRef={sceneRef} lowLevel={lowLevel} key={game.view?(game.saved()?.options.id||game.view.kind):'idle'} game={game} onNew={setNewGame} onDialog={openDialog} displayScale={scale}/>)}
 
-    {newGame && <GameSetup key={newGame} kind={newGame} setId={cardSet} settings={settings} onSettings={applySettings} displayScale={scale} onClose={() => setNewGame(null)} onStart={options => { setStartingKind(options.kind);replay.close();game.start({...options,...(dealSeed!==null?{seed:dealSeed}:{})});setMessages([]); setNewGame(null); }} />}
+    {newGame && <GameSetup mobile={mobile} key={newGame} kind={newGame} setId={cardSet} settings={settings} onSettings={applySettings} displayScale={scale} onClose={() => setNewGame(null)} onStart={options => { setStartingKind(options.kind);replay.close();game.start({...options,...(dealSeed!==null?{seed:dealSeed}:{})});setMessages([]); setNewGame(null); }} />}
     {matchHistory && <MatchHistory scale={scale} onClose={() => setMatchHistory(false)} />}
     <input type="file" ref={openFile} hidden accept=".json,.sws.json,.jss,.jar" onChange={async e => {
       const file = e.target.files[0]; e.target.value = '';

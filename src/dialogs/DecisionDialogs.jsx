@@ -14,8 +14,9 @@ export function DialogCards({rows,setId=1,width=254,height=118}) {
 const trumpRects=[[156,57,48,51],[25,56,51,59],[166,117,45,42],[19,116,44,49],[159,161,44,49],[39,161,40,51],[91,17,57,64]];
 export function GameDecisionDialog({game,onClose,scale}) {
   const v=game.view,req=v.request,setId=game.sound.set;
-  const {data}=useDialogCatalog(),[call,setCall]=useState(50),[pressed,setPressed]=useState(null),[hovered,setHovered]=useState(null),[focused,setFocused]=useState(null);
-  const suggested=game.hint?.command==='cmdTrump'?game.hint.data.fTrump-1:game.hint?.command==='cmdShift'?6:null;
+  const {data}=useDialogCatalog(),[call,setCall]=useState(50),[pressed,setPressed]=useState(null),[hovered,setHovered]=useState(null),[focused,setFocused]=useState(null),[jokerHeld,setJokerHeld]=useState(false);
+  const suggested=!jokerHeld?null:game.hint?.command==='cmdTrump'?game.hint.data.fTrump-1:game.hint?.command==='cmdShift'?6:null;
+  useEffect(()=>{if(game.hint?.command==='cmdCall')setCall(game.hint.data.fCall);},[game.hint]);
   const answer=(command,fields)=>{game.answer(command,fields);onClose();};
   if(!data)return null;
   if(['cmdTrump','cmdShift'].includes(req.command)) {
@@ -23,8 +24,8 @@ export function GameDecisionDialog({game,onClose,scale}) {
     return <DialogFrame keepHandVisible title={'Wähle deinen Trumpf!'} width={225} height={235} scale={scale*1.5} controlScale={scale} onClose={onClose}>
       <div className="trump-board" style={{backgroundImage:`url(${img})`}}>
         <TrumpCanvas src={img} rects={trumpRects} hovered={hovered??focused} suggested={suggested} selected={pressed} shift={req.command!=='cmdShift'} factors={v.rules.fTrumpFactor} partner={7000+1000*(game.saved()?.options.characters?.[1]||0)} name={v.names[1]}/>
-        {trumpRects.map(([x,y,w,h],i)=><button type="button" key={i} className={`picture-hit trump-choice ${suggested===i?'hint-highlight':''}`} data-suggested={suggested===i||undefined} title={suggested===i?'Tipp: '+(i===6?'Schieben':trumpLabels(setId)[i+1]):undefined} style={{left:x,top:y,width:w,height:h}} aria-label={i===6?'Schieben':trumpLabels(setId)[i+1]} data-unavailable={(i===6?req.command==='cmdShift':!v.rules.fTrumpFactor[i+1])||undefined} disabled={game.busy||(i===6?req.command==='cmdShift':!v.rules.fTrumpFactor[i+1])} onPointerEnter={e=>{if(e.pointerType==='mouse')setHovered(i);}} onFocus={()=>setFocused(i)} onBlur={()=>setFocused(null)} onPointerDown={()=>setPressed(i)} onPointerUp={()=>setPressed(null)} onPointerLeave={()=>{setPressed(null);setHovered(null);}} onClick={()=>i===6?answer('cmdShift',{}):answer('cmdTrump',{fTrump:i+1})}/>)}
-        <button type="button" className="picture-hit trump-choice" onPointerEnter={e=>{if(e.pointerType==='mouse')setHovered(7);}} onPointerLeave={()=>setHovered(null)} onFocus={()=>setFocused(7)} onBlur={()=>setFocused(null)} style={{left:77,top:84,width:70,height:115}} aria-label="Tipp" disabled={game.busy} onClick={game.getHint}/>
+        {trumpRects.map(([x,y,w,h],i)=><button type="button" key={i} className="picture-hit trump-choice" data-suggested={suggested===i||undefined} title={suggested===i?'Tipp: '+(i===6?'Schieben':trumpLabels(setId)[i+1]):undefined} style={{left:x,top:y,width:w,height:h}} aria-label={i===6?'Schieben':trumpLabels(setId)[i+1]} data-unavailable={(i===6?req.command==='cmdShift':!v.rules.fTrumpFactor[i+1])||undefined} disabled={game.busy||(i===6?req.command==='cmdShift':!v.rules.fTrumpFactor[i+1])} onPointerEnter={e=>{if(e.pointerType==='mouse')setHovered(i);}} onFocus={()=>setFocused(i)} onBlur={()=>setFocused(null)} onPointerDown={()=>setPressed(i)} onPointerUp={()=>setPressed(null)} onPointerLeave={()=>{setPressed(null);setHovered(null);}} onClick={()=>i===6?answer('cmdShift',{}):answer('cmdTrump',{fTrump:i+1})}/>)}
+        <button type="button" className="picture-hit trump-choice" onPointerEnter={e=>{if(e.pointerType==='mouse')setHovered(7);}} onPointerDown={e=>{if(e.button!==0)return;setJokerHeld(true);game.getHint();}} onPointerUp={()=>setJokerHeld(false)} onPointerCancel={()=>setJokerHeld(false)} onPointerLeave={()=>{setHovered(null);setJokerHeld(false);}} onKeyDown={e=>{if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();setJokerHeld(true);game.getHint();}}} onKeyUp={e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();setJokerHeld(false);}}} onFocus={()=>setFocused(7)} onBlur={()=>{setFocused(null);setJokerHeld(false);}} style={{left:77,top:84,width:70,height:115}} aria-label="Tipp" disabled={game.busy&&!jokerHeld}/>
         <button type="button" style={{position:'absolute',left:64,top:202,width:100,height:25}} onClick={onClose}>Abbrechen</button>
       </div>
     </DialogFrame>;
@@ -32,8 +33,8 @@ export function GameDecisionDialog({game,onClose,scale}) {
   if(req.command==='cmdCall') {
     const y=206-(call<=80?call:80+44*(call-80)/77);
     return <LegacyDialog kind="differ" form="TCALLDLG" keepHandVisible title={'Deine Ansage…'} onClose={onClose} scale={scale*1.5} controlScale={scale} hide={['BackGround','Gloon0','Gloon1','Gloon2','Gloon3']} values={{Edit:call}} overrides={{Edit:{Left:142,Top:31,Width:38,Height:20,'aria-label':'Ansage'}}} onChange={(n,value)=>{if(n==='Edit')setCall(Math.max(0,Math.min(157,Number(value)||0)));}} onAction={n=>n==='BitBtn1'?answer('cmdCall',{fCall:call}):onClose()} render={c=>c.name==='PaintBox'?<div className="prediction-board" style={{backgroundImage:`url(${formImage(data,'differ','TCALLDLG','BackGround')})`}}>
-      <PredictionCanvas data={data} value={call}/>
-      <button type="button" className="gloon-hint" aria-label="Tipp" onClick={game.getHint}/>
+      <PredictionCanvas data={data} value={call} hintPose={jokerHeld&&game.hint?.command==='cmdCall'?Math.floor(game.hint.data.fCall*3/158)+1:0}/>
+      <button type="button" className="gloon-hint" aria-label="Tipp" disabled={game.busy&&!jokerHeld} onPointerDown={e=>{if(e.button!==0)return;e.currentTarget.setPointerCapture(e.pointerId);setJokerHeld(true);game.getHint();}} onPointerUp={()=>setJokerHeld(false)} onPointerCancel={()=>setJokerHeld(false)} onLostPointerCapture={()=>setJokerHeld(false)} onKeyDown={e=>{if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();setJokerHeld(true);game.getHint();}}} onKeyUp={e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();setJokerHeld(false);}}} onBlur={()=>setJokerHeld(false)}/>
       <input className="prediction-slider" aria-label="Ansage-Schieber" type="range" min="0" max="124" value={206-y} onChange={e=>{const h=Number(e.target.value);setCall(Math.round(h<=80?h:80+(h-80)*77/44));}}/>
     </div>:undefined}/>;
   }

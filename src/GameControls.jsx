@@ -75,9 +75,9 @@ export function GameControls({ game, onNew, onDialog, displayScale, lowLevel=fal
   const waitingForOpeningComments=openingDeadline>elapsedOpeningDeadline&&openingDeadline>Date.now();
   const decisionKey=v?`${v.roundNumber}/${v.phase}/${req?.command}/${v.hand.join(',')}/${v.events.join('|')}`:'';
   const showDecision=Boolean(v&&req&&req.player===v.human&&!game.automatic&&!game.paused&&req.command!=='cmdPlay'&&dismissed!==decisionKey&&!(waitingForOpeningComments&&['cmdTrump','cmdShift','cmdCall'].includes(req.command)));
-  const inlineHint=['cmdTrump','cmdShift','cmdCard'].includes(game.hint?.command);
+  const inlineHint=['cmdTrump','cmdShift','cmdCall','cmdCard'].includes(game.hint?.command);
   const showHint=game.hint&&game.hint!==dismissedHint&&!inlineHint;
-  useEffect(()=>{if(['cmdTrump','cmdShift'].includes(game.hint?.command))setDismissed('');},[game.hint]);
+  useEffect(()=>{if(['cmdTrump','cmdShift','cmdCall'].includes(game.hint?.command))setDismissed('');},[game.hint]);
   const mine = Boolean(v&&req&&req.player===v.human&&!game.automatic&&!game.paused);
   let status = !v ? 'Wähle einen Jass.' : v.phase === 'done' ? (v.kind === 'schieber'
     ? `Jass beendet. ${v.winner === 1 ? 'Nord & Süd gewinnen.' : v.winner === 2 ? 'West & Ost gewinnen.' : 'Unentschieden.'}`

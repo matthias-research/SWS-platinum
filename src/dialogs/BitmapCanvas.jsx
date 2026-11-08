@@ -5,17 +5,17 @@ import {drawMaskedSprite} from '../raster';
 import {formImage,looseImage} from './LegacyDialog';
 
 // Retain Delphi's channel-wise SRCAND/SRCPAINT compositing, including nonbinary masks.
-export function PredictionCanvas({data,value}) {
+export function PredictionCanvas({data,value,hintPose=0}) {
   const ref=useRef(null),graphics=useGraphics();
   useEffect(()=>{let live=true;Promise.all([
     loadImage(formImage(data,'differ','TCALLDLG','BackGround')),
-    loadImage(formImage(data,'differ','TCALLDLG','Gloon0')),
+    loadImage(formImage(data,'differ','TCALLDLG',`Gloon${hintPose}`)),
     loadImage(graphicsUrl(`differ-pieces.bmp`)),
     fetch(`${import.meta.env.BASE_URL}assets/differ-pieces.json`).then(r=>r.json()),
   ]).then(([back,gloon,pieces,m])=>{if(!live)return;const ctx=bitmapContext(ref.current,209,257);ctx.clearRect(0,0,209,257);drawBitmap(ctx,back,0,0);drawBitmap(ctx,gloon,0,42);
     const y=206-(value<=80?value:80+44*(value-80)/77),r=m.rects[126];ctx.fillStyle='blue';ctx.fillRect(144,y,11,206-y);drawMaskedSprite(ctx,pieces,r,m.rects[127],155-r.width,Math.round(y-r.height/2));
-  });return()=>{live=false;};},[data,value,graphics]);
-  return <canvas ref={ref} width={209} height={257} aria-hidden="true"/>;
+  });return()=>{live=false;};},[data,value,graphics,hintPose]);
+  return <canvas ref={ref} width={209} height={257} aria-hidden="true" data-hint-pose={hintPose}/>;
 }
 
 export function HintArm({data,kind}) {

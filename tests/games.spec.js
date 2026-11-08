@@ -61,7 +61,7 @@ test('human cards, hint, undo and three-player Trashy stay usable', async ({page
   await expect(cards.getByRole('button')).toHaveCount(12);
   await page.getByRole('dialog').getByRole('button',{name:'Tipp',exact:true}).click();
   await expect(page.getByText(/^Tipp: \d+ Punkte ansagen/)).toBeVisible();
-  await page.getByRole('dialog',{name:'Ratschlag'}).getByRole('button',{name:'Abbrechen',exact:true}).click();
+  await expect(page.getByRole('dialog',{name:'Ratschlag'})).toHaveCount(0);
   await page.getByRole('dialog').getByRole('button',{name:'OK',exact:true}).click();
   await page.getByRole('button',{name:'Zurücknehmen',exact:true}).click();
   const callDialog=page.getByRole('dialog',{name:/sagt an/});

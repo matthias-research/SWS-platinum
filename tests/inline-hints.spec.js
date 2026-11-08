@@ -1,10 +1,11 @@
 import {test,expect} from '@playwright/test';
+test.beforeEach(async({page})=>{await page.addInitScript(()=>localStorage.setItem('sws-preferences',JSON.stringify({genSayBefore:false})));});
 import {readFile} from 'node:fs/promises';
 import {Game} from '../src/engine/game.js';
 import {SchieberAI} from '../src/ai/schieber.js';
 import {DifferAI} from '../src/ai/differ.js';
 
-test('trump joker highlights a choice without opening advice or playing it',async({page})=>{
+test('trump joker points while held without opening advice or playing it',async({page})=>{
   await page.goto('/');await page.getByRole('button',{name:'Neuer Schieber…',exact:true}).click();
   await page.getByRole('dialog').getByRole('button',{name:'Spielen',exact:true}).click();
   const choice=page.getByRole('dialog',{name:'Wähle deinen Trumpf!',exact:true});
@@ -18,16 +19,18 @@ test('trump joker highlights a choice without opening advice or playing it',asyn
   await expect(choice.locator('.trump-joker-symbol.hovered')).toHaveCount(1);
   await expect.poll(()=>choice.locator('.trump-joker-symbol.hovered').evaluate(el=>new DOMMatrix(getComputedStyle(el).transform).a)).toBeCloseTo(1.1,2);
   await page.screenshot({path:'artifacts/browser/trump-joker-hover.png'});
-  await choice.getByRole('button',{name:'Tipp',exact:true}).click();
+  await page.mouse.down();
   const suggestion=choice.locator('.picture-hit[data-suggested=true]');await expect(suggestion).toHaveCount(1);await expect(suggestion).toBeEnabled();await expect(choice.locator('.trump-symbol.suggested')).toHaveCount(1);
   await expect.poll(()=>choice.locator('.trump-symbol.suggested').evaluate(el=>new DOMMatrix(getComputedStyle(el).transform).a)).toBeCloseTo(1,2);
-  expect(await suggestion.evaluate(el=>getComputedStyle(el).outlineStyle)).toBe('solid');
+  await expect(choice.locator('.trump-art')).toHaveAttribute('data-hint-pose',/^[0-6]$/);
   await page.screenshot({path:'artifacts/browser/trump-suggestion.png'});
   await expect(page.getByRole('dialog')).toHaveCount(1);await expect(page.getByRole('dialog',{name:'Ratschlag'})).toHaveCount(0);
+  await page.mouse.up();await expect(suggestion).toHaveCount(0);
   await expect(choice).toBeVisible();await choice.getByRole('button',{name:'Abbrechen',exact:true}).click();
   await page.getByRole('button',{name:'Joker: Ratschlag',exact:true}).click();
-  await expect(choice).toBeVisible();await expect(suggestion).toHaveCount(1);
-  await suggestion.click();await expect(choice).toHaveCount(0);
+  await expect(choice).toBeVisible();
+  const joker=choice.getByRole('button',{name:'Tipp',exact:true});await joker.focus();await page.keyboard.down('Space');await expect(suggestion).toHaveCount(1);await page.keyboard.up('Space');await expect(suggestion).toHaveCount(0);
+  await choice.getByRole('button',{name:'Schellen',exact:true}).click();await expect(choice).toHaveCount(0);
 });
 for(const kind of ['schieber','differ'])test(kind+': table joker highlights a legal card until the player chooses',async({page})=>{
   const ai=kind==='schieber'?new SchieberAI(await readFile('public/assets/ai/RUGD7000.DAT')):new DifferAI(await readFile('public/assets/ai/RGDIFF.DAT'));
@@ -65,7 +68,8 @@ test('trump advice keeps the dialog artwork and controls visually stable while w
   await dialog.getByRole('button',{name:'Tipp',exact:true}).click();
   await expect(dialog.getByRole('button',{name:'Tipp',exact:true})).toBeDisabled();
   for(const name of ['Tipp','Schellen'])expect(await dialog.getByRole('button',{name,exact:true}).evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
-  await expect(dialog.locator('[data-suggested=true]')).toHaveCount(1);
+  await expect(dialog.getByRole('button',{name:'Tipp',exact:true})).toBeEnabled();
+  await expect(dialog.locator('[data-suggested=true]')).toHaveCount(0);
   expect(await art.evaluate(c=>c.toDataURL())).toBe(before);
   expect(await page.evaluate(()=>window.trumpPaints)).toBe(0);
 });

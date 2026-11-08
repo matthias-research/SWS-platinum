@@ -1,10 +1,10 @@
+import {useCanvasDialogPosition} from './dialogs/useCanvasDialogPosition';
 import {loadRules,saveRules} from './settingsStorage';
 import {graphicsUrl} from './graphics';
 import React, { useEffect, useRef, useState } from 'react';
 import { DefaultRules } from './engine/SWSBase';
 import { DefaultRules as DifferRules } from './engine/DiffBase';
 import {useDialogCatalog,formImage} from './dialogs/LegacyDialog';
-import {useCanvasDialogPosition} from './dialogs/useCanvasDialogPosition';
 const seats = [{p:1,name:'Nord',x:208,y:69},{p:2,name:'West',x:93,y:174},{p:4,name:'Ost',x:321,y:174}];
 const strengths = ['Schwach','Mittel','Stark'];
 const characterNames = ['Birgit','Beat','Stéphanie','Walter'];
@@ -28,7 +28,7 @@ function savedSelection(kind) {
   return {...defaults,characters:randomCharacters()};
 }
 
-export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules, displayScale=1 }) {
+export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules, displayScale=1, mobile=false }) {
   const {data:catalog}=useDialogCatalog();
   const differ=kind==='differ',offset=differ?-8:0;
   const dialog = useRef(null);
@@ -39,8 +39,9 @@ export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules, d
   const [name,setName] = useState(()=>{try{return localStorage.getItem('sws-player')||'Du';}catch{return 'Du';}});
   const [viewport,setViewport] = useState({width:innerWidth,height:innerHeight});
   const height=differ?431:439;
-  const scale = Math.min(displayScale,(viewport.width-24)/464,(viewport.height-24)/height);
-  const centered=useCanvasDialogPosition(464*scale,height*scale);
+  const scale = mobile?Math.min(viewport.width/464,viewport.height/height):Math.min(displayScale,(viewport.width-24)/464,(viewport.height-24)/height);
+  const centered=useCanvasDialogPosition(464*scale,height*scale,!mobile);
+
   useEffect(()=>{dialog.current.showModal();const resize=()=>setViewport({width:innerWidth,height:innerHeight});window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize);},[]);
   const change = (key,p,value) => setSelection(s=>({...s,[key]:s[key].map((n,i)=>i===p?value:n)}));
   const start = e => {
@@ -53,8 +54,8 @@ export function NewJassSetup({ kind='schieber', onStart, onClose, renderRules, d
       id:crypto.randomUUID(),seed:crypto.getRandomValues(new Uint32Array(1))[0]%2147483646+1});
   };
   return <>
-    <dialog ref={dialog} className="legacy-new-jass" aria-label="Neuer Jass" onCancel={e=>{if(picker!==null){e.preventDefault();setPicker(null);}else onClose();}} style={{width:464*scale,height:height*scale,...centered,'--setup-button-top':`${386+offset}px`}}>
-      <form onSubmit={start} className="legacy-setup-content" style={{height,transform:`scale(${scale})`}}>
+    <dialog ref={dialog} className={`legacy-new-jass${mobile?" fullscreen-setup":""}`} aria-label="Neuer Jass" onCancel={e=>{if(picker!==null){e.preventDefault();setPicker(null);}else onClose();}} style={{...(mobile?{width:'100vw',height:'100dvh',inset:0,margin:0}:{width:464*scale,height:height*scale,...centered}),'--setup-button-top':`${386+offset}px`}}>
+      <form onSubmit={start} className="legacy-setup-content" style={{height,left:mobile?(viewport.width-464*scale)/2:0,top:mobile?(viewport.height-height*scale)/2:0,transform:`scale(${scale})`}}>
         <header className="legacy-caption">{differ?'Neuer Differenzler':'Neuer Jass'}<button type="button" aria-label="Schliessen" onClick={onClose}>×</button></header>
         <div className="legacy-setup-board" style={{height:height-22,backgroundImage:`url(${differ?formImage(catalog,'differ','TDLGNEWJASS',rules.fNuPlayers===3?'Back3Image':'BackImage'):graphicsUrl('setup/schieber.png')})`,backgroundPosition:`0 ${offset}px`}}>
           {seats.filter(s=>!differ||s.p<=rules.fNuPlayers).map(({p,name:seat,x,y})=><div key={p} className="legacy-player" style={{left:x,top:y+offset}}>
