@@ -44,6 +44,10 @@ for(const [leading,title] of [[2,'Match'],[3,'Contermatch']])test(`${title} uses
   await dialog.locator('.original-background').evaluate(img=>img.decode());
   await dialog.screenshot({path:`artifacts/browser/information-${title}.png`});
   await dialog.getByRole('button',{name:'Weiter',exact:true}).click();
+  // Continuing starts the next round, which may immediately ask for trump.
+  await expect(page.locator('.feed-round').last()).toContainText('Spiel 2');
+  const decision=page.getByRole('dialog',{name:'Wähle deinen Trumpf!',exact:true});
+  if(await decision.isVisible())await decision.getByRole('button',{name:'Schliessen',exact:true}).click();
   await page.getByRole('button',{name:'Einstellungen',exact:true}).click();
   await page.getByRole('button',{name:'Darstellungen…',exact:true}).click();
   for(const name of ['Rundenende','Bergpreis / Sieg','Match / Contermatch'])await expect(page.getByRole('checkbox',{name,exact:true})).toBeChecked();
@@ -67,7 +71,7 @@ test('Bergpreis opens when the human crosses the threshold during play',async({p
   expect(saved).toBeTruthy();await page.goto('/');
   await page.locator('input[type=file]').setInputFiles({name:'bp.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(saved))});
   await page.locator(`.card-target[data-card-id="${card}"]`).click();
-  const dialog=page.getByRole('dialog',{name:'Bergpreis',exact:true});await expect(dialog).toBeVisible();
+  const dialog=page.getByRole('dialog',{name:'Bergpreis',exact:true});await expect(dialog).toBeVisible({timeout:12000});
   await dialog.screenshot({path:'artifacts/browser/information-Bergpreis.png'});
   await dialog.getByRole('button',{name:'Weiter',exact:true}).click();await expect(dialog).toHaveCount(0);
 });

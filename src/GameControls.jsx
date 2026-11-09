@@ -6,7 +6,7 @@ import { cardName, gameHand, trumpLabels } from './gameDrawing';
 import { NewJassSetup } from './NewJassSetup';
 import {DialogFrame} from './dialogs/LegacyDialog';
 import { PreferencesDialog } from './dialogs/PreferencesDialog';
-import { GameDecisionDialog, HintDialog } from './dialogs/DecisionDialogs';
+import { GameDecisionDialog, HintDialog, TrumpCardDialog } from './dialogs/DecisionDialogs';
 
 export function GameSetup(props) {
   return <NewJassSetup {...props} renderRules={(rules,onApply,onClose)=><PreferencesDialog kind={props.kind} rules={rules} onApply={onApply} onClose={onClose} settings={props.settings} onSettings={props.onSettings} scale={props.displayScale}/>} />;
@@ -60,7 +60,7 @@ export function GameSetupForm({ kind, onStart, onClose, setId = 1, initialRules,
   </dialog>;
 }
 
-export function GameControls({ game, onNew, onDialog, displayScale, lowLevel=false, sceneRef, bubbleDuration=5 }) {
+export function GameControls({ game, onNew, onDialog, displayScale, lowLevel=false, sceneRef, bubbleDuration=5, presentationReady=false }) {
   const trumpNames = trumpLabels(game.sound.set);
   const v = game.view, req = v?.request;
   const [call, setCall] = useState(50), [history, setHistory] = useState(false);
@@ -74,11 +74,11 @@ export function GameControls({ game, onNew, onDialog, displayScale, lowLevel=fal
   },[openingDeadline]);
   const waitingForOpeningComments=openingDeadline>elapsedOpeningDeadline&&openingDeadline>Date.now();
   const decisionKey=v?`${v.roundNumber}/${v.phase}/${req?.command}/${v.hand.join(',')}/${v.events.join('|')}`:'';
-  const showDecision=Boolean(v&&req&&req.player===v.human&&!game.automatic&&!game.paused&&req.command!=='cmdPlay'&&dismissed!==decisionKey&&!(waitingForOpeningComments&&['cmdTrump','cmdShift','cmdCall'].includes(req.command)));
+  const showDecision=Boolean(v&&req&&req.player===v.human&&!game.automatic&&!game.paused&&!game.trumpCard&&req.command!=='cmdPlay'&&dismissed!==decisionKey&&!(waitingForOpeningComments&&['cmdTrump','cmdShift','cmdCall'].includes(req.command)));
   const inlineHint=['cmdTrump','cmdShift','cmdCall','cmdCard'].includes(game.hint?.command);
   const showHint=game.hint&&game.hint!==dismissedHint&&!inlineHint;
   useEffect(()=>{if(['cmdTrump','cmdShift','cmdCall'].includes(game.hint?.command))setDismissed('');},[game.hint]);
-  const mine = Boolean(v&&req&&req.player===v.human&&!game.automatic&&!game.paused);
+  const mine = Boolean(v&&req&&req.player===v.human&&!game.automatic&&!game.paused&&!game.trumpCard);
   let status = !v ? 'Wähle einen Jass.' : v.phase === 'done' ? (v.kind === 'schieber'
     ? `Jass beendet. ${v.winner === 1 ? 'Nord & Süd gewinnen.' : v.winner === 2 ? 'West & Ost gewinnen.' : 'Unentschieden.'}`
     : `Jass beendet. ${v.names.filter((_, p) => p && v.ranks[p] === 1).join(' und ')} gewinnen.`)
@@ -122,6 +122,7 @@ export function GameControls({ game, onNew, onDialog, displayScale, lowLevel=fal
     </div>}
     {mine&&!game.busy&&!showHint&&dismissed===decisionKey&&req.command!=='cmdPlay'&&sceneRef?.current&&createPortal(
       <button type="button" className="trick-clear-target decision-resume-target" aria-label="Spiel fortsetzen: Auswahl wieder öffnen" onClick={()=>setDismissed('')}/>,sceneRef.current)}
+    {game.trumpCard&&!game.automatic&&!game.paused&&presentationReady&&<TrumpCardDialog card={game.trumpCard.card} setId={game.sound.set} scale={displayScale} onClose={game.acknowledgeTrumpCard}/>}
     {showDecision&&<GameDecisionDialog key={decisionKey} game={game} onClose={()=>setDismissed(decisionKey)} scale={displayScale}/>}
     {showHint&&<HintDialog game={game} onClose={()=>setDismissedHint(game.hint)} scale={displayScale}/>}
     {game.error && <p role="alert" className="error">{game.error}</p>}

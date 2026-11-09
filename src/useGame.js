@@ -16,6 +16,7 @@ export function useGame() {
   const [view, setView] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const lastView=useRef(null);
   const [openingCommentsAt,setOpeningCommentsAt]=useState(0);
+  const [trumpCard,setTrumpCard]=useState(null);
   const [animation,setAnimation]=useState(null);
   const finishAnimation=useCallback(completed=>setAnimation(current=>current===completed?null:current),[]);
   const [automatic, setAutomatic] = useState(false), [speed, setSpeed] = useState(()=>{
@@ -29,7 +30,7 @@ export function useGame() {
   const soundRef = useRef(sound); soundRef.current = sound;
   function send(message, restart = false) {
     if (restart || !worker.current) {
-      if (restart) { stopAudio(); setView(null); setHint(null); setPaused(false);lastView.current=null;setAnimation(null); }
+      if (restart) { stopAudio(); setView(null); setHint(null); setTrumpCard(null); setPaused(false);lastView.current=null;setAnimation(null); }
       worker.current?.terminate(); worker.current = new Worker(new URL('./game.worker.js', import.meta.url), { type: 'module' });
       worker.current.onmessage = ({ data }) => {
         setBusy(false);
@@ -42,6 +43,8 @@ export function useGame() {
         setAnimation(transition);
 
         const lastFeedId=lastView.current?.feed?.at(-1)?.id??0;
+        const drawn=data.soundAction&&(data.view.feed||[]).find(e=>e.kind==='drawn'&&e.id>lastFeedId);
+        if(drawn)setTrumpCard({card:drawn.cards[0][0],round:drawn.round});
         if(!lastView.current)setOpeningCommentsAt(data.view.commentaryIds?.length?Date.now():0);
         lastView.current=data.view;
         setView(data.view); latest.current = data.saved;
@@ -76,8 +79,9 @@ export function useGame() {
       assetBase: new URL(`${import.meta.env.BASE_URL}assets/ai/`, document.baseURI).href });
   }
   useEffect(() => () => { worker.current?.terminate(); stopAudio(); }, []);
+  useEffect(()=>{if(automatic)setTrumpCard(null);},[automatic,trumpCard]);
   useEffect(() => {
-    if (!view || busy || animation || speaking || error || paused) return;
+    if (!view || busy || animation || speaking || error || paused || (!automatic&&trumpCard)) return;
     let message;
     if (view.phase === 'done' && !view.pause) {
       if(automatic&&series>1){const timer=setTimeout(()=>{setSeries(n=>n-1);send({type:'new',options:rematchOptions(latest.current.options,view)},true);},speed);return()=>clearTimeout(timer);}
@@ -87,8 +91,8 @@ export function useGame() {
     else if (view.phase === 'deal' && automatic) message = { type: 'action', action: { type: 'deal' } };
     else if (view.request && (automatic || view.request.player !== view.human)) message = { type: 'computer' };
     if (message) { const timer = setTimeout(() => send(message), speed); return () => clearTimeout(timer); }
-  }, [view, busy, animation, speaking, automatic, speed, error, paused,series]);
-  return { view, openingCommentsAt, speaking, busy:busy||Boolean(animation), animation, finishAnimation, error, automatic, setAutomatic, speed, setSpeed, paused, setPaused, hint,series,
+  }, [view, busy, animation, speaking, automatic, speed, error, paused,series,trumpCard]);
+  return { view, openingCommentsAt, trumpCard, acknowledgeTrumpCard:()=>setTrumpCard(null), speaking, busy:busy||Boolean(animation), animation, finishAnimation, error, automatic, setAutomatic, speed, setSpeed, paused, setPaused, hint,series,
     end:()=>{worker.current?.terminate();worker.current=null;stopAudio();setAnimation(null);lastView.current=null;setView(null);setHint(null);setAutomatic(false);setPaused(false);},
     saved: () => latest.current,
     archive: (title,scope) => send({type:'archive',title,scope}),

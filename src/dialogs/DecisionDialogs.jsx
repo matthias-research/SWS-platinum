@@ -12,6 +12,26 @@ export function DialogCards({rows,setId=1,width=254,height=118}) {
   return <canvas ref={ref} width={width} height={height} aria-label={rows.flat().map(c=>cardName(c,setId)).join(', ')} role="img"/>;
 }
 const trumpRects=[[156,57,48,51],[25,56,51,59],[166,117,45,42],[19,116,44,49],[159,161,44,49],[39,161,40,51],[91,17,57,64]];
+export function TrumpCardDialog({card,setId,scale,onClose}){
+  const ref=useRef(null),graphics=useGraphics();
+  useEffect(()=>{
+    let active=true;
+    loadCardManifest().then(m=>loadCardSheet(m,setId,1,'V')).then(sheet=>{
+      if(!active)return;
+      const ctx=bitmapContext(ref.current,209,257),felt=ctx.createRadialGradient(104,110,10,104,110,190);
+      felt.addColorStop(0,'#303a92');felt.addColorStop(1,'#05082b');
+      ctx.fillStyle=felt;ctx.fillRect(0,0,209,257);
+      drawCard(ctx,sheet,card,{x:52,y:46,width:105,height:165});
+    });
+    return()=>{active=false;};
+  },[card,setId,graphics]);
+  return <DialogFrame title="Die Trumpkarte" width={240} height={326} keepHandVisible hideClose scale={scale*1.5} controlScale={scale} onClose={onClose}>
+    <div className="original-box TPanel" style={{position:'absolute',left:8,top:8,width:225,height:273}}>
+      <canvas ref={ref} role="img" aria-label={cardName(card,setId)} width={209} height={257} style={{position:'absolute',left:8,top:8,width:209,height:257}}/>
+    </div>
+    <button type="button" autoFocus style={{position:'absolute',left:70,top:290,width:100,height:30}} onClick={onClose}>OK</button>
+  </DialogFrame>;
+}
 export function GameDecisionDialog({game,onClose,scale}) {
   const v=game.view,req=v.request,setId=game.sound.set;
   const {data}=useDialogCatalog(),[call,setCall]=useState(50),[pressed,setPressed]=useState(null),[hovered,setHovered]=useState(null),[focused,setFocused]=useState(null),[jokerHeld,setJokerHeld]=useState(false);
@@ -32,7 +52,7 @@ export function GameDecisionDialog({game,onClose,scale}) {
   }
   if(req.command==='cmdCall') {
     const y=206-(call<=80?call:80+44*(call-80)/77);
-    return <LegacyDialog kind="differ" form="TCALLDLG" keepHandVisible title={'Deine Ansage…'} onClose={onClose} scale={scale*1.5} controlScale={scale} hide={['BackGround','Gloon0','Gloon1','Gloon2','Gloon3']} values={{Edit:call}} overrides={{Edit:{Left:142,Top:31,Width:38,Height:20,'aria-label':'Ansage'}}} onChange={(n,value)=>{if(n==='Edit')setCall(Math.max(0,Math.min(157,Number(value)||0)));}} onAction={n=>n==='BitBtn1'?answer('cmdCall',{fCall:call}):onClose()} render={c=>c.name==='PaintBox'?<div className="prediction-board" style={{backgroundImage:`url(${formImage(data,'differ','TCALLDLG','BackGround')})`}}>
+    return <LegacyDialog kind="differ" form="TCALLDLG" keepHandVisible title={'Deine Ansage…'} onClose={onClose} scale={scale*1.5} controlScale={scale} hide={['BackGround','Gloon0','Gloon1','Gloon2','Gloon3']} values={{Edit:call}} overrides={{Edit:{Left:142,Top:31,Width:30,Height:20,'Font.Height':-11,'aria-label':'Ansage'}}} onChange={(n,value)=>{if(n==='Edit')setCall(Math.max(0,Math.min(157,Number(value)||0)));}} onAction={n=>n==='BitBtn1'?answer('cmdCall',{fCall:call}):onClose()} render={c=>c.name==='PaintBox'?<div className="prediction-board" style={{backgroundImage:`url(${formImage(data,'differ','TCALLDLG','BackGround')})`}}>
       <PredictionCanvas data={data} value={call} hintPose={jokerHeld&&game.hint?.command==='cmdCall'?Math.floor(game.hint.data.fCall*3/158)+1:0}/>
       <button type="button" className="gloon-hint" aria-label="Tipp" disabled={game.busy&&!jokerHeld} onPointerDown={e=>{if(e.button!==0)return;e.currentTarget.setPointerCapture(e.pointerId);setJokerHeld(true);game.getHint();}} onPointerUp={()=>setJokerHeld(false)} onPointerCancel={()=>setJokerHeld(false)} onLostPointerCapture={()=>setJokerHeld(false)} onKeyDown={e=>{if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();setJokerHeld(true);game.getHint();}}} onKeyUp={e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();setJokerHeld(false);}}} onBlur={()=>setJokerHeld(false)}/>
       <input className="prediction-slider" aria-label="Ansage-Schieber" type="range" min="0" max="124" value={206-y} onChange={e=>{const h=Number(e.target.value);setCall(Math.round(h<=80?h:80+(h-80)*77/44));}}/>

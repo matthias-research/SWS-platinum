@@ -12,10 +12,44 @@ async function expectEnlargedDecision(page,dialog){
     const preferred=Number(document.querySelector('.scene-frame > canvas').dataset.scale)*1.5;
     const above=Math.min(innerHeight-8,Math.min(...cards.map(c=>c.top))-10)-Math.max(8,scene.top+6);
     const below=innerHeight-8-Math.max(8,Math.max(...cards.map(c=>c.bottom))+10);
-    const expected=Math.min(preferred,(innerWidth-20)/width,Math.max(above,below)/height);
+    const mobile=document.querySelector('.application').dataset.view.startsWith('mobile-');
+    const expected=Math.min(preferred,(innerWidth-20)/width,(mobile?Math.max(above,below):above)/height);
     return Math.abs(new DOMMatrix(getComputedStyle(content).transform).a-expected);
   })).toBeLessThan(0.01);
 }
+
+test('auto view keeps desktop trump dialog above the hand in a tall narrow window',async({page})=>{
+  await page.addInitScript(()=>localStorage.setItem('sws-display',JSON.stringify({viewMode:'auto'})));
+  await page.setViewportSize({width:900,height:1400});await page.goto('/');
+  await expect(page.locator('.application')).toHaveAttribute('data-view','desktop');
+  await page.getByRole('button',{name:'Neuer Schieber…',exact:true}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Spielen',exact:true}).click();
+  const dialog=page.getByRole('dialog',{name:'Wähle deinen Trumpf!',exact:true});
+  await expect(dialog).toBeVisible();
+  await expect.poll(()=>dialog.evaluate(el=>{
+    const scene=document.querySelector('.scene-frame > canvas').getBoundingClientRect();
+    const handTop=Math.min(...[...document.querySelectorAll('.card-target')].map(c=>c.getBoundingClientRect().top));
+    const rect=el.getBoundingClientRect();
+    return rect.top>=scene.top&&rect.bottom<=handTop;
+  })).toBe(true);
+});
+
+test('mobile auto view preserves decision sizing and keeps the hand visible',async({page})=>{
+  await page.addInitScript(()=>{
+    const original=window.matchMedia.bind(window);
+    window.matchMedia=q=>q==='(pointer: coarse)'?{matches:true,addEventListener(){},removeEventListener(){}}:original(q);
+    Object.defineProperty(screen,'width',{value:390});
+    Object.defineProperty(document,'fullscreenEnabled',{value:false});
+  });
+  await page.setViewportSize({width:390,height:1000});await page.goto('/');
+  await expect(page.locator('.application')).toHaveAttribute('data-view','mobile-vertical');
+  await page.getByRole('button',{name:'Neuer Schieber…',exact:true}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Spielen',exact:true}).click();
+  const dialog=page.getByRole('dialog',{name:'Wähle deinen Trumpf!',exact:true});
+  await expect(dialog).toBeVisible();
+  await checkHandVisible(page);
+  await expectEnlargedDecision(page,dialog);
+});
 
 for(const kind of ['Differenzler'])test(`${kind} table joker opens advice`,async({page})=>{
   await page.goto('/');

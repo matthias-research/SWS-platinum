@@ -1,5 +1,51 @@
 import {test,expect} from '@playwright/test';
 
+for(const mode of ['original','enhanced'])test(`idle trump board preserves original felt and up arrow (${mode})`,async({page})=>{
+  await page.addInitScript(()=>localStorage.setItem('sws-preferences',JSON.stringify({viewBubbleS:0})));
+  await page.goto('/');
+  await page.getByRole('button',{name:'Neuer Schieber…',exact:true}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Spielen',exact:true}).click();
+  const dialog=page.getByRole('dialog',{name:'Wähle deinen Trumpf!',exact:true});
+  await expect(dialog).toBeVisible();
+  await page.evaluate(async mode=>{const {setGraphics}=await import('/src/graphics');setGraphics(mode);},mode);
+  await page.mouse.move(0,0);
+  await expect.poll(()=>page.evaluate(async()=>{
+    const {loadImage}=await import('/src/table.js');
+    const {drawBitmap}=await import('/src/graphics');
+    const board=document.querySelector('.trump-board'),canvas=board.querySelector('canvas');
+    const src=board.style.backgroundImage.match(/url\(["']?(.*?)["']?\)/)[1];
+    const atlas=await loadImage(src),expected=document.createElement('canvas');
+    expected.width=canvas.width;expected.height=canvas.height;
+    const ctx=expected.getContext('2d'),scale=canvas.width/225;ctx.scale(scale,scale);
+    drawBitmap(ctx,atlas,0,0,225,235,0,0,225,235);
+    const actual=canvas.getContext('2d').getImageData(65*scale,80*scale,92*scale,121*scale).data;
+    const wanted=ctx.getImageData(65*scale,80*scale,92*scale,121*scale).data;
+    return actual.every((n,i)=>n===wanted[i]);
+  })).toBe(true);
+  await expect(dialog.locator('.trump-joker-symbol')).toHaveCSS('opacity','0');
+  await dialog.getByRole('button',{name:'Tipp',exact:true}).hover();
+  await expect(dialog.locator('.trump-joker-symbol')).toHaveCSS('opacity','1');
+  await expect(dialog.locator('.trump-joker-symbol')).toHaveCSS('transform','matrix(1, 0, 0, 1, 0, 0)');
+  await expect(dialog.locator('.trump-joker-symbol')).toHaveCSS('filter','brightness(1.15)');
+  await dialog.screenshot({path:`artifacts/browser/trump-joker-hover-${mode}.png`});
+  await page.mouse.move(0,0);
+  await expect(dialog.locator('.trump-joker-symbol')).toHaveCSS('opacity','0');
+  await dialog.screenshot({path:`artifacts/browser/trump-clean-background-${mode}.png`});
+  await page.evaluate(async()=>{
+    const {default:React}=await import('/node_modules/.vite/deps/react.js');
+    const {default:{createRoot}}=await import('/node_modules/.vite/deps/react-dom_client.js');
+    const {TrumpCanvas}=await import('/src/dialogs/TrumpCanvas.jsx');
+    const board=document.querySelector('.trump-board'),src=board.style.backgroundImage.match(/url\(["']?(.*?)["']?\)/)[1];
+    const host=document.createElement('div');host.id='shifted-preview';host.style.cssText='position:relative;width:225px;height:235px';board.appendChild(host);
+    createRoot(host).render(React.createElement(TrumpCanvas,{src,selected:null,suggested:null,shift:false,partner:7000,name:'Beat',factors:[0,1,1,1,1,1,1],rects:[]}));
+  });
+  await expect.poll(()=>page.locator('#shifted-preview canvas').first().evaluate(canvas=>{
+    const scale=canvas.width/225,p=canvas.getContext('2d').getImageData(95*scale,33*scale,34*scale,32*scale).data;
+    return Array.from({length:p.length/4},(_,i)=>p[i*4+1]>p[i*4]*1.3&&p[i*4+1]>p[i*4+2]*1.3).every(Boolean);
+  })).toBe(true);
+  await page.locator('#shifted-preview').screenshot({path:`artifacts/browser/trump-shifted-text-only-${mode}.png`});
+});
+
 for(const mode of ['original','enhanced'])test(`all seven original joker patches in all card styles (${mode})`,async({page})=>{
   await page.goto('/');
   await page.evaluate(async mode=>{

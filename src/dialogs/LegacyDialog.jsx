@@ -11,7 +11,7 @@ export function formImage(data,kind,form,name){const c=data?.forms[kind]?.[form]
 export function looseImage(data,name){return imageUrl(data,data?.loose[name.toLowerCase()]);}
 const captions={bkOK:'OK',bkCancel:'Abbrechen',bkYes:'Ja',bkNo:'Nein',bkClose:'Schliessen'};
 const clean=t=>informalCaption(String(t??'').replace(/&/g,''));
-export function DialogFrame({title,width,height,onClose,children,className='',keepHandVisible=false,scale:tableScale=1,controlScale}) {
+export function DialogFrame({title,width,height,onClose,children,className='',keepHandVisible=false,scale:tableScale=1,controlScale,hideClose=false}) {
   // All dialogs follow the selected resolution mode, capped to the viewport.
   const scale=Number.isFinite(tableScale)&&tableScale>0?tableScale:1;
   const ref=useRef(null),[viewport,setViewport]=useState({w:innerWidth,h:innerHeight});
@@ -28,7 +28,8 @@ export function DialogFrame({title,width,height,onClose,children,className='',ke
       const below={top:Math.max(8,handBottom+10),bottom:innerHeight-8};
       const fit=area=>Math.max(0,Math.min(preferred,(innerWidth-20)/width,(area.bottom-area.top)/(height+22)));
       // On a narrow phone the space below the hand allows legible controls.
-      const area=fit(above)<preferred&&fit(below)>fit(above)?below:above,zoom=fit(area);
+      const mobile=table.closest('.application')?.dataset.view?.startsWith('mobile-');
+      const area=mobile&&fit(above)<preferred&&fit(below)>fit(above)?below:above,zoom=fit(area);
       const next={zoom,left:Math.max(8,Math.min(innerWidth-width*zoom-8,scene.left+scene.width/2-width*zoom/2)),top:area.top+Math.max(0,(area.bottom-area.top-(height+22)*zoom)/2)};
       setPlacement(old=>JSON.stringify(old)===JSON.stringify(next)?old:next);
     };
@@ -42,7 +43,7 @@ export function DialogFrame({title,width,height,onClose,children,className='',ke
   const uiRatio=controlScale?Math.min(1,controlScale/zoom):1;
   return <dialog ref={ref} aria-label={title} className={`original-dialog ${keepHandVisible?'decision-dialog':''} ${controlScale?'preserve-decision-ui':''} ${className}`} onCancel={e=>{e.preventDefault();onClose();}} style={{width:width*zoom,height:(height+22)*zoom,'--dialog-ui-ratio':uiRatio,...centered,...(keepHandVisible&&placement?{position:'fixed',inset:'auto',left:placement.left,top:placement.top,margin:0}:{})}}>
     <div className="original-dialog-content" style={{width,height:height+22,transform:`scale(${zoom})`}}>
-      <header className="original-caption" style={controlScale?{width:width/uiRatio,transform:`scale(${uiRatio})`,transformOrigin:'top left',marginBottom:22*(uiRatio-1)}:undefined}>{title}<button type="button" aria-label="Schliessen" onClick={onClose}>×</button></header>
+      <header className="original-caption" style={controlScale?{width:width/uiRatio,transform:`scale(${uiRatio})`,transformOrigin:'top left',marginBottom:22*(uiRatio-1)}:undefined}>{title}{!hideClose&&<button type="button" aria-label="Schliessen" onClick={onClose}>×</button>}</header>
       <div className="original-client" style={{height}}>{children}</div>
     </div>
   </dialog>;

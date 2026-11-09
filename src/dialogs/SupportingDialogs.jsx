@@ -4,7 +4,6 @@ import {LegacyDialog,DialogFrame,useDialogCatalog,formImage,looseImage,imageUrl}
 import * as D from '../engine/DiffBase';
 import {CreditsCanvas} from './BitmapCanvas';
 import {BoardText} from './BoardText';
-import differPieces from '../../public/assets/differ-pieces.json';
 const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}};
 export function downloadJSON(value,name){const url=URL.createObjectURL(new Blob([JSON.stringify(value)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 export function ProfileDialog({kind,onClose,scale}){
@@ -73,7 +72,7 @@ export function InformationDialog({notice,onClose,scale}){
     {type!=='conter'&&players.map((p,i)=><img key={p} src={graphicsUrl(`setup/${p===v.human?(v.avatar||5208):7011+1000*(v.characters?.[p]||0)}.png`)} alt={v.names[p]} style={{position:'absolute',left:positions[i][0],top:positions[i][1],width:56,height:72}}/>)}
     {bp?<div style={{position:'absolute',left:319,top:153,width:88,height:122,color:'yellow',font:'21px Arial',textAlign:'center'}}>{[2,1].map(t=><div key={t} style={{height:61,display:'grid',placeItems:'center'}}>{scores[t]}</div>)}</div>:
       <div style={{position:'absolute',left:type==='match'?310:206,top:type==='match'?231:64,width:type==='match'?129:252,height:type==='match'?78:199,display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',font:'29px Arial',color:'white'}}>
-        <div>{round.pts[team]-round.suitPts[team]}{round.suitPts[team]>0?`+${round.suitPts[team]}`:''}</div><div style={{color:'yellow',fontSize:21,marginTop:10}}>{scores[2]}:{scores[1]}</div>
+        {type==='match'?<BoardText scale={scale} lines={[String(round.pts[team]-round.suitPts[team])]} width={64} size={29} lineHeight={38}/>:<><div>{round.pts[team]-round.suitPts[team]}{round.suitPts[team]>0?`+${round.suitPts[team]}`:''}</div><div style={{color:'yellow',fontSize:21,marginTop:10}}>{scores[2]}:{scores[1]}</div></>}
       </div>}
   </LegacyDialog>;
 }
@@ -82,18 +81,14 @@ function DifferRoundDialog({view:v,onClose,scale}){
   const round=v.history.at(-1),players=Array.from({length:v.count},(_,i)=>i+1);
   const total=p=>v.history.reduce((sum,r)=>sum+D.DeltaOf(r.call[p],r.made[p],r.bonus[p]),0);
   players.sort((a,b)=>total(a)-total(b));
-  const digit=(id,left,top)=>{const r=differPieces.rects[id];return <span style={{position:'absolute',left,top,width:r.width,height:r.height,backgroundImage:`url(${graphicsUrl('differ-pieces.bmp')})`,backgroundSize:'510px 603px',backgroundPosition:`-${r.x}px -${r.y}px`}}/>;};
   return <LegacyDialog kind="differ" form="TROUNDDLG" title={v.phase==='done'?'Jass beendet':'Spielstand'} onClose={onClose} scale={scale}>
     <img className="original-background" src={formImage(data,'differ','TROUNDDLG','BackImg')} alt=""/>
     {round&&<div role="table" aria-label="Rundenresultat" style={{position:'absolute',left:279,top:138,width:295,height:230,color:'white',font:'11px Arial'}}>
       {players.map((p,i)=>{const h=Math.floor(230/v.count),y=i*h+Math.floor(h/2),level=i===0?2:i===1?1:0,icon=p===v.human?5100+(v.avatar||5208)-5200:7100+1000*(v.characters?.[p]||0)+level;
         return <div role="row" key={p} aria-label={`${i+1}. ${v.names[p]}`}>
-          {digit(94+i,5,y-7)}{digit(103,5+differPieces.rects[94+i].width,y-7)}
           <img src={graphicsUrl(`setup/${icon}.png`)} alt={v.names[p]} style={{position:'absolute',left:25,top:y-23,width:41,height:47}}/>
-          <span role="cell" style={{position:'absolute',left:71,top:y-6,width:70,overflow:'hidden',whiteSpace:'nowrap'}}>{v.names[p]}</span>
-          <span role="cell" style={{position:'absolute',left:146,top:y-6}}>{round.call[p]}:{round.made[p]}{round.bonus[p]>0?`-${round.bonus[p]}`:''}</span>
-          <span role="cell" style={{position:'absolute',left:196,top:y-6}}>= {D.DeltaOf(round.call[p],round.made[p],round.bonus[p])}</span>
-          <span role="cell" style={{position:'absolute',left:236,top:y-6,color:'yellow',whiteSpace:'nowrap'}}>{total(p)} ({(total(p)/v.history.length).toFixed(1)})</span>
+          <span role="cell" style={{position:'absolute',left:71,top:y-9}}><BoardText scale={scale} lines={[v.names[p]]} width={100} size={15} lineHeight={22}/></span>
+          <span role="cell" style={{position:'absolute',left:176,top:y-9}}><BoardText scale={scale} lines={[`${round.call[p]}:${round.made[p]}${round.bonus[p]>0?`-${round.bonus[p]}`:''} = ${D.DeltaOf(round.call[p],round.made[p],round.bonus[p])}`]} width={115} size={15} lineHeight={22}/></span>
         </div>;
       })}
     </div>}

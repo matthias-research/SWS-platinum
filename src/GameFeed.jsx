@@ -32,11 +32,18 @@ function EventContent({event,view,setId}){
 }
 const positions={1:{left:310,top:38},2:{left:203,top:144},3:{left:310,top:280},4:{left:410,top:144}};
 const noMessages=[];
-export function GameFeed({view,scale,setId,cardHeight=118,messages=noMessages,duration=5,size=BASE_TABLE}){
+export function GameFeed({view,scale,setId,cardHeight=118,messages=noMessages,duration=5,size=BASE_TABLE,onPresentationChange}){
   const entries=view.feed||[],last=entries.at(-1)?.id||0;
   const seen=useRef(last),seenMessage=useRef(messages.length),scroller=useRef(null),atBottom=useRef(true);
   const initial=useRef(true);
   const [bubbles,setBubbles]=useState({});
+  // Include incoming bubbles before their effect commits, so a result dialog
+  // cannot flash open between a new view arriving and its bubbles appearing.
+  const incoming=duration>0&&(entries.some(e=>(e.id>seen.current||(initial.current&&view.commentaryIds?.includes(e.id)))&&e.player)||messages.slice(seenMessage.current).some(e=>e.player));
+  const bubblesVisible=duration>0&&Object.keys(bubbles).length>0;
+  useEffect(()=>{
+    onPresentationChange?.({view,busy:Boolean(incoming||bubblesVisible)});
+  },[view,incoming,bubblesVisible,onPresentationChange]);
   const dismiss=player=>{setBubbles(b=>{const next={...b};delete next[player];return next;});};
   useEffect(()=>{
     if(last<seen.current)setBubbles({});

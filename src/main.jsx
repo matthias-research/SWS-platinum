@@ -56,6 +56,8 @@ function App() {
   const lastPrizeNotice=useRef({id:null,team:0});
   const lastWinnerNotice=useRef({id:null,team:0,announced:false});
   const [information,setInformation]=useState([]);
+  const [presentation,setPresentation]=useState(null);
+  const informationReady=presentation?.view===game.view&&!presentation.busy&&!game.speaking&&!game.animation;
   const [finishedMatchId,setFinishedMatchId]=useState(null);
   const rematchStarted=useRef(null);
   useEffect(()=>{
@@ -236,13 +238,13 @@ function App() {
       {!reviewEnabled && !replay.view && game.view && <GameCardTargets game={game} sheet={sheets.V} scale={scale} size={tableSize} setId={cardSet} />}
       {!reviewEnabled&&!replay.view&&game.view&&<TablePlayers view={game.animation?.type==='collect'?game.animation.before:game.view} scale={scale} size={tableSize}/>}
       {!reviewEnabled&&!replay.view&&game.view&&<DifferPoints view={game.view} scale={scale} size={tableSize}/>}
-      {!reviewEnabled&&!replay.view&&game.view&&<GameFeed key={game.saved()?.options.id||'game'} view={game.view} scale={scale} size={tableSize} setId={cardSet} cardHeight={sheets.V?.cards[0].rect.height} messages={messages} duration={preferences.viewBubbleS??5}/>}
+      {!reviewEnabled&&!replay.view&&game.view&&<GameFeed key={game.saved()?.options.id||'game'} view={game.view} scale={scale} size={tableSize} setId={cardSet} cardHeight={sheets.V?.cards[0].rect.height} messages={messages} duration={preferences.viewBubbleS??5} onPresentationChange={setPresentation}/>}
       {!reviewEnabled&&!replay.view&&joker&&<button type="button" className="table-joker" aria-label="Joker: Ratschlag" title="Ratschlag" disabled={!canHint} style={{left:joker.x*scale,top:joker.y*scale,width:joker.width*scale,height:joker.height*scale}} onPointerDown={()=>setJokerPressed(true)} onPointerUp={()=>setJokerPressed(false)} onPointerLeave={()=>setJokerPressed(false)} onPointerCancel={()=>setJokerPressed(false)} onClick={()=>{setJokerPressed(false);game.getHint();}}><canvas ref={jokerCanvas} aria-hidden="true" style={{width:'100%',height:'100%'}}/></button>}
       {!reviewEnabled&&!replay.view&&game.view?.pause&&!game.busy&&!game.paused&&!game.automatic&&<button type="button" className="trick-clear-target" aria-label="Stich auf dem Tisch abräumen" onClick={()=>game.action({type:'continue'})}/>}
       {!reviewEnabled&&!replay.view&&game.view?.phase==='deal'&&!game.view.pause&&!game.busy&&!game.paused&&!game.automatic&&<button type="button" className="trick-clear-target" aria-label="Nächste Runde durch Klick auf den Tisch" onClick={()=>game.action({type:'deal'})}/>}
       {!assets && !error && <p className="loading" role="status">Tisch wird geladen…</p>}
     </div>}
-    {!reviewEnabled && !showWelcome && (replay.view ? <LegacyReplay lowLevel={lowLevel} replay={replay} setId={cardSet} /> : <GameControls bubbleDuration={preferences.viewBubbleS??5} sceneRef={sceneRef} lowLevel={lowLevel} key={game.view?(game.saved()?.options.id||game.view.kind):'idle'} game={game} onNew={setNewGame} onDialog={openDialog} displayScale={scale}/>)}
+    {!reviewEnabled && !showWelcome && (replay.view ? <LegacyReplay lowLevel={lowLevel} replay={replay} setId={cardSet} /> : <GameControls bubbleDuration={preferences.viewBubbleS??5} presentationReady={informationReady} sceneRef={sceneRef} lowLevel={lowLevel} key={game.view?(game.saved()?.options.id||game.view.kind):'idle'} game={game} onNew={setNewGame} onDialog={openDialog} displayScale={scale}/>)}
 
     {newGame && <GameSetup mobile={mobile} key={newGame} kind={newGame} setId={cardSet} settings={settings} onSettings={applySettings} displayScale={scale} onClose={() => setNewGame(null)} onStart={options => { setStartingKind(options.kind);replay.close();game.start({...options,...(dealSeed!==null?{seed:dealSeed}:{})});setMessages([]); setNewGame(null); }} />}
     {matchHistory && <MatchHistory scale={scale} onClose={() => setMatchHistory(false)} />}
@@ -262,7 +264,7 @@ function App() {
     {activeDialog==='seed'&&<SeedDialog kind={activeKind} seed={dealSeed} onClose={closeDialog} onApply={seed=>{setDealSeed(seed);closeDialog();}} scale={scale}/>}
     {['about','exit'].includes(activeDialog)&&<AboutDialog kind={activeKind} exit={activeDialog==='exit'} onSave={game.download} onEnd={closeGame} onClose={closeDialog} scale={scale}/>}
     {activeDialog==='results'&&<ResultsDialog game={game} onClose={closeDialog} scale={scale}/>}
-    {activeDialog==='information'&&information[0]&&<InformationDialog key={`${information[0].type}/${information[0].view.roundNumber}`} notice={information[0]} onClose={nextInformation} scale={scale}/>}
+    {activeDialog==='information'&&information[0]&&informationReady&&<InformationDialog key={`${information[0].type}/${information[0].view.roundNumber}`} notice={information[0]} onClose={nextInformation} scale={scale}/>}
     {activeDialog==='highscores'&&<HighScoresDialog kind={activeKind} onClose={closeDialog} scale={scale}/>}
     {activeDialog==='statistics'&&<StatisticsDialog kind={activeKind} game={game} onClose={closeDialog} scale={scale}/>}
     {activeDialog==='say'&&<ConversationDialog kind={activeKind} onSay={text=>setMessages(m=>m.concat({id:crypto.randomUUID(),kind:'say',player:game.view.human,text,after:game.view.feed.at(-1)?.id||0}))} onClose={closeDialog} scale={scale}/>}
