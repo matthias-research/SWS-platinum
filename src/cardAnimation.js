@@ -1,5 +1,5 @@
 // Animate only forward play and collected tricks, never restores or undo.
-export function cardTransition(before,after,steps=60){
+export function cardTransition(before,after,steps=30){
   if(!before||!after||steps<=0||before.kind!==after.kind||before.roundNumber!==after.roundNumber)return null;
   const total=v=>(v.pickedTricks||[]).reduce((a,b)=>a+b,0);
   if(total(after)===total(before)+1&&before.trick?.fPlayed.slice(1,before.count+1).every(Boolean)){

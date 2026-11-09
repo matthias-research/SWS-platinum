@@ -23,6 +23,16 @@ for(const setId of [1,2])test(`new Differenzler shows its drawn card before Ansa
   await page.getByRole('dialog').getByRole('button',{name:'Spielen',exact:true}).click();
   const dialog=page.getByRole('dialog',{name:'Die Trumpkarte',exact:true});
   await expect(dialog).toBeVisible();
+  // Tall phone viewports must not move the announcement into the space below
+  // the table, even when that space would allow a larger dialog.
+  for(const viewport of setId===2?[{width:390,height:844},{width:390,height:1100},{width:360,height:740}]:[]){
+    await page.setViewportSize(viewport);
+    await expect.poll(()=>dialog.evaluate(el=>{
+      const scene=document.querySelector('.scene-frame > canvas').getBoundingClientRect(),rect=el.getBoundingClientRect();
+      const handTop=Math.min(...[...document.querySelectorAll('.card-target')].map(c=>c.getBoundingClientRect().top));
+      return rect.left>=scene.left&&rect.right<=scene.right&&rect.top>=scene.top&&rect.bottom<=Math.min(scene.bottom,handTop);
+    })).toBe(true);
+  }
   await expect(dialog.getByRole('button')).toHaveCount(1);
   await expect(dialog.getByRole('button',{name:'OK',exact:true})).toBeVisible();
   const saved=JSON.parse(await page.evaluate(()=>localStorage.getItem('sws-game')));
@@ -36,6 +46,14 @@ for(const setId of [1,2])test(`new Differenzler shows its drawn card before Ansa
   await expect(dialog).toHaveCount(0);
   await expect(page.getByRole('dialog',{name:'Deine Ansage…',exact:true})).toBeVisible();
   const call=page.getByRole('dialog',{name:'Deine Ansage…',exact:true});
+  for(const viewport of setId===2?[{width:390,height:844},{width:390,height:1100},{width:360,height:740}]:[]){
+    await page.setViewportSize(viewport);
+    await expect.poll(()=>call.evaluate(el=>{
+      const scene=document.querySelector('.scene-frame > canvas').getBoundingClientRect(),rect=el.getBoundingClientRect();
+      const handTop=Math.min(...[...document.querySelectorAll('.card-target')].map(c=>c.getBoundingClientRect().top));
+      return rect.left>=scene.left&&rect.right<=scene.right&&rect.top>=scene.top&&rect.bottom<=Math.min(scene.bottom,handTop);
+    })).toBe(true);
+  }
   const input=call.getByRole('textbox',{name:'Ansage',exact:true});
   await input.fill('157');
   const fits=await input.evaluate(el=>{

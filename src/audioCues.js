@@ -1,3 +1,5 @@
+import {kShowShow} from './engine/DiffBase.js';
+
 // Resource arithmetic from Schieber/Differ PCMEDIA.PAS. IDs are original WAV IDs.
 const clip = (folder, first, variants = 1) => ({ folder, first, variants });
 const voiceFolder = voice => `STIMME${voice}`;
@@ -49,6 +51,7 @@ export function speechForAction(action, view, settings) {
       return [clip('STIMME2',base+190,10),clip(trump<5?cardsFolder(2,settings.set):'STIMME2',base+200+trump-1)];
     }
     if(action.command==='cmdCall'){
+      if(view.kind==='differ'&&view.rules?.fCallMode!==kShowShow)return [];
       const call=action.data.fCall;if(view.calls?.[player]!==call)return [];
       return [...(call>20?[clip('STIMME2',base+170,10)]:[]),clip('STIMME2',base+call)];
     }

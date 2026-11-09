@@ -189,7 +189,7 @@ function App() {
   }, []);
 
   const settings={...preferences,cardSet,viewCardsBox:cardNames[cardSet-1],viewThinkS:game.speed,genNoise:game.sound.enabled&&game.sound.noise!==false,genCalls:game.sound.enabled&&game.sound.calls!==false,genHint:game.sound.enabled&&game.sound.hints!==false,genVoice:game.sound.enabled&&game.sound.comments!==false,genOwn:game.sound.enabled&&game.sound.own!==false};
-  const applySettings=value=>{setPreferences(value);try{localStorage.setItem('sws-preferences',JSON.stringify(value));}catch{}if(cardNames.includes(value.viewCardsBox))setCardSet(cardNames.indexOf(value.viewCardsBox)+1);if(value.viewThinkS)game.setSpeed(value.viewThinkS);game.setSound({...game.sound,enabled:Boolean(value.genNoise||value.genCalls||value.genHint||value.genVoice||value.genOwn),noise:value.genNoise,calls:value.genCalls,hints:value.genHint,comments:value.genVoice,own:value.genOwn});};
+  const applySettings=value=>{setPreferences(value);try{localStorage.setItem('sws-preferences',JSON.stringify(value));}catch{}if(cardNames.includes(value.viewCardsBox))setCardSet(cardNames.indexOf(value.viewCardsBox)+1);if(Number.isFinite(value.viewThinkS))game.setSpeed(value.viewThinkS);game.setSound({...game.sound,enabled:Boolean(value.genNoise||value.genCalls||value.genHint||value.genVoice||value.genOwn),noise:value.genNoise,calls:value.genCalls,hints:value.genHint,comments:value.genVoice,own:value.genOwn});};
 
   const act = action => { action(); setMenu(null); };
   const item = (label, action, selected, disabled=false) => <button type="button" className="menu-item" disabled={disabled} onClick={() => act(action)}

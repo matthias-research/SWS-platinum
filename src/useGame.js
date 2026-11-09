@@ -5,9 +5,9 @@ import {rematchOptions} from './rematch';
 function soundPreferences() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem('sws-sound') || '{}'); } catch {}
-  return { enabled: saved?.enabled === true, volume: Number.isFinite(saved?.volume) ? Math.max(0, Math.min(1, saved.volume)) : 0.6,
+  return { enabled: saved?.enabled !== false, volume: Number.isFinite(saved?.volume) ? Math.max(0, Math.min(1, saved.volume)) : 0.6,
     voice: [3, 4, 5, 6].includes(saved?.voice) ? saved.voice : 3, set: 1,
-    noise:saved?.noise!==false,calls:saved?.calls!==false,hints:saved?.hints!==false,own:saved?.own!==false,comments:saved?.comments!==false };
+    noise:saved?.noise===true,calls:saved?.calls!==false,hints:saved?.hints!==false,own:saved?.own!==false,comments:saved?.comments!==false };
 }
 export function useGame() {
   const worker = useRef(null), latest = useRef(null), sequence = useRef(0);
@@ -21,7 +21,7 @@ export function useGame() {
   const finishAnimation=useCallback(completed=>setAnimation(current=>current===completed?null:current),[]);
   const [automatic, setAutomatic] = useState(false), [speed, setSpeed] = useState(()=>{
     try {const value=JSON.parse(localStorage.getItem('sws-preferences')||'{}').viewThinkS;if(Number.isFinite(value)&&value>=0&&value<=2000)return value;}catch{}
-    return 50;
+    return 0;
   });
   const [series,setSeries]=useState(1);
   const [paused, setPaused] = useState(false), [hint, setHint] = useState(null);
@@ -38,7 +38,7 @@ export function useGame() {
         if (data.error) { setError(data.error); setAutomatic(false); return; }
         // Advice is calculated on a copy: retain the current view and artwork.
         if(data.hint){setHint(data.hint);soundForHint(data.hint,soundRef.current);return;}
-        let steps=60;try{steps=JSON.parse(localStorage.getItem('sws-preferences')||'{}').viewSlideS??60;}catch{}
+        let steps=30;try{steps=JSON.parse(localStorage.getItem('sws-preferences')||'{}').viewSlideS??30;}catch{}
         const transition=cardTransition(lastView.current,data.view,steps);
         setAnimation(transition);
 

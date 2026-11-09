@@ -11,7 +11,7 @@ export function formImage(data,kind,form,name){const c=data?.forms[kind]?.[form]
 export function looseImage(data,name){return imageUrl(data,data?.loose[name.toLowerCase()]);}
 const captions={bkOK:'OK',bkCancel:'Abbrechen',bkYes:'Ja',bkNo:'Nein',bkClose:'Schliessen'};
 const clean=t=>informalCaption(String(t??'').replace(/&/g,''));
-export function DialogFrame({title,width,height,onClose,children,className='',keepHandVisible=false,scale:tableScale=1,controlScale,hideClose=false}) {
+export function DialogFrame({title,width,height,onClose,children,className='',keepHandVisible=false,allowBelowHand=true,scale:tableScale=1,controlScale,hideClose=false}) {
   // All dialogs follow the selected resolution mode, capped to the viewport.
   const scale=Number.isFinite(tableScale)&&tableScale>0?tableScale:1;
   const ref=useRef(null),[viewport,setViewport]=useState({w:innerWidth,h:innerHeight});
@@ -29,14 +29,14 @@ export function DialogFrame({title,width,height,onClose,children,className='',ke
       const fit=area=>Math.max(0,Math.min(preferred,(innerWidth-20)/width,(area.bottom-area.top)/(height+22)));
       // On a narrow phone the space below the hand allows legible controls.
       const mobile=table.closest('.application')?.dataset.view?.startsWith('mobile-');
-      const area=mobile&&fit(above)<preferred&&fit(below)>fit(above)?below:above,zoom=fit(area);
+      const area=allowBelowHand&&mobile&&fit(above)<preferred&&fit(below)>fit(above)?below:above,zoom=fit(area);
       const next={zoom,left:Math.max(8,Math.min(innerWidth-width*zoom-8,scene.left+scene.width/2-width*zoom/2)),top:area.top+Math.max(0,(area.bottom-area.top-(height+22)*zoom)/2)};
       setPlacement(old=>JSON.stringify(old)===JSON.stringify(next)?old:next);
     };
     measure();const observer=new ResizeObserver(measure);observer.observe(table);
     window.addEventListener('resize',measure);window.addEventListener('scroll',measure,true);
     return()=>{observer.disconnect();window.removeEventListener('resize',measure);window.removeEventListener('scroll',measure,true);};
-  },[keepHandVisible,width,height,scale]);
+  },[keepHandVisible,allowBelowHand,width,height,scale]);
   useEffect(()=>{ref.current.showModal();const resize=()=>setViewport({w:innerWidth,h:innerHeight});window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize);},[]);
   const zoom=keepHandVisible&&placement?placement.zoom:Math.min(scale,(viewport.w-20)/width,(viewport.h-20)/(height+22));
   const centered=useCanvasDialogPosition(width*zoom,(height+22)*zoom,!keepHandVisible);
@@ -49,7 +49,7 @@ export function DialogFrame({title,width,height,onClose,children,className='',ke
   </dialog>;
 }
 
-export function LegacyDialog({kind='schieber',form,title,onClose,onAction,values={},onChange=()=>{},overrides={},render,children,initialTab=0,hideTabs=false,scale,controlScale,hide=[],readOnly=false,width,height,keepHandVisible=false}) {
+export function LegacyDialog({kind='schieber',form,title,onClose,onAction,values={},onChange=()=>{},overrides={},render,children,initialTab=0,hideTabs=false,scale,controlScale,hide=[],readOnly=false,width,height,keepHandVisible=false,allowBelowHand=true}) {
   const {data,error}=useDialogCatalog(); const [tab,setTab]=useState(initialTab);
   if(error)return <DialogFrame title="Fehler" scale={scale} width={350} height={100} onClose={onClose}><p role="alert">{error}</p></DialogFrame>;
   if(!data)return null;
@@ -61,7 +61,7 @@ export function LegacyDialog({kind='schieber',form,title,onClose,onAction,values
   const rect=c=>{let x=c.properties.Left||0,y=c.properties.Top||0,path=c.path;while((path=path.slice(0,path.lastIndexOf('.')))&&path!==root.path){const parent=byPath.get(path),p={...parent?.properties,...overrides[parent?.name]};x+=p.Left||0;y+=p.Top||0;}return{left:x,top:y,width:c.properties.Width,height:c.properties.Height};};
   const action=c=>{if(onAction)onAction(c.name,values,c);else onClose();};
   const notebook=controls.find(c=>c.className==='TTabbedNotebook');
-  return <DialogFrame title={title||clean(rp.Caption)||'Stöck Wyys Stich'} width={width||rp.ClientWidth||rp.Width||640} height={height||rp.ClientHeight||rp.Height||480} onClose={onClose} scale={scale} controlScale={controlScale} keepHandVisible={keepHandVisible}>
+  return <DialogFrame title={title||clean(rp.Caption)||'Stöck Wyys Stich'} width={width||rp.ClientWidth||rp.Width||640} height={height||rp.ClientHeight||rp.Height||480} onClose={onClose} scale={scale} controlScale={controlScale} keepHandVisible={keepHandVisible} allowBelowHand={allowBelowHand}>
     {!hideTabs&&tabs.length>0&&<div className="original-tabs" style={notebook?{left:rect(notebook).left+4,top:rect(notebook).top+2}:undefined} role="tablist">{tabs.map((t,i)=><button key={t.path} type="button" role="tab" aria-selected={i===tab} onClick={()=>setTab(i)}>{clean(t.properties.Caption)}</button>)}</div>}
     {controls.map(c=>{
       const p={...c.properties,...overrides[c.name]},r=rect({...c,properties:p}),cls=c.className;

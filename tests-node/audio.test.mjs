@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { speechForAction, speechForHint, speechForComment } from '../src/audioCues.js';
+import {kHideHide,kHideShow,kShowShow} from '../src/engine/DiffBase.js';
 const paths = new Set(JSON.parse(await readFile('public/assets/audio/index.json', 'utf8')));
 const settings = {voice:3,set:1};
 
@@ -45,6 +46,17 @@ test('human announcements use original gender-specific recordings in STIMME2',()
     const shift=speechForAction({command:'cmdShift',data:{fPlayer:3}},view,prefs);
     assert.deepEqual(shift,[{folder:'STIMME2',first:base+180,variants:10}]);
     for(const cue of [...trump,...call,...shift])assert(Array.from({length:cue.variants},(_,i)=>paths.has(`${cue.folder}/${cue.first+i}.mp3`)).some(Boolean));
+  }
+});
+
+test('human Differenzler predictions are spoken only in Offen mode',()=>{
+  const action={command:'cmdCall',data:{fPlayer:3,fCall:65}};
+  // The human always sees their own call, including when it is private.
+  const view={kind:'differ',human:3,calls:[0,10,20,65,30]};
+  for(const mode of [kHideHide,kHideShow,kShowShow]){
+    const cues=speechForAction(action,{...view,rules:{fCallMode:mode}},settings);
+    if(mode===kShowShow)assert.equal(cues.length,2);
+    else assert.deepEqual(cues,[]);
   }
 });
 

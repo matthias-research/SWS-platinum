@@ -1,5 +1,26 @@
 import {test,expect} from '@playwright/test';
 
+test('display defaults use zero delay and 30 animation steps; zero applies and persists',async({page})=>{
+  await page.goto('/?review=cards');
+  const open=async()=>{
+    await page.getByRole('button',{name:'Einstellungen',exact:true}).click();
+    await page.getByRole('button',{name:'Darstellungen…',exact:true}).click();
+  };
+  const save=()=>page.getByRole('dialog').getByRole('button',{name:'OK',exact:true}).click();
+  await open();
+  await expect(page.getByRole('slider',{name:'Spielverzögerung',exact:true})).toHaveValue('0');
+  await expect(page.getByRole('slider',{name:'Kartenanimation',exact:true})).toHaveValue('30');
+  await page.getByRole('slider',{name:'Spielverzögerung',exact:true}).fill('900');await save();
+  await open();
+  await expect(page.getByRole('slider',{name:'Spielverzögerung',exact:true})).toHaveValue('900');
+  await page.getByRole('slider',{name:'Spielverzögerung',exact:true}).fill('0');await save();
+  await open();
+  await expect(page.getByRole('slider',{name:'Spielverzögerung',exact:true})).toHaveValue('0');
+  await save();await page.reload();await open();
+  await expect(page.getByRole('slider',{name:'Spielverzögerung',exact:true})).toHaveValue('0');
+  await expect(page.getByRole('slider',{name:'Kartenanimation',exact:true})).toHaveValue('30');
+});
+
 for(const kind of ['Schieber','Differenzler'])test(kind+': confirmed rules survive reopening without starting a game',async({page,context})=>{
   await page.goto('/');
   await page.getByRole('button',{name:'Neuer '+kind+'…',exact:true}).click();

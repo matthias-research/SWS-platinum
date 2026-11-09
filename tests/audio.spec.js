@@ -1,6 +1,23 @@
 import {enableLowlevel} from './lowlevel';
 import { test, expect } from '@playwright/test';
 
+test('audio defaults enable all voices and hints but leave noises off',async({page})=>{
+  await page.goto('/?review=cards');
+  await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('sws-sound')))).toMatchObject({enabled:true,own:true,calls:true,comments:true,hints:true,noise:false});
+  await page.getByRole('button',{name:'Einstellungen',exact:true}).click();
+  await page.getByRole('button',{name:'Allgemein…',exact:true}).click();
+  const dialog=page.getByRole('dialog',{name:'Allgemein',exact:true});
+  await expect(dialog.getByRole('checkbox',{name:'Eigene Stimme',exact:true})).toBeChecked();
+  await expect(dialog.getByRole('checkbox',{name:'Kommentare von Spielern',exact:true})).toBeChecked();
+  await expect(dialog.getByRole('checkbox',{name:'Geräusche',exact:true})).not.toBeChecked();
+});
+
+test('saved audio choices override the new defaults',async({page})=>{
+  await page.addInitScript(()=>localStorage.setItem('sws-sound',JSON.stringify({enabled:false,own:false,calls:false,comments:false,hints:false,noise:true})));
+  await page.goto('/?review=cards');
+  await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('sws-sound')))).toMatchObject({enabled:false,own:false,calls:false,comments:false,hints:false,noise:true});
+});
+
 test('Eigene Stimme alone enables human announcements without computer voices',async({page})=>{
   await page.addInitScript(()=>{
     window.recordings=[];
